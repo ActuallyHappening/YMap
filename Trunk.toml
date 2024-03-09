@@ -1,0 +1,4 @@
+[serve]
+open = true
+port = 6969
+address = "0.0.0.0"

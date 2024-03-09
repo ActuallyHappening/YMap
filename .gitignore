@@ -1,1 +1,9 @@
-/target
+/*
+
+!src
+!.gitignore
+!Cargo.lock
+!Cargo.toml
+!index.html
+!README.md
+!Trunk.toml
