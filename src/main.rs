@@ -1,5 +1,6 @@
-use bevy::prelude::*;
+use bevy::{ecs::schedule::LogLevel, log::LogPlugin, prelude::*};
 use infi_map::InfiMapPlugins;
+use tracing::Level;
 
 fn main() {
     let mut app = App::new();
@@ -18,7 +19,11 @@ fn main() {
             .set(AssetPlugin {
                 mode: AssetMode::Unprocessed,
                 ..default()
-            }),
+            }).set(LogPlugin {
+							level: Level::ERROR,
+							filter: "infi_map=trace".into(),
+							..default()
+						}),
         InfiMapPlugins,
     ));
 

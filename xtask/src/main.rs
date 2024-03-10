@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use clap::Parser;
 use tracing::*;
 
@@ -5,6 +7,7 @@ use tracing::*;
 #[command(version, about, long_about = None)]
 pub enum Args {
     Run,
+		List,
 }
 
 fn main() {
@@ -20,11 +23,16 @@ fn main() {
         Args::Run => {
             info!("Running ...");
             // execute nu run.nu
-            let process = std::process::Command::new("nu")
+            let process = Command::new("nu")
                 .arg("run.nu")
                 .spawn()
                 .expect("failed to execute process");
             process.wait_with_output().unwrap();
         }
+				Args::List => {
+					info!("Listing devices ...");
+					let process = Command::new("xcrun").args(["xctrace", "list", "devices"]).spawn().expect("failed to execute process");
+					process.wait_with_output().unwrap();
+				}
     }
 }

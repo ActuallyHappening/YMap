@@ -14,3 +14,4 @@ tracing = "0.1.40"
 
 [package.metadata.bundle]
 identifier = "com.infimap.InfiMap"
+resources = ["assets"]
