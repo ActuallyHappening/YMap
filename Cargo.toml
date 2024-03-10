@@ -1,3 +1,4 @@
+workspace = { members = ["xtask"] }
 [package]
 name = "infi-map"
 version = "0.1.0"
