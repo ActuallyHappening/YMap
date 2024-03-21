@@ -11,3 +11,4 @@
 !run.nu
 !xtask
 !.cargo
+!.rustfmt.toml
