@@ -1,4 +1,11 @@
-use bevy::{app::PluginGroupBuilder, prelude::*};
+use std::f32::consts::TAU;
+
+use bevy::{
+	app::PluginGroupBuilder,
+	input::touch::TouchPhase,
+	prelude::*,
+	sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+};
 use bevy_editor_pls::prelude::*;
 
 pub struct InfiMapPlugins;
@@ -19,63 +26,58 @@ pub struct CustomTouches(Vec<TouchInput>);
 impl Plugin for TestingPlugin {
 	fn build(&self, app: &mut App) {
 		app
-			.add_systems(Update, (touch_system, touch_event_system))
-			.add_systems(Startup, (setup, spawn_custom_touches))
+			.add_systems(Update, (touch_logging, draw_from_touches))
+			.add_systems(Startup, (setup,))
 			.register_type::<CustomTouches>()
 			.init_resource::<CustomTouches>();
 	}
 }
 
 fn setup(mut commands: Commands) {
-	commands.spawn(Camera2dBundle::default());
+	commands.spawn(Camera3dBundle {
+		transform: Transform::from_xyz(0.0, 0.0, 0.0),
+		..default()
+	});
+
+	commands.spawn(PbrBundle {
+		transform: Transform::from_rotation(Quat::from_rotation_y(TAU / 4.0)),
+		..default()
+	});
 }
 
-#[derive(Component)]
-pub struct TestingTouchesText;
+#[derive(Component, Debug)]
+struct Plane;
 
-fn spawn_custom_touches(mut commands: Commands, ass: Res<AssetServer>) {
-	let font = ass.load("fonts/FiraMono-Medium.ttf");
-
-	let text_style = TextStyle {
-		font: font.clone(),
-		font_size: 10.0,
-		color: Color::WHITE,
-	};
-
-	commands.spawn((
-		Name::new("Custom Touches"),
-		Text2dBundle {
-			text: Text::from_section("Custom Touches", text_style).with_justify(JustifyText::Center),
-			..default()
-		},
-		TestingTouchesText,
-	));
-}
-
-fn touch_event_system(
+fn draw_from_touches(
 	mut touch_events: EventReader<TouchInput>,
-	mut touches: ResMut<CustomTouches>,
-	mut text_node: Query<&mut Text, With<TestingTouchesText>>,
+	mut commands: Commands,
+	mut meshs: ResMut<Assets<Mesh>>,
+	mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-	for event in touch_events.read() {
-		info!("Touch Event: {:?}", event);
-		touches.push(*event);
-
-		let mut text = String::new();
-		text.push_str("Custom Touches:\n");
-
-		for t in touches.iter() {
-			let dbg = format!("Touch Event: {:?}\n", t);
-			text.push_str(&dbg);
-		}
-
-		let mut text_node = text_node.single_mut();
-		let text_section = text_node.sections.get_mut(0).unwrap();
-		text_section.value = text;
+	for TouchInput {
+		phase,
+		position,
+		window,
+		force,
+		id,
+	} in touch_events.read()
+	{
+		let color = match phase {
+			TouchPhase::Started => Color::BLUE,
+			TouchPhase::Moved => Color::GREEN,
+			TouchPhase::Ended => Color::RED,
+			TouchPhase::Canceled => Color::ORANGE,
+		};
+		commands.spawn(MaterialMesh2dBundle {
+			material: materials.add(color),
+			mesh: Mesh2dHandle(meshs.add(Circle { radius: 5.0 })),
+			transform: Transform::from_translation(Vec3::new(position.x, position.y, 0.0)),
+			..default()
+		});
 	}
 }
 
-fn touch_system(touches: Res<Touches>) {
+fn touch_logging(touches: Res<Touches>) {
 	for touch in touches.iter_just_pressed() {
 		info!(
 			"just pressed touch with id: {:?}, at: {:?}",

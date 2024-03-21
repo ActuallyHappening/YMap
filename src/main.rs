@@ -12,7 +12,7 @@ fn main() {
 					title: "InfiMap Application".into(),
 					canvas: Some("#app".into()),
 					prevent_default_event_handling: false,
-					mode: bevy::window::WindowMode::Fullscreen,
+					mode: bevy::window::WindowMode::SizedFullscreen,
 					..default()
 				}),
 				..default()
