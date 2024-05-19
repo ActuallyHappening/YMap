@@ -12,7 +12,7 @@ fn main() {
 					title: "InfiMap Application".into(),
 					canvas: Some("#app".into()),
 					prevent_default_event_handling: false,
-					mode: bevy::window::WindowMode::SizedFullscreen,
+					mode: bevy::window::WindowMode::Windowed,
 					..default()
 				}),
 				..default()
@@ -22,7 +22,7 @@ fn main() {
 				..default()
 			})
 			.set(LogPlugin {
-				level: Level::ERROR,
+				level: Level::INFO,
 				filter: "infi_map=trace".into(),
 				..default()
 			}),
