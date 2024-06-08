@@ -12,4 +12,3 @@
 !xtask
 !.cargo
 !.rustfmt.toml
-!xcode
