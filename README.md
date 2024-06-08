@@ -13,3 +13,7 @@ cargo install cargo-run-script
 # alias of rs => run-script in .cargo/config.toml
 cargo rs dev-install
 ```
+
+### TODO:
+- move xcode into a nested project
+	- change build_rust_deps.sh into .nu
