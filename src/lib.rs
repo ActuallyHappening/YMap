@@ -2,6 +2,8 @@ use bevy::{app::PluginGroupBuilder, log::LogPlugin, prelude::*};
 use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
+mod debug;
+
 pub struct InfiMapPlugins;
 
 impl PluginGroup for InfiMapPlugins {
@@ -45,8 +47,14 @@ pub fn main() {
 					..default()
 				}),
 		)
-		.add_plugins(CosmicEditPlugin {
-			font_config,
-		})
+		.add_plugins(CosmicEditPlugin { font_config })
+		.add_systems(Startup, setup)
+		.add_systems(Update, debug::touch_system)
 		.run();
+}
+
+fn setup(mut commands: Commands) {
+	let cam = Camera3dBundle { ..default() };
+
+	commands.spawn(cam);
 }
