@@ -1,8 +1,9 @@
 [package]
-name = "infi-map"
+name = "ymap"
 version = "0.1.0"
 edition = "2021"
 description = "test-ios app"
+default-run = "ymap"
 
 [workspace]
 members = ["xtask"]

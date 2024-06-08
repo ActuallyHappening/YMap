@@ -1,5 +1,5 @@
 use bevy::{log::LogPlugin, prelude::*};
-use infi_map::InfiMapPlugins;
+use ymap::InfiMapPlugins;
 use tracing::Level;
 
 fn main() {

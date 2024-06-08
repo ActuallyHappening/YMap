@@ -46,13 +46,13 @@ for arch in $ARCHS; do
 
 	arm64)
 
-		cd .. # Change out of InfiMap/xcode -> InfiMap/
+		# cd .. # Change out of InfiMap/xcode -> InfiMap/
 		if [ $IS_SIMULATOR -eq 0 ]; then
 			# Hardware iOS targets
-			cargo rustc --crate-type staticlib --lib $RELFLAG --target aarch64-apple-ios
+			cargo rustc --manifest-path "../Cargo.toml" --crate-type staticlib --lib $RELFLAG --target aarch64-apple-ios
 		else
 			# M1 iOS simulator
-			cargo rustc --crate-type staticlib --lib $RELFLAG --target aarch64-apple-ios-sim
+			cargo rustc --manifest-path "../Cargo.toml" --crate-type staticlib --lib $RELFLAG --target aarch64-apple-ios-sim
 		fi
 		;;
 	esac
