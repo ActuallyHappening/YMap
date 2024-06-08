@@ -3,8 +3,7 @@ name = "ymap"
 version = "0.1.0"
 edition = "2021"
 description = "test-ios app"
-# default-run = "bevy_mobile_example"
-default-run = "text"
+default-run = "ymap"
 publish = false
 
 [lib]

@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
                BuildableName = "ymap.app"
-               BlueprintName = "ymap"
+               BlueprintName = "YMap"
                ReferencedContainer = "container:ymap.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,7 +46,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
             BuildableName = "ymap.app"
-            BlueprintName = "ymap"
+            BlueprintName = "YMap"
             ReferencedContainer = "container:ymap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,7 +63,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
             BuildableName = "ymap.app"
-            BlueprintName = "ymap"
+            BlueprintName = "YMap"
             ReferencedContainer = "container:ymap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
