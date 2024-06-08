@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-               BuildableName = "bevy_mobile_example.app"
-               BlueprintName = "bevy_mobile_example"
-               ReferencedContainer = "container:bevy_mobile_example.xcodeproj">
+               BuildableName = "ymap.app"
+               BlueprintName = "ymap"
+               ReferencedContainer = "container:ymap.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-            BuildableName = "bevy_mobile_example.app"
-            BlueprintName = "bevy_mobile_example"
-            ReferencedContainer = "container:bevy_mobile_example.xcodeproj">
+            BuildableName = "ymap.app"
+            BlueprintName = "ymap"
+            ReferencedContainer = "container:ymap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-            BuildableName = "bevy_mobile_example.app"
-            BlueprintName = "bevy_mobile_example"
-            ReferencedContainer = "container:bevy_mobile_example.xcodeproj">
+            BuildableName = "ymap.app"
+            BlueprintName = "ymap"
+            ReferencedContainer = "container:ymap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

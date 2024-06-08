@@ -14,6 +14,7 @@
 !.rustfmt.toml
 
 # todo: move xcode into nested project
-!bevy_mobile_example.xcodeproj
+!ymap.xcodeproj
 # Makefile
 !build_rust_deps.sh
+!ios-src

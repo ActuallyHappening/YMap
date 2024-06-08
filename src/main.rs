@@ -10,7 +10,7 @@ fn main() {
 		DefaultPlugins
 			.set(WindowPlugin {
 				primary_window: Some(Window {
-					title: "InfiMap Application".into(),
+					title: "YMap Application".into(),
 					canvas: Some("#app".into()),
 					prevent_default_event_handling: false,
 					mode: bevy::window::WindowMode::Windowed,
