@@ -17,3 +17,4 @@ cargo rs dev-install
 ### TODO:
 - move xcode into a nested project
 	- change build_rust_deps.sh into .nu
+- use CLI to build and run the project through xcode and yap plugin

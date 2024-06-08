@@ -42,14 +42,14 @@ pub fn main() {
 					..default()
 				})
 				.set(LogPlugin {
-					level: Level::INFO,
-					filter: "info,ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
+					level: Level::ERROR,
+					filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
 					..default()
 				}),
 		)
 		.add_plugins(CosmicEditPlugin { font_config })
+		.add_plugins(debug::DebugPlugin)
 		.add_systems(Startup, setup)
-		.add_systems(Update, debug::touch_system)
 		.run();
 }
 

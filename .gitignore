@@ -8,10 +8,12 @@
 !README.md
 !Trunk.toml
 !assets
-!run.nu
 !xtask
 !.cargo
 !.rustfmt.toml
+
+# scripts
+!bundle.nu
 
 # todo: move xcode into nested project
 !ymap.xcodeproj
