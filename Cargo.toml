@@ -3,11 +3,11 @@ name = "bevy_mobile_example"
 version = "0.1.0"
 edition = "2021"
 description = "test-ios app"
-default-run = "ymap"
+default-run = "bevy_mobile_example"
 publish = false
 
 [lib]
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["staticlib", "cdylib"]
 
 [workspace]
 members = ["xtask"]
@@ -15,13 +15,10 @@ members = ["xtask"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.13.0"
+bevy = "0.13.2"
 bevy_cosmic_edit = "0.20.0"
 bevy_editor_pls = "0.8.1"
 tracing = "0.1.40"
-
-[target.aarch64-apple-ios-sim.dependencies]
-bevy = { version = "0.13.0", features = ["ios_simulator"] }
 
 [package.metadata.bundle]
 identifier = "com.infimap.InfiMap"

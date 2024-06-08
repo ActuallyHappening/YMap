@@ -1,7 +1,8 @@
 use bevy::{log::LogPlugin, prelude::*};
-use ymap::InfiMapPlugins;
+use bevy_mobile_example::InfiMapPlugins;
 use tracing::Level;
 
+#[bevy_main]
 fn main() {
 	let mut app = App::new();
 
