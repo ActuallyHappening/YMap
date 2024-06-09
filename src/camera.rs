@@ -15,6 +15,7 @@ struct PrimaryCameraBundle {
 	cosmic_marker: CosmicPrimaryCamera,
 
 	camera: Camera3dBundle,
+	name: Name,
 }
 
 impl Default for PrimaryCameraBundle {
@@ -22,9 +23,9 @@ impl Default for PrimaryCameraBundle {
 		Self {
 			cosmic_marker: CosmicPrimaryCamera,
 			camera: Camera3dBundle::default(),
+			name: Name::new("Primary Camera"),
 		}
 	}
-
 }
 
 fn setup(mut commands: Commands) {

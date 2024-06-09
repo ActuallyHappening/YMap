@@ -3,13 +3,13 @@ use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
 mod prelude {
-	pub use bevy::prelude::*;
 	pub use crate::consts::*;
+	pub use bevy::prelude::*;
 }
 
-mod debug;
 mod camera;
 mod consts;
+mod debug;
 
 pub struct YMapPlugins;
 
@@ -25,6 +25,7 @@ impl PluginGroup for YMapPlugins {
 		};
 
 		PluginGroupBuilder::start::<Self>()
+			.add(camera::CameraPlugin)
 			.add(CosmicEditPlugin { font_config })
 			.add(bevy_editor_pls::EditorPlugin::default())
 	}
@@ -57,7 +58,7 @@ pub fn main() {
 					..default()
 				}),
 		)
-		.add_plugins(debug::DebugPlugin)
 		.add_plugins(YMapPlugins)
+		.add_plugins(debug::DebugPlugin)
 		.run();
 }
