@@ -2,27 +2,37 @@ use bevy::{app::PluginGroupBuilder, log::LogPlugin, prelude::*};
 use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
+mod prelude {
+	pub use bevy::prelude::*;
+	pub use crate::consts::*;
+}
+
 mod debug;
+mod camera;
+mod consts;
 
-pub struct InfiMapPlugins;
+pub struct YMapPlugins;
 
-impl PluginGroup for InfiMapPlugins {
+impl PluginGroup for YMapPlugins {
 	fn build(self) -> PluginGroupBuilder {
+		// cosmic edit
+		let font_bytes: &[u8] = include_bytes!("../assets/fonts/FiraMono-Medium.ttf");
+		let font_config = CosmicFontConfig {
+			fonts_dir_path: None,
+			// font_bytes: None,
+			font_bytes: Some(vec![font_bytes]),
+			load_system_fonts: true,
+		};
+
 		PluginGroupBuilder::start::<Self>()
+			.add(CosmicEditPlugin { font_config })
+			.add(bevy_editor_pls::EditorPlugin::default())
 	}
 }
 
 #[bevy_main]
 pub fn main() {
 	let mut app = App::new();
-
-	let font_bytes: &[u8] = include_bytes!("../assets/fonts/FiraMono-Medium.ttf");
-	let font_config = CosmicFontConfig {
-		fonts_dir_path: None,
-		// font_bytes: None,
-		font_bytes: Some(vec![font_bytes]),
-		load_system_fonts: true,
-	};
 
 	App::new()
 		.add_plugins(
@@ -47,14 +57,7 @@ pub fn main() {
 					..default()
 				}),
 		)
-		.add_plugins(CosmicEditPlugin { font_config })
 		.add_plugins(debug::DebugPlugin)
-		.add_systems(Startup, setup)
+		.add_plugins(YMapPlugins)
 		.run();
-}
-
-fn setup(mut commands: Commands) {
-	let cam = Camera3dBundle { ..default() };
-
-	commands.spawn(cam);
 }

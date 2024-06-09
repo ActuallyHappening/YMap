@@ -16,7 +16,7 @@ members = ["xtask"]
 
 [dependencies]
 bevy = "0.13.2"
-bevy_cosmic_edit = "0.20.0"
+bevy_cosmic_edit = { version = "0.20.0", features = ["multicam"] }
 bevy_editor_pls = "0.8.1"
 tracing = "0.1.40"
 
