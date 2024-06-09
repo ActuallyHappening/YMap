@@ -20,3 +20,4 @@
 # Makefile
 !build_rust_deps.sh
 !ios-src
+!Assets.xcassets
