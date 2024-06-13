@@ -10,6 +10,7 @@ mod prelude {
 mod camera;
 mod consts;
 mod debug;
+mod input;
 
 pub struct YMapPlugins;
 
