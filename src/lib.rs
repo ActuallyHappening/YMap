@@ -27,7 +27,6 @@ impl PluginGroup for YMapPlugins {
 		PluginGroupBuilder::start::<Self>()
 			.add(camera::CameraPlugin)
 			.add(CosmicEditPlugin { font_config })
-			.add(bevy_editor_pls::EditorPlugin::default())
 	}
 }
 

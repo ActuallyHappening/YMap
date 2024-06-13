@@ -2,3 +2,4 @@
 xtask = "run -p xtask --"
 x = "xtask"
 rs = "run-script"
+t = "test-all-features"

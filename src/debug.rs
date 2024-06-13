@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 
-/// Enables much very useful debugging
+/// Enables much very useful debugging, that is NOT part of the normal UI
 pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
 	fn build(&self, app: &mut App) {
 		app
 			.add_systems(Update, touch_system)
+			.add_plugins(bevy_editor_pls::EditorPlugin::default())
 			.insert_resource(editor_controls());
 	}
 }

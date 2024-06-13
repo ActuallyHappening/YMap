@@ -17,13 +17,18 @@ members = ["xtask"]
 [dependencies]
 bevy = "0.13.2"
 bevy_cosmic_edit = { version = "0.20.0", features = ["multicam"] }
-bevy_editor_pls = "0.8.1"
+bevy_egui = "0.27.1"
 tracing = "0.1.40"
+
+[dependencies.bevy_editor_pls]
+# version = "0.8.1"
+git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
+branch = "update-gizmos"
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"
 resources = ["assets"]
 
 [package.metadata.scripts]
-dev-install = "cargo install nu cargo-run-scripts apple-clis"
+dev-install = "cargo install nu cargo-run-scripts apple-clis test-all-features"
 open-xcode = "open *.xcodeproj"
