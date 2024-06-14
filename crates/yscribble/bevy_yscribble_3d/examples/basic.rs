@@ -34,6 +34,7 @@ fn setup(
 	mut commands: Commands,
 	mut meshs: ResMut<Assets<Mesh>>,
 	mut materials: ResMut<Assets<StandardMaterial>>,
+	mut ass: ResMut<AssetServer>,
 ) {
 	commands.spawn(Camera3dBundle {
 		transform: Transform::from_translation(Vec3::new(0.0, 10.0, 1.0))
@@ -41,10 +42,11 @@ fn setup(
 		..default()
 	});
 
+	let width = 10.0;
 	commands
 		.spawn((
 			PbrBundle {
-				mesh: meshs.add(Cuboid::new(10.0, 1.0, 10.0)),
+				mesh: meshs.add(Cuboid::new(width * 2.0, 1.0, width * 2.0)),
 				material: materials.add(Color::GRAY),
 				..default()
 			},
@@ -62,12 +64,17 @@ fn setup(
 				},
 				Name::new("Pad Outline Top"),
 			));
+
+			parent.spawn(SceneBundle {
+				scene: ass.load("blender/Arrow.glb"),
+				..default()
+			});
 		});
 }
 
 fn on_drag_start(
 	event: Listener<Pointer<DragStart>>,
-	mut emmitted_events: EventWriter<InputEventRaw>,
+	mut emitted_events: EventWriter<InputEventRaw>,
 ) {
 	let pad_entity = event.listener();
 	let event_data: &Pointer<DragStart> = event.deref();
@@ -85,7 +92,7 @@ fn on_drag_start(
 
 	match event_data.pointer_id {
 		PointerId::Mouse => {
-			emmitted_events.send(InputEventRaw::MouseStart { pad_entity, pos });
+			emitted_events.send(InputEventRaw::MouseStart { pad_entity, pos });
 		}
 		_ => todo!(),
 	}
