@@ -8,8 +8,9 @@ pub mod prelude {
 	pub(crate) use yscribble::prelude::*;
 	// pub(crate) use extension_traits::extension;
 	pub(crate) use std::ops::Deref as _;
+	pub(crate) use bevy_mod_picking::prelude::*;
 
-	pub use crate::raw_events::InputEventRaw;
+	pub use crate::raw_events::*;
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
 }

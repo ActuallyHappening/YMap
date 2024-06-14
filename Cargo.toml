@@ -14,5 +14,5 @@ branch = "update-gizmos"
 type_complexity = "allow"
 
 [workspace.metadata.scripts]
-dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features"
+dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
 open-xcode = "open *.xcodeproj"

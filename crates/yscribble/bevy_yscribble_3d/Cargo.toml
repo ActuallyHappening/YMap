@@ -18,3 +18,7 @@ workspace = true
 
 [dev-dependencies]
 bevy_editor_pls.workspace = true
+
+[package.metadata.bundle]
+identifier = "com.ymap.test-ios690"
+resources = ["assets"]

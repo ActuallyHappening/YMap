@@ -1,13 +1,16 @@
 use bevy::input::touch::ForceTouch;
-use bevy_mod_picking::prelude::ListenerInput;
 
 use crate::prelude::*;
 
-mod touch_collector;
+// pub use touch_collector::*;
+pub use mouse_collector::*;
+
+// mod touch_collector;
+mod mouse_collector;
 
 pub struct RawEventPlugin {
+	// todo
 	pub touch_events: bool,
-	/// todo
 	pub mouse_events: bool,
 }
 
@@ -61,6 +64,10 @@ pub enum InputEventRaw {
 		pad_entity: Entity,
 		pos: ScribblePos,
 	},
+	MouseContinuing {
+		pad_entity: Entity,
+		pos: ScribblePos,
+	}
 }
 
 fn debug_raw_events(mut events: EventReader<InputEventRaw>) {
