@@ -1,6 +1,6 @@
 //! Internally uses the 'up' plane direction of -z, and right plane direction of +x
 
-use crate::prelude::*;
+use crate::{prelude::*, DetectorBundle};
 
 pub struct YScribble3DVisuals;
 
@@ -79,16 +79,17 @@ fn expand_pad_bundles(
 		let just_above_depth = depth * 1.2;
 
 		commands.entity(entity).with_children(|parent| {
-			parent.spawn((
-				PbrBundle {
+			parent.spawn(DetectorBundle {
+				pbr: PbrBundle {
 					mesh: meshs.add(Cuboid::new(*width, *depth, *height)),
 					material: materials.add(Color::GRAY),
 					..default()
 				},
-				On::<Pointer<DragStart>>::run(on_drag_start),
-				PickableBundle::default(),
-				Name::new("Pickable surface"),
-			));
+				drag_start: On::<Pointer<DragStart>>::run(on_drag_start),
+				pickable: PickableBundle::default(),
+				name: Name::new("Pickable surface"),
+				marker: crate::DetectorMarker,
+			});
 
 			parent.spawn((
 				PbrBundle {

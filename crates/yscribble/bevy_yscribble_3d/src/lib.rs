@@ -1,5 +1,6 @@
 use bevy::app::PluginGroupBuilder;
 use bevy_mod_picking::DefaultPickingPlugins;
+use yscribble::ScribbleData;
 
 use crate::prelude::*;
 
@@ -10,7 +11,6 @@ pub mod prelude {
 	pub(crate) use std::ops::Deref as _;
 	pub(crate) use bevy_mod_picking::prelude::*;
 
-	pub use crate::raw_events::*;
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
 }
@@ -21,9 +21,25 @@ impl PluginGroup for YScribble3DPlugins {
 	fn build(self) -> bevy::app::PluginGroupBuilder {
 		PluginGroupBuilder::start::<Self>()
 			.add(InternalPlugin)
-			.add(raw_events::RawEventPlugin::default())
 			.add(visuals::YScribble3DVisuals)
 	}
+}
+
+/// Marking entities that receive the touch events in the pad
+#[derive(Component)]
+struct DetectorMarker;
+
+/// Not public as this entity is a child of the main [PadBundle].
+#[derive(Bundle)]
+struct DetectorBundle {
+	marker: DetectorMarker,
+	pbr: PbrBundle,
+	pickable: PickableBundle,
+	name: Name,
+	// event listeners
+	drag_start: On<Pointer<DragStart>>,
+	// data
+	data: ScribbleData,
 }
 
 /// Internal setup,
@@ -42,5 +58,4 @@ impl Plugin for InternalPlugin {
 	}
 }
 
-mod raw_events;
 mod visuals;

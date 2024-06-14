@@ -2,6 +2,9 @@ pub mod prelude {
 	#[cfg(feature = "bevy")]
 	pub(crate) use bevy::prelude::*;
 
+	pub use crate::data::ScribbleData;
+	pub use crate::line::CompleteLine;
+	pub use crate::point::ScribblePoint;
 	pub use crate::pos::ScribblePos;
 }
 use prelude::*;
@@ -27,20 +30,79 @@ mod pos {
 	}
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "bevy", derive(Reflect))]
-pub struct CompleteLine<ID: std::hash::Hash + Eq> {
-	start: ScribblePoint<ID>,
-	middle: Option<Vec<ScribblePoint<ID>>>,
-	end: ScribblePoint<ID>,
+mod point {
+	use crate::prelude::*;
+
+	/// A single, generic point along a scribble path
+	#[derive(Debug)]
+	#[cfg_attr(feature = "bevy", derive(Reflect))]
+	pub struct ScribblePoint {
+		pos: ScribblePos,
+		// may add ForceTouch later
+	}
+
+	pub fn new(pos: ScribblePos) -> ScribblePoint {
+		ScribblePoint { pos }
+	}
 }
 
-/// A single, generic point along a scribble path
-#[derive(Debug)]
-#[cfg_attr(feature = "bevy", derive(Reflect))]
-pub struct ScribblePoint<ID: std::hash::Hash + Eq> {
-	pos: ScribblePos,
-	id: ID,
+mod line {
+	use crate::{point::ScribblePoint, prelude::*};
+
+	#[derive(Debug)]
+	#[cfg_attr(feature = "bevy", derive(Reflect))]
+	pub struct CompleteLine {
+		first: ScribblePoint,
+
+		/// May be empty
+		middle: Vec<ScribblePoint>,
+
+		last: ScribblePoint,
+	}
+
+	impl CompleteLine {
+		/// Requires at least two values without cloning, or returns [None]
+		pub fn new<Iter: Iterator<Item = ScribblePoint>>(mut data: Iter) -> Option<Self> {
+			let first = data.next()?;
+			let mut middle = data.collect::<Vec<_>>();
+			let last = middle.pop()?;
+
+			Some(CompleteLine {
+				first,
+				middle,
+				last,
+			})
+		}
+
+		pub fn iter(&self) -> impl Iterator<Item = &ScribblePoint> {
+			std::iter::once(&self.first)
+				.chain(self.middle.iter())
+				.chain(std::iter::once(&self.last))
+		}
+	}
+}
+
+mod data {
+	use crate::prelude::*;
+
+	/// [Vec] of [CompleteLine]
+	#[derive(Debug)]
+	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
+	pub struct ScribbleData {
+		lines: Vec<CompleteLine>,
+	}
+
+	impl ScribbleData {
+		pub fn new(data: impl Iterator<Item = CompleteLine>) -> Self {
+			ScribbleData {
+				lines: data.collect(),
+			}
+		}
+
+		pub fn iter(&self) -> impl Iterator<Item = &CompleteLine> {
+			self.lines.iter()
+		}
+	}
 }
 
 /// Simply registers the types from the [yscribble]
