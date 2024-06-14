@@ -9,7 +9,9 @@ use prelude::*;
 mod pos {
 	use crate::prelude::*;
 
-	/// A 2D vector relative to the center of a scribble pad
+	/// A 2D vector relative to the center of a scribble pad.
+	/// The use of `x` and `y` is suggestive, but different to `bevy` coordinate systems
+	/// depending on the orientation of the pad
 	#[derive(Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct ScribblePos {

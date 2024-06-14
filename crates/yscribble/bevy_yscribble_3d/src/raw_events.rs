@@ -1,4 +1,5 @@
 use bevy::input::touch::ForceTouch;
+use bevy_mod_picking::prelude::ListenerInput;
 
 use crate::prelude::*;
 
@@ -23,7 +24,8 @@ impl Plugin for RawEventPlugin {
 	fn build(&self, app: &mut App) {
 		app
 			.add_event::<InputEventRaw>()
-			.register_type::<InputEventRaw>();
+			.register_type::<InputEventRaw>()
+			.add_systems(PostUpdate, debug_raw_events);
 	}
 }
 
@@ -35,11 +37,13 @@ type FingerID = u64;
 pub enum InputEventRaw {
 	FingerStart {
 		id: FingerID,
+		pad_entity: Entity,
 		pos: ScribblePos,
 		starting_force: Option<ForceTouch>,
 	},
 	FingerContinuing {
 		id: FingerID,
+		pad_entity: Entity,
 		current_pos: ScribblePos,
 		current_force: Option<ForceTouch>,
 		previous_pos: ScribblePos,
@@ -47,13 +51,20 @@ pub enum InputEventRaw {
 	},
 	FingerFinished {
 		id: FingerID,
+		pad_entity: Entity,
 		final_pos: ScribblePos,
 		previous_pos: ScribblePos,
 		final_force: Option<ForceTouch>,
 		previous_force: Option<ForceTouch>,
 	},
 	MouseStart {
-		id: MouseButton,
+		pad_entity: Entity,
 		pos: ScribblePos,
 	},
+}
+
+fn debug_raw_events(mut events: EventReader<InputEventRaw>) {
+	for event in events.read() {
+		debug!(input_event_raw = ?event);
+	}
 }
