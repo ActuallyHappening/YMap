@@ -4,10 +4,11 @@ pub mod prelude {
 
 	#[cfg(not(feature = "bevy"))]
 	#[allow(dead_code)]
-	pub(crate) use tracing::{trace, debug, info, warn, error};
+	pub(crate) use tracing::{debug, error, info, trace, warn};
 
+	pub use crate::complete_line::CompleteLine;
 	pub use crate::data::ScribbleData;
-	pub use crate::line::{CompleteLine, PartialLine};
+	pub use crate::partial_line::PartialLine;
 	pub use crate::point::ScribblePoint;
 	pub use crate::pos::ScribblePos;
 }
@@ -52,10 +53,51 @@ mod point {
 	}
 }
 
-mod line {
+mod partial_line {
+	use crate::prelude::*;
+
+	/// Represents part of a line.
+	/// May not yet have a start and end point.
+	/// Provides utilities for converting to [CompleteLine]s.
+	/// Is mutable.
+	///
+	/// See also [CompleteLine], which is a finished and immutable version.
+	#[derive(Default, Debug)]
+	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
+	pub struct PartialLine {
+		points: Vec<ScribblePoint>,
+	}
+
+	impl PartialLine {
+		pub fn new() -> Self {
+			PartialLine::default()
+		}
+
+		pub fn push(&mut self, pos: ScribblePoint) -> &mut Self {
+			self.points.push(pos);
+			self
+		}
+
+		pub fn from_parts(parts: impl Iterator<Item = ScribblePoint>) -> Self {
+			PartialLine {
+				points: parts.collect(),
+			}
+		}
+
+		pub fn try_consolidate(self) -> Result<CompleteLine, Self> {
+			match CompleteLine::new(self.points.into_iter()) {
+				Ok(line) => Ok(line),
+				Err(data) => Err(PartialLine::from_parts(data.into_iter())),
+			}
+		}
+	}
+}
+
+mod complete_line {
 	use crate::{point::ScribblePoint, prelude::*};
 
 	/// Guaranteed to have at least two points, a start and end.
+	/// Is immutable.
 	#[derive(Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct CompleteLine {
@@ -65,15 +107,6 @@ mod line {
 		middle: Vec<ScribblePoint>,
 
 		last: ScribblePoint,
-	}
-
-	/// Represents part of a line.
-	/// May not yet have a start and end point.
-	/// Provides utilities for converting to [CompleteLine]s.
-	#[derive(Default, Debug)]
-	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
-	pub struct PartialLine {
-		points: Vec<ScribblePoint>,
 	}
 
 	impl CompleteLine {
@@ -136,30 +169,6 @@ mod line {
 		}
 	}
 
-	impl PartialLine {
-		pub fn new() -> Self {
-			PartialLine::default()
-		}
-
-		pub fn push(&mut self, pos: ScribblePoint) -> &mut Self {
-			self.points.push(pos);
-			self
-		}
-
-		pub fn from_parts(parts: impl Iterator<Item = ScribblePoint>) -> Self {
-			PartialLine {
-				points: parts.collect(),
-			}
-		}
-
-		pub fn try_consolidate(self) -> Result<CompleteLine, Self> {
-			match CompleteLine::new(self.points.into_iter()) {
-				Ok(line) => Ok(line),
-				Err(data) => Err(PartialLine::from_parts(data.into_iter())),
-			}
-		}
-	}
-
 	#[cfg(test)]
 	mod tests {
 		use super::*;
@@ -189,22 +198,66 @@ mod line {
 mod data {
 	use crate::prelude::*;
 
-	/// [Vec] of [CompleteLine]
+	/// [Vec] of [CompleteLine]s and [PartialLine]s.
+	/// [PartialLine]s are mutable and public.
+	/// Can still add completed lines.
 	#[derive(Debug, Default)]
 	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
 	pub struct ScribbleData {
-		lines: Vec<CompleteLine>,
+		complete_lines: Vec<CompleteLine>,
+
+		/// Ideally should be processed into complete lines soon
+		pub partial_lines: Vec<PartialLine>,
 	}
 
 	impl ScribbleData {
+		/// Empty [Self::partial_lines] to start
 		pub fn new(data: impl Iterator<Item = CompleteLine>) -> Self {
 			ScribbleData {
-				lines: data.collect(),
+				complete_lines: data.collect(),
+				partial_lines: Default::default(),
 			}
 		}
 
-		pub fn iter(&self) -> impl Iterator<Item = &CompleteLine> {
-			self.lines.iter()
+		pub fn push_partial_point(&mut self, point: ScribblePoint) {
+			if let Some(last) = self.partial_lines.first_mut() {
+				last.push(point);
+			} else {
+				let mut new_line = PartialLine::new();
+				trace!(message = "Creating new partial line for point", ?point);
+				new_line.push(point);
+				self.partial_lines.push(new_line);
+			}
+		}
+
+		/// Call to begin a new partial line.
+		/// Useful for building up a cache of [PartialLine]s over time to later process.
+		pub fn cut_line(&mut self) {
+			trace!(message = "Cutting into a new line");
+			self.partial_lines.push(PartialLine::new());
+		}
+
+		pub fn extend_completed(&mut self, data: impl Iterator<Item = CompleteLine>) {
+			self.complete_lines.extend(data);
+		}
+
+		pub fn iter_complete(&self) -> impl Iterator<Item = &CompleteLine> {
+			self.complete_lines.iter()
+		}
+
+		/// Replaces with an empty [Vec]
+		fn take_partial_lines(&mut self) -> Vec<PartialLine> {
+			std::mem::take(&mut self.partial_lines)
+		}
+
+		/// Attempts to convert [ScribbleData::partial_lines] into [ScribbleData::complete_lines].
+		/// Throws away any [PartialLine]s that cannot be converted.
+		pub fn consolidate(&mut self) {
+			let consolidated = self
+				.take_partial_lines()
+				.into_iter()
+				.filter_map(|line| PartialLine::try_consolidate(line).ok());
+			self.extend_completed(consolidated);
 		}
 	}
 }

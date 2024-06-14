@@ -1,6 +1,6 @@
 //! Internally uses the 'up' plane direction of -z, and right plane direction of +x
 
-use crate::{prelude::*, DetectorBundle};
+use crate::{mouse_collector, prelude::*, DetectorBundle};
 
 pub struct YScribble3DVisuals;
 
@@ -15,16 +15,6 @@ impl Plugin for YScribble3DVisuals {
 pub use config::*;
 mod config {
 	use crate::prelude::*;
-
-	/// Rectangular scribble pad.
-	#[derive(Bundle, Debug)]
-	pub struct PadBundle {
-		pub config: PadConfig,
-
-		pub visibility: VisibilityBundle,
-		pub transform: TransformBundle,
-		pub name: Name,
-	}
 
 	#[derive(Component, Reflect, Debug)]
 	pub struct PadConfig {
@@ -41,17 +31,6 @@ mod config {
 				height: 10.0,
 
 				depth: 0.1,
-			}
-		}
-	}
-
-	impl Default for PadBundle {
-		fn default() -> Self {
-			PadBundle {
-				name: Name::new("Scribble Pad (Parent)"),
-				config: PadConfig::default(),
-				transform: Default::default(),
-				visibility: Default::default(),
 			}
 		}
 	}
@@ -85,12 +64,10 @@ fn expand_pad_bundles(
 					material: materials.add(Color::GRAY),
 					..default()
 				},
-				drag_start: On::<Pointer<DragStart>>::run(|| ()), // todo
-				intermediate_data: Default::default(),
+				drag_start: On::<Pointer<DragStart>>::run(mouse_collector::on_drag_start), // todo
 				pickable: PickableBundle::default(),
 				name: Name::new("Pickable surface"),
 				marker: crate::DetectorMarker,
-				committed_data: ScribbleData::default(),
 			});
 
 			parent.spawn((

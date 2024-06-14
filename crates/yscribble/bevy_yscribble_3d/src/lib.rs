@@ -9,6 +9,7 @@ pub mod prelude {
 	pub(crate) use bevy_mod_picking::prelude::*;
 	pub(crate) use std::ops::Deref as _;
 
+	pub use crate::components::*;
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
 }
@@ -25,24 +26,49 @@ impl PluginGroup for YScribble3DPlugins {
 	}
 }
 
-/// Marking entities that receive the touch events in the pad
-#[derive(Component)]
-struct DetectorMarker;
+mod components {
+	use crate::prelude::*;
 
-/// Not public as this entity is a child of the main [PadBundle].
-#[derive(Bundle)]
-struct DetectorBundle {
-	marker: DetectorMarker,
-	pbr: PbrBundle,
-	pickable: PickableBundle,
-	name: Name,
-	// event listeners
-	drag_start: On<Pointer<DragStart>>,
-	// data
-	intermediate_data: PartialLine,
-	committed_data: ScribbleData,
+	/// Rectangular scribble pad.
+	#[derive(Bundle, Debug)]
+	pub struct PadBundle {
+		pub config: PadConfig,
+
+		pub visibility: VisibilityBundle,
+		pub transform: TransformBundle,
+		pub name: Name,
+
+		// data
+		pub committed_data: ScribbleData,
+	}
+
+	/// Marking entities that receive the touch events in the pad
+	#[derive(Component)]
+	pub(crate) struct DetectorMarker;
+
+	/// Not public as this entity is a child of the main [PadBundle].
+	#[derive(Bundle)]
+	pub(crate) struct DetectorBundle {
+		pub marker: DetectorMarker,
+		pub pbr: PbrBundle,
+		pub pickable: PickableBundle,
+		pub name: Name,
+		// event listeners
+		pub drag_start: On<Pointer<DragStart>>,
+	}
+
+	impl Default for PadBundle {
+		fn default() -> Self {
+			PadBundle {
+				name: Name::new("Scribble Pad (Parent)"),
+				config: PadConfig::default(),
+				transform: Default::default(),
+				visibility: Default::default(),
+				committed_data: Default::default(),
+			}
+		}
+	}
 }
-
 /// Internal setup,
 /// Adds [DefaultPickingPlugins] if not already added
 struct InternalPlugin;

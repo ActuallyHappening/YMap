@@ -1,16 +1,16 @@
-use crate::prelude::*;
+use crate::{prelude::*, DetectorMarker};
 
 /// todo: generalize over DragContinue and DragEnd
 pub(crate) fn on_drag_start(
 	event: Listener<Pointer<DragStart>>,
-	detector: Query<&Parent>,
+	detector: Query<&Parent, With<DetectorMarker>>,
 	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
 ) {
 	let detector_entity = event.listener();
 
-	let Some((pad_entity, config, mut data, pad_transform)) = (match detector.get(detector_entity) {
+	let Some((config, mut data, pad_transform)) = (match detector.get(detector_entity) {
 		Err(_) => {
-			error!(message = "No parent on pad detector?");
+			error!(message = "No parent on pad detector?", note = "Could also be an event being triggered on the wrong entity");
 			None
 		}
 		Ok(pad_entity) => {
@@ -20,11 +20,11 @@ pub(crate) fn on_drag_start(
 					error!(message = "Pad detector is not child of PadConfig?");
 					None
 				}
-				Ok(d) => Some((pad_entity, d.0, d.1, d.2)),
+				Ok(d) => Some(d),
 			}
 		}
 	}) else {
-		return
+		return;
 	};
 
 	let PadConfig {
@@ -112,7 +112,7 @@ pub(crate) fn on_drag_start(
 			};
 
 			let point = ScribblePoint::new(pos);
-			
+			data.push_partial_point(point);
 		}
 	}
 }
