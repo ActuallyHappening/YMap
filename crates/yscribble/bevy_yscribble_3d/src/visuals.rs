@@ -66,10 +66,10 @@ fn expand_pad_bundles(
 	ass: Res<AssetServer>,
 ) {
 	for (entity, config) in bundles.iter() {
-		debug!(
-			message = "Expanding a pad bundle into a scribble pad",
-			?config
-		);
+		// debug!(
+		// 	message = "Expanding a pad bundle into a scribble pad",
+		// 	?config
+		// );
 		let PadConfig {
 			width,
 			height,
@@ -121,66 +121,118 @@ fn expand_pad_bundles(
 fn on_drag_start(
 	event: Listener<Pointer<DragStart>>,
 	detector: Query<&Parent>,
-	pad: Query<&PadConfig, With<Children>>,
+	pad: Query<(&PadConfig, &GlobalTransform), With<Children>>,
 	mut emitted_events: EventWriter<InputEventRaw>,
 ) {
 	let detector_entity = event.listener();
-	if let Ok(pad_entity) = detector.get(detector_entity) {
-		if let Ok(config) = pad.get(pad_entity.get()) {
-			trace!(?config);
-			let PadConfig { width, height, .. } = config;
-			let event_data: &Pointer<DragStart> = event.deref();
-			// debug_assert_eq!(pad_entity, event_data.target); // blocking entities trigger this assert
-
-			let world_point = event_data.event.hit.position;
-			let world_normal = event_data.event.hit.normal;
-
-			if let Some(world_point) = world_point {
-				if let Some(world_normal) = world_normal {
-					// check normals here to make sure people don't click the underside / edges
-					let expected = Vec3::Y;
-					if world_normal.dot(expected) != 1.0 {
-						// todo: ignore the arrow from the event input
-						warn!(
-							message =
-								"A DragStart event was received, but it appears to not be the expected normal",
-							note = "This is likely because the user didn't click the primary face",
-							?expected,
-							?world_normal
-						)
-					}
-				} else {
-					debug!(message = "No normals received from DragStart event", ?event)
-				}
-
-				// todo: actually compute stuff
-				let pos = ScribblePos {
-					center_x: world_point.x,
-					normalized_x: world_point.x / width * 2.0,
-					center_y: -world_point.z,
-					normalized_y: -world_point.z / height * 2.0,
-				};
-
-				match event_data.pointer_id {
-					PointerId::Mouse => {
-						emitted_events.send(InputEventRaw::MouseStart {
-							pad_entity: detector_entity,
-							pos,
-						});
-					}
-					_ => todo!(),
-				}
-			} else {
-				warn!(
-					message = "Received DragStart event with no position?",
-					?event
-				);
-			}
-		} else {
-			error!(message = "Pad detector is not child of PadConfig?");
+	match detector.get(detector_entity) {
+		Err(_) => {
+			error!(message = "No parent on pad detector?");
 		}
-	} else {
-		error!(message = "No parent on pad detector?");
+		Ok(pad_entity) => {
+			match pad.get(pad_entity.get()) {
+				Err(_) => {
+					error!(message = "Pad detector is not child of PadConfig?");
+				}
+				Ok((config, pad_transform)) => {
+					// trace!(?config);
+					let PadConfig {
+						width,
+						height,
+						depth,
+					} = config;
+					let event_data: &Pointer<DragStart> = event.deref();
+
+					let world_point = event_data.event.hit.position;
+					let world_normal = event_data.event.hit.normal;
+
+					match world_point {
+						None => {
+							warn!(
+								message = "Received DragStart event with no position?",
+								?event
+							);
+						}
+						Some(world_point) => {
+							let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+
+							match world_normal {
+								None => debug!(message = "No normals received from DragStart event", ?event),
+								Some(world_normal) => {
+									let local_normal = pad_inverse_matrix.transform_vector3(world_normal);
+
+									let expected = Vec3::Y;
+									if local_normal.dot(expected) < 0.9 {
+										// normal is wrong, either bottom, left, right, or other
+										let mut face = "curved edge?";
+										if local_normal.dot(Vec3::X) >= 0.9 {
+											face = "right edge";
+										} else if local_normal.dot(-Vec3::X) >= 0.9 {
+											face = "left edge";
+										} else if local_normal.dot(-Vec3::Y) >= 0.9 {
+											face = "bottom"
+										} else if local_normal.dot(-Vec3::Z) >= 0.9 {
+											face = "front edge"
+										} else if local_normal.dot(Vec3::Z) >= 0.9 {
+											face = "back edge"
+										}
+
+										warn!(
+											message =
+												"A DragStart event was received, but it appears to not be the expected normal",
+											note = "This is likely because the user didn't click the primary face",
+											note = "Not registering this as an event",
+											local_face_pressed = face,
+											?expected,
+											?local_normal,
+											?world_normal,
+										);
+										return; // skip if normals are bad
+									}
+								}
+							}
+
+							// undoes the pad's transform to get the local point
+							let local_point = {
+								let mut local_point = pad_inverse_matrix.transform_point3(world_point);
+
+								// assumes scale is still 1
+								let pad_scale = pad_transform.compute_transform().scale;
+								if pad_scale != Vec3::ONE {
+									error!(message = "Scaling is not supported yet", ?pad_scale);
+								}
+								// accounts for depth
+								local_point.y -= depth / 2.0;
+
+								trace!(
+									message = "After accounting for depth",
+									?local_point,
+									?world_point
+								);
+								local_point
+							};
+
+							let pos = ScribblePos {
+								center_x: local_point.x,
+								normalized_x: local_point.x / width * 2.0,
+								center_y: -local_point.z,
+								normalized_y: -local_point.z / height * 2.0,
+							};
+
+							match event_data.pointer_id {
+								PointerId::Mouse => {
+									emitted_events.send(InputEventRaw::MouseStart {
+										pad_entity: detector_entity,
+										pos,
+									});
+								}
+								_ => todo!(),
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
