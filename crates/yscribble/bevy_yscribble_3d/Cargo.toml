@@ -10,3 +10,6 @@ bevy.workspace = true
 
 [dependencies.yscribble]
 path = ".."
+
+[dev-dependencies]
+bevy_editor_pls.workspace = true

@@ -1,7 +1,8 @@
 use bevy::input::touch::ForceTouch;
-use yscribble::ScribblePos;
 
 use crate::prelude::*;
+
+mod touch_collector;
 
 pub struct RawEventPlugin {
 	pub touch_events: bool,

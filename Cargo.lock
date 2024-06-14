@@ -1248,6 +1248,7 @@ name = "bevy_yscribble_3d"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_editor_pls",
  "yscribble",
 ]
 
@@ -5525,6 +5526,7 @@ name = "yscribble"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "glam 0.25.0",
  "serde",
 ]
 

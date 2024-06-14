@@ -4,6 +4,7 @@ use crate::prelude::*;
 
 pub mod prelude {
 	pub(crate) use bevy::prelude::*;
+	pub(crate) use yscribble::prelude::*;
 
 	pub use crate::YScribble3DPlugins;
 }
