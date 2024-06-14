@@ -112,6 +112,8 @@ pub(crate) fn on_drag_start(
 			};
 
 			let point = ScribblePoint::new(pos);
+			// cutting because this is a [DragStart] event which is always the start of a new line
+			data.cut_line();
 			data.push_partial_point(point);
 		}
 	}

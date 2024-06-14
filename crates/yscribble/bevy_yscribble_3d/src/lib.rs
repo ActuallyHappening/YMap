@@ -23,6 +23,7 @@ impl PluginGroup for YScribble3DPlugins {
 		PluginGroupBuilder::start::<Self>()
 			.add(InternalPlugin)
 			.add(visuals::YScribble3DVisuals)
+			.add(yscribble::YScribbleGenericTypeRegistrationPlugin)
 	}
 }
 
