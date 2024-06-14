@@ -19,6 +19,11 @@ mod pos {
 		pub center_x: f32,
 		/// +y is upward
 		pub center_y: f32,
+
+		/// -1 is very left, +1 is very right
+		pub normalized_x: f32,
+		/// -1 is very bottom, +1 is very top
+		pub normalized_y: f32,
 	}
 }
 

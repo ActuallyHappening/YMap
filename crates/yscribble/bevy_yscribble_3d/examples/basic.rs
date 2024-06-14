@@ -1,9 +1,5 @@
 //! Basic example using the scribble pad in bevy 3D
 //! Also includes [bevy_editor_pls]
-//!
-//! Looks from the origin in the -z direction, with the +x axis to the right
-
-use std::ops::Deref;
 
 use bevy::{
 	log::{Level, LogPlugin},
@@ -11,7 +7,6 @@ use bevy::{
 };
 use bevy_mod_picking::prelude::*;
 use bevy_yscribble_3d::prelude::*;
-use yscribble::prelude::ScribblePos;
 
 fn main() {
 	App::new()
@@ -40,5 +35,12 @@ fn setup(
 		..default()
 	});
 
-	
+	commands.spawn(PadBundle {
+		config: PadConfig {
+			width: 10.0,
+			height: 10.0,
+			..default()
+		},
+		..default()
+	});
 }

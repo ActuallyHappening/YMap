@@ -6,19 +6,22 @@ use crate::prelude::*;
 pub mod prelude {
 	pub(crate) use bevy::prelude::*;
 	pub(crate) use yscribble::prelude::*;
-	pub(crate) use extension_traits::extension;
+	// pub(crate) use extension_traits::extension;
 	pub(crate) use std::ops::Deref as _;
 
-	pub use crate::YScribble3DPlugins;
 	pub use crate::raw_events::InputEventRaw;
-	// pub use crate::visuals::YScribbleCmdExt;
+	pub use crate::visuals::*;
+	pub use crate::YScribble3DPlugins;
 }
 
 pub struct YScribble3DPlugins;
 
 impl PluginGroup for YScribble3DPlugins {
 	fn build(self) -> bevy::app::PluginGroupBuilder {
-		PluginGroupBuilder::start::<Self>().add(InternalPlugin).add(raw_events::RawEventPlugin::default())
+		PluginGroupBuilder::start::<Self>()
+			.add(InternalPlugin)
+			.add(raw_events::RawEventPlugin::default())
+			.add(visuals::YScribble3DVisuals)
 	}
 }
 
