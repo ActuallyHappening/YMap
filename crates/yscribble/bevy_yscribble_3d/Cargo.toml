@@ -13,5 +13,8 @@ extension-traits = "1.0.1"
 [dependencies.yscribble]
 path = ".."
 
+[lints]
+workspace = true
+
 [dev-dependencies]
 bevy_editor_pls.workspace = true

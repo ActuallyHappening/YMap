@@ -11,41 +11,46 @@ impl Plugin for YScribble3DVisuals {
 	}
 }
 
-/// Rectangular scribble pad.
-/// Fields are transferred to relevant entities upon construction
-#[derive(Bundle, Debug)]
-pub struct PadBundle {
-	pub config: PadConfig,
+use config::*;
+mod config {
+	use crate::prelude::*;
 
-	pub visibility: VisibilityBundle,
-	pub transform: TransformBundle,
-	pub name: Name,
-}
+	/// Rectangular scribble pad.
+	/// Fields are transferred to relevant entities upon construction
+	#[derive(Bundle, Debug)]
+	pub struct PadBundle {
+		pub config: PadConfig,
 
-#[derive(Component, Debug)]
-pub struct PadConfig {
-	pub width: f32,
-	pub height: f32,
+		pub visibility: VisibilityBundle,
+		pub transform: TransformBundle,
+		pub name: Name,
+	}
 
-	pub depth: f32,
-}
+	#[derive(Component, Debug)]
+	pub struct PadConfig {
+		pub width: f32,
+		pub height: f32,
 
-impl Default for PadConfig {
-	fn default() -> Self {
-		PadConfig {
-			width: 10.0,
-			height: 10.0,
+		pub depth: f32,
+	}
 
-			depth: 0.1,
+	impl Default for PadConfig {
+		fn default() -> Self {
+			PadConfig {
+				width: 10.0,
+				height: 10.0,
+
+				depth: 0.1,
+			}
 		}
 	}
-}
 
-impl Default for PadBundle {
-	fn default() -> Self {
-		PadBundle {
-			name: Name::new("Scribble pad"),
-			..default()
+	impl Default for PadBundle {
+		fn default() -> Self {
+			PadBundle {
+				name: Name::new("Scribble Pad (Parent)"),
+				..default()
+			}
 		}
 	}
 }
@@ -57,15 +62,16 @@ fn expand_pad_bundles(
 	mut materials: ResMut<Assets<StandardMaterial>>,
 	ass: Res<AssetServer>,
 ) {
-	for (
-		entity,
-		PadConfig {
+	for (entity, config) in bundles.iter() {
+		debug!(
+			message = "Expanding a pad bundle into a scribble pad",
+			?config
+		);
+		let PadConfig {
 			width,
 			height,
 			depth,
-		},
-	) in bundles.iter()
-	{
+		} = config;
 		commands.entity(entity).with_children(|parent| {
 			parent.spawn((
 				PbrBundle {
@@ -147,16 +153,6 @@ fn on_drag_start(
 			?event
 		);
 	}
-
-	// // the magic line
-	// // assumes that the hit is on the primary surface of the entity
-	// // todo: use [GlobalTransform] and the normal from the event to remove events on the edges
-	// let pos = event_data.pointer_location.position;
-	// // todo: map onto surface properly in different orientations
-	// let pos = ScribblePos {
-	// 	center_x: pos.x,
-	// 	center_y: pos.y,
-	// };
 }
 
 #[cfg(test)]
@@ -165,6 +161,6 @@ mod tests {
 
 	#[test]
 	fn non_recursive_default() {
-		let config: PadConfig = PadConfig::default();
+		let _config: PadConfig = PadConfig::default();
 	}
 }

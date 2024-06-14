@@ -40,12 +40,5 @@ fn setup(
 		..default()
 	});
 
-	let radius = 10.0;
-	commands
-		.spawn((
-			VisibilityBundle::default(),
-			TransformBundle::default(),
-			Name::new("Scribble Pad Parent"),
-		))
-		;
+	
 }

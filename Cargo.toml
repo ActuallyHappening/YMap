@@ -10,6 +10,9 @@ bevy = { version = "0.13.2" }
 git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
 branch = "update-gizmos"
 
+[workspace.lints.clippy]
+type_complexity = "allow"
+
 [workspace.metadata.scripts]
 dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features"
 open-xcode = "open *.xcodeproj"
