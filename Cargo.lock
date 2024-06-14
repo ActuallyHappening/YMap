@@ -1244,6 +1244,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_yscribble_3d"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "yscribble",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.69.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5517,6 +5525,7 @@ name = "yscribble"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "serde",
 ]
 
 [[package]]

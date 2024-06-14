@@ -1,9 +1,14 @@
 [workspace]
-members = ["crates/*", "xtask"]
+members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
 resolver = "2"
 
 [workspace.dependencies]
 bevy = { version = "0.13.2" }
+
+[workspace.dependencies.bevy_editor_pls]
+# version = "0.8.1"
+git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
+branch = "update-gizmos"
 
 [workspace.metadata.scripts]
 dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features"
