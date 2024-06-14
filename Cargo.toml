@@ -1,6 +1,10 @@
 [workspace]
 members = ["crates/*", "xtask"]
+resolver = "2"
 
-[metadata.metadata.scripts]
-dev-install = "cargo install nu cargo-run-scripts apple-clis test-all-features"
+[workspace.dependencies]
+bevy = { version = "0.13.2" }
+
+[workspace.metadata.scripts]
+dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features"
 open-xcode = "open *.xcodeproj"

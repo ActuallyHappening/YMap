@@ -11,13 +11,14 @@ mod camera;
 mod consts;
 mod debug;
 mod input;
+mod utils;
 
 pub struct YMapPlugins;
 
 impl PluginGroup for YMapPlugins {
 	fn build(self) -> PluginGroupBuilder {
 		// cosmic edit
-		let font_bytes: &[u8] = include_bytes!("../assets/fonts/FiraMono-Medium.ttf");
+		let font_bytes: &[u8] = include_asset!("fonts/FiraMono-Medium.ttf");
 		let font_config = CosmicFontConfig {
 			fonts_dir_path: None,
 			// font_bytes: None,

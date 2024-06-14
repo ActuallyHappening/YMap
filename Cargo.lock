@@ -5515,6 +5515,9 @@ dependencies = [
 [[package]]
 name = "yscribble"
 version = "0.1.0"
+dependencies = [
+ "bevy",
+]
 
 [[package]]
 name = "zeno"
