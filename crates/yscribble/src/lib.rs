@@ -2,8 +2,12 @@ pub mod prelude {
 	#[cfg(feature = "bevy")]
 	pub(crate) use bevy::prelude::*;
 
+	#[cfg(not(feature = "bevy"))]
+	#[allow(dead_code)]
+	pub(crate) use tracing::{trace, debug, info, warn, error};
+
 	pub use crate::data::ScribbleData;
-	pub use crate::line::CompleteLine;
+	pub use crate::line::{CompleteLine, PartialLine};
 	pub use crate::point::ScribblePoint;
 	pub use crate::pos::ScribblePos;
 }
@@ -15,7 +19,7 @@ mod pos {
 	/// A 2D vector relative to the center of a scribble pad.
 	/// The use of `x` and `y` is suggestive, but different to `bevy` coordinate systems
 	/// depending on the orientation of the pad
-	#[derive(Debug)]
+	#[derive(PartialEq, Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct ScribblePos {
 		/// +x is rightward
@@ -34,21 +38,24 @@ mod point {
 	use crate::prelude::*;
 
 	/// A single, generic point along a scribble path
-	#[derive(Debug)]
+	#[derive(PartialEq, Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct ScribblePoint {
 		pos: ScribblePos,
 		// may add ForceTouch later
 	}
 
-	pub fn new(pos: ScribblePos) -> ScribblePoint {
-		ScribblePoint { pos }
+	impl ScribblePoint {
+		pub fn new(pos: ScribblePos) -> Self {
+			ScribblePoint { pos }
+		}
 	}
 }
 
 mod line {
 	use crate::{point::ScribblePoint, prelude::*};
 
+	/// Guaranteed to have at least two points, a start and end.
 	#[derive(Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct CompleteLine {
@@ -60,24 +67,121 @@ mod line {
 		last: ScribblePoint,
 	}
 
+	/// Represents part of a line.
+	/// May not yet have a start and end point.
+	/// Provides utilities for converting to [CompleteLine]s.
+	#[derive(Default, Debug)]
+	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
+	pub struct PartialLine {
+		points: Vec<ScribblePoint>,
+	}
+
 	impl CompleteLine {
 		/// Requires at least two values without cloning, or returns [None]
-		pub fn new<Iter: Iterator<Item = ScribblePoint>>(mut data: Iter) -> Option<Self> {
-			let first = data.next()?;
+		pub fn new<Iter: Iterator<Item = ScribblePoint> + std::fmt::Debug>(
+			mut data: Iter,
+		) -> Result<Self, impl IntoIterator<Item = ScribblePoint> + std::fmt::Debug> {
+			let first = match data.next() {
+				Some(first) => first,
+				None => {
+					// no points at all
+					debug!(message = "CompleteLine::new called with no points");
+					return Err(Vec::new());
+				}
+			};
+			let second = match data.next() {
+				Some(second) => second,
+				None => {
+					// only one point, not enough without cloning
+					debug!(message = "CompleteLine::new called with only one point");
+					return Err(vec![first]);
+				}
+			};
 			let mut middle = data.collect::<Vec<_>>();
-			let last = middle.pop()?;
 
-			Some(CompleteLine {
-				first,
-				middle,
-				last,
-			})
+			match middle.pop() {
+				Some(last) => {
+					// there is at least one element in the vector
+					middle.insert(0, second);
+					Ok(CompleteLine {
+						first,
+						middle,
+						last,
+					})
+				}
+				None => {
+					// vec is empty
+					debug_assert_eq!(middle, Vec::new());
+					Ok(CompleteLine {
+						first,
+						middle,
+						last: second,
+					})
+				}
+			}
 		}
 
 		pub fn iter(&self) -> impl Iterator<Item = &ScribblePoint> {
 			std::iter::once(&self.first)
 				.chain(self.middle.iter())
 				.chain(std::iter::once(&self.last))
+		}
+
+		pub fn first(&self) -> &ScribblePoint {
+			&self.first
+		}
+
+		pub fn last(&self) -> &ScribblePoint {
+			&self.last
+		}
+	}
+
+	impl PartialLine {
+		pub fn new() -> Self {
+			PartialLine::default()
+		}
+
+		pub fn push(&mut self, pos: ScribblePoint) -> &mut Self {
+			self.points.push(pos);
+			self
+		}
+
+		pub fn from_parts(parts: impl Iterator<Item = ScribblePoint>) -> Self {
+			PartialLine {
+				points: parts.collect(),
+			}
+		}
+
+		pub fn try_consolidate(self) -> Result<CompleteLine, Self> {
+			match CompleteLine::new(self.points.into_iter()) {
+				Ok(line) => Ok(line),
+				Err(data) => Err(PartialLine::from_parts(data.into_iter())),
+			}
+		}
+	}
+
+	#[cfg(test)]
+	mod tests {
+		use super::*;
+
+		fn point(num: u8) -> ScribblePoint {
+			let num = num as f32;
+			ScribblePoint::new(ScribblePos {
+				center_x: num,
+				center_y: num,
+				normalized_x: 1.0,
+				normalized_y: 0.0,
+			})
+		}
+
+		#[test]
+		fn complete_line_construction() {
+			let points = [point(1), point(2), point(3)];
+
+			let line = CompleteLine::new(points.into_iter()).expect("2 elems");
+			assert_eq!(line.first, point(1));
+			assert_eq!(line.middle, vec![point(2)]);
+			assert_eq!(line.last, point(3));
 		}
 	}
 }
@@ -86,7 +190,7 @@ mod data {
 	use crate::prelude::*;
 
 	/// [Vec] of [CompleteLine]
-	#[derive(Debug)]
+	#[derive(Debug, Default)]
 	#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
 	pub struct ScribbleData {
 		lines: Vec<CompleteLine>,

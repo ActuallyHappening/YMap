@@ -5767,6 +5767,7 @@ dependencies = [
  "bevy",
  "glam 0.28.0",
  "serde",
+ "tracing",
 ]
 
 [[package]]

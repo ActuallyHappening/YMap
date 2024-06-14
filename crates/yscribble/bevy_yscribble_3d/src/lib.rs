@@ -1,6 +1,4 @@
 use bevy::app::PluginGroupBuilder;
-use bevy_mod_picking::DefaultPickingPlugins;
-use yscribble::ScribbleData;
 
 use crate::prelude::*;
 
@@ -8,12 +6,14 @@ pub mod prelude {
 	pub(crate) use bevy::prelude::*;
 	pub(crate) use yscribble::prelude::*;
 	// pub(crate) use extension_traits::extension;
-	pub(crate) use std::ops::Deref as _;
 	pub(crate) use bevy_mod_picking::prelude::*;
+	pub(crate) use std::ops::Deref as _;
 
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
 }
+mod mouse_collector;
+mod visuals;
 
 pub struct YScribble3DPlugins;
 
@@ -39,7 +39,8 @@ struct DetectorBundle {
 	// event listeners
 	drag_start: On<Pointer<DragStart>>,
 	// data
-	data: ScribbleData,
+	intermediate_data: PartialLine,
+	committed_data: ScribbleData,
 }
 
 /// Internal setup,
@@ -57,5 +58,3 @@ impl Plugin for InternalPlugin {
 		}
 	}
 }
-
-mod visuals;

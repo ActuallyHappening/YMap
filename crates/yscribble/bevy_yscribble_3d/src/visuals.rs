@@ -85,10 +85,12 @@ fn expand_pad_bundles(
 					material: materials.add(Color::GRAY),
 					..default()
 				},
-				drag_start: On::<Pointer<DragStart>>::run(on_drag_start),
+				drag_start: On::<Pointer<DragStart>>::run(|| ()), // todo
+				intermediate_data: Default::default(),
 				pickable: PickableBundle::default(),
 				name: Name::new("Pickable surface"),
 				marker: crate::DetectorMarker,
+				committed_data: ScribbleData::default(),
 			});
 
 			parent.spawn((

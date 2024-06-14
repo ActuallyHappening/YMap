@@ -4,24 +4,23 @@ use crate::prelude::*;
 pub(crate) fn on_drag_start(
 	event: Listener<Pointer<DragStart>>,
 	detector: Query<&Parent>,
-	pad: Query<(&PadConfig, &GlobalTransform), With<Children>>,
-	mut emitted_events: EventWriter<InputEventRaw>,
+	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
 ) {
 	let detector_entity = event.listener();
 
-	let Some((pad_entity, config, pad_transform)) = (match detector.get(detector_entity) {
+	let Some((pad_entity, config, mut data, pad_transform)) = (match detector.get(detector_entity) {
 		Err(_) => {
 			error!(message = "No parent on pad detector?");
 			None
 		}
 		Ok(pad_entity) => {
 			let pad_entity = pad_entity.get();
-			match pad.get(pad_entity) {
+			match pad.get_mut(pad_entity) {
 				Err(_) => {
 					error!(message = "Pad detector is not child of PadConfig?");
 					None
 				}
-				Ok(d) => Some((pad_entity, d.0, d.1)),
+				Ok(d) => Some((pad_entity, d.0, d.1, d.2)),
 			}
 		}
 	}) else {
@@ -112,12 +111,8 @@ pub(crate) fn on_drag_start(
 				normalized_y: -local_point.z / height * 2.0,
 			};
 
-			match event_data.pointer_id {
-				PointerId::Mouse => {
-					emitted_events.send(InputEventRaw::MouseStart { pad_entity, pos });
-				}
-				other => warn!(message = "Input type not supported", r#type = ?other),
-			}
+			let point = ScribblePoint::new(pos);
+			
 		}
 	}
 }
