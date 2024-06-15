@@ -64,7 +64,9 @@ fn expand_pad_bundles(
 					material: materials.add(Color::GRAY),
 					..default()
 				},
-				drag_start: On::<Pointer<DragStart>>::run(mouse_collector::on_drag_start), // todo
+				drag_start: On::<Pointer<DragStart>>::run(
+					mouse_collector::on_drag_start::<Pointer<DragStart>>,
+				), // todo
 				pickable: PickableBundle::default(),
 				name: Name::new("Pickable surface"),
 				marker: crate::DetectorMarker,

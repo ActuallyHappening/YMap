@@ -1,22 +1,50 @@
 use crate::{prelude::*, DetectorMarker};
 
-trait EventReaction: std::fmt::Debug + Clone + Reflect {
-	fn process_event_data(pos: ScribblePos, data: &mut ScribbleData);
+trait EventReaction: std::fmt::Debug + EntityEvent {
+	const EV_NAME: &'static str;
+
+	fn process_event_data(
+		&self,
+		config: &PadConfig,
+		pad_transform: &GlobalTransform,
+		data: &mut ScribbleData,
+	);
 }
 
-impl EventReaction for DragStart {
-	fn process_event_data(pos: ScribblePos, data: &mut ScribbleData) {
-		data.cut_line();
-		data.push_partial_point(ScribblePoint::new(pos));
+impl EventReaction for Pointer<DragStart> {
+	const EV_NAME: &'static str = "DragStart";
+
+	fn process_event_data(
+		&self,
+		config: &PadConfig,
+		pad_transform: &GlobalTransform,
+		data: &mut ScribbleData,
+	) {
+		let event_data = self;
+		let world_point = event_data.event.hit.position;
+		let world_normal = event_data.event.hit.normal;
+
+		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+			// skip if bad normals
+			return;
+		}
+
+		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+			// cutting because this is a [DragStart] event which is always the start of a new line
+			data.cut_line();
+			let point = ScribblePoint::new(pos);
+			data.push_partial_point(point);
+		}
 	}
 }
 
 /// [false] means normals are bad
-fn check_world_normal(
-	ev_name: &'static str,
+fn check_world_normal<E: EventReaction>(
 	world_normal: Option<Vec3>,
 	pad_inverse_matrix: Mat4,
 ) -> bool {
+	let ev_name = E::EV_NAME;
 	match world_normal {
 		None => {
 			debug!("No normals received from {} event", ev_name);
@@ -59,9 +87,56 @@ fn check_world_normal(
 	}
 }
 
-/// todo: generalize over DragContinue and DragEnd
+fn compute_pos<E: EventReaction>(
+	world_point: Option<Vec3>,
+	PadConfig {
+		width,
+		height,
+		depth,
+	}: &PadConfig,
+	pad_transform: &GlobalTransform,
+	pad_inverse_matrix: Mat4,
+) -> Option<ScribblePos> {
+	match world_point {
+		None => {
+			warn!(message = "Received DragStart event with no position?");
+			None
+		}
+		Some(world_point) => {
+			// undoes the pad's transform to get the local point
+			let local_point = {
+				let mut local_point = pad_inverse_matrix.transform_point3(world_point);
+
+				// assumes scale is still 1 so depth is reasonable
+				let pad_scale = pad_transform.compute_transform().scale;
+				if pad_scale != Vec3::ONE {
+					error!(message = "Scaling is not supported yet", ?pad_scale);
+				}
+				// accounts for depth
+				local_point.y -= depth / 2.0;
+
+				trace!(
+					message = "After accounting for depth",
+					?local_point,
+					?world_point
+				);
+				local_point
+			};
+
+			let pos = ScribblePos {
+				center_x: local_point.x,
+				normalized_x: local_point.x / width * 2.0,
+				center_y: -local_point.z,
+				normalized_y: -local_point.z / height * 2.0,
+			};
+			Some(pos)
+		}
+	}
+}
+
+#[allow(private_bounds)]
 pub(crate) fn on_drag_start<E: EventReaction>(
-	event: Listener<Pointer<E>>,
+	event: Listener<E>,
 	detector: Query<&Parent, With<DetectorMarker>>,
 	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
 ) {
@@ -89,60 +164,7 @@ pub(crate) fn on_drag_start<E: EventReaction>(
 		return;
 	};
 
-	let PadConfig {
-		width,
-		height,
-		depth,
-	} = config;
+	let event_data: &E = event.deref();
 
-	let event_data: &Pointer<DragStart> = event.deref();
-
-	let world_point = event_data.event.hit.position;
-	let world_normal = event_data.event.hit.normal;
-
-	match world_point {
-		None => {
-			warn!(
-				message = "Received DragStart event with no position?",
-				?event
-			);
-		}
-		Some(world_point) => {
-			let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
-
-			check_world_normal("DragStart", world_normal, pad_inverse_matrix);
-
-			// undoes the pad's transform to get the local point
-			let local_point = {
-				let mut local_point = pad_inverse_matrix.transform_point3(world_point);
-
-				// assumes scale is still 1
-				let pad_scale = pad_transform.compute_transform().scale;
-				if pad_scale != Vec3::ONE {
-					error!(message = "Scaling is not supported yet", ?pad_scale);
-				}
-				// accounts for depth
-				local_point.y -= depth / 2.0;
-
-				trace!(
-					message = "After accounting for depth",
-					?local_point,
-					?world_point
-				);
-				local_point
-			};
-
-			let pos = ScribblePos {
-				center_x: local_point.x,
-				normalized_x: local_point.x / width * 2.0,
-				center_y: -local_point.z,
-				normalized_y: -local_point.z / height * 2.0,
-			};
-
-			let point = ScribblePoint::new(pos);
-			// cutting because this is a [DragStart] event which is always the start of a new line
-			data.cut_line();
-			data.push_partial_point(point);
-		}
-	}
+	event_data.process_event_data(config, pad_transform, &mut data);
 }
