@@ -1,8 +1,67 @@
 use crate::{prelude::*, DetectorMarker};
 
+trait EventReaction: std::fmt::Debug + Clone + Reflect {
+	fn process_event_data(pos: ScribblePos, data: &mut ScribbleData);
+}
+
+impl EventReaction for DragStart {
+	fn process_event_data(pos: ScribblePos, data: &mut ScribbleData) {
+		data.cut_line();
+		data.push_partial_point(ScribblePoint::new(pos));
+	}
+}
+
+/// [false] means normals are bad
+fn check_world_normal(
+	ev_name: &'static str,
+	world_normal: Option<Vec3>,
+	pad_inverse_matrix: Mat4,
+) -> bool {
+	match world_normal {
+		None => {
+			debug!("No normals received from {} event", ev_name);
+			true
+		}
+		Some(world_normal) => {
+			let local_normal = pad_inverse_matrix.transform_vector3(world_normal);
+
+			let expected = Vec3::Y;
+			if local_normal.dot(expected) >= 0.9 {
+				true
+			} else {
+				// normal is wrong, either bottom, left, right, or other
+				let mut face = "curved edge?";
+				if local_normal.dot(Vec3::X) >= 0.9 {
+					face = "right edge";
+				} else if local_normal.dot(-Vec3::X) >= 0.9 {
+					face = "left edge";
+				} else if local_normal.dot(-Vec3::Y) >= 0.9 {
+					face = "bottom"
+				} else if local_normal.dot(-Vec3::Z) >= 0.9 {
+					face = "front edge"
+				} else if local_normal.dot(Vec3::Z) >= 0.9 {
+					face = "back edge"
+				}
+
+				warn!(
+					note = "This is likely because the user didn't click the primary face",
+					note = "Not registering this as an event",
+					local_face_pressed = face,
+					?expected,
+					?local_normal,
+					?world_normal,
+					"A {} event was received, but it appears to not be the expected normal",
+					ev_name
+				);
+				false
+			}
+		}
+	}
+}
+
 /// todo: generalize over DragContinue and DragEnd
-pub(crate) fn on_drag_start(
-	event: Listener<Pointer<DragStart>>,
+pub(crate) fn on_drag_start<E: EventReaction>(
+	event: Listener<Pointer<E>>,
 	detector: Query<&Parent, With<DetectorMarker>>,
 	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
 ) {
@@ -10,7 +69,10 @@ pub(crate) fn on_drag_start(
 
 	let Some((config, mut data, pad_transform)) = (match detector.get(detector_entity) {
 		Err(_) => {
-			error!(message = "No parent on pad detector?", note = "Could also be an event being triggered on the wrong entity");
+			error!(
+				message = "No parent on pad detector?",
+				note = "Could also be an event being triggered on the wrong entity"
+			);
 			None
 		}
 		Ok(pad_entity) => {
@@ -48,41 +110,7 @@ pub(crate) fn on_drag_start(
 		Some(world_point) => {
 			let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
 
-			match world_normal {
-				None => debug!(message = "No normals received from DragStart event", ?event),
-				Some(world_normal) => {
-					let local_normal = pad_inverse_matrix.transform_vector3(world_normal);
-
-					let expected = Vec3::Y;
-					if local_normal.dot(expected) < 0.9 {
-						// normal is wrong, either bottom, left, right, or other
-						let mut face = "curved edge?";
-						if local_normal.dot(Vec3::X) >= 0.9 {
-							face = "right edge";
-						} else if local_normal.dot(-Vec3::X) >= 0.9 {
-							face = "left edge";
-						} else if local_normal.dot(-Vec3::Y) >= 0.9 {
-							face = "bottom"
-						} else if local_normal.dot(-Vec3::Z) >= 0.9 {
-							face = "front edge"
-						} else if local_normal.dot(Vec3::Z) >= 0.9 {
-							face = "back edge"
-						}
-
-						warn!(
-							message =
-								"A DragStart event was received, but it appears to not be the expected normal",
-							note = "This is likely because the user didn't click the primary face",
-							note = "Not registering this as an event",
-							local_face_pressed = face,
-							?expected,
-							?local_normal,
-							?world_normal,
-						);
-						return; // skip if normals are bad
-					}
-				}
-			}
+			check_world_normal("DragStart", world_normal, pad_inverse_matrix);
 
 			// undoes the pad's transform to get the local point
 			let local_point = {
