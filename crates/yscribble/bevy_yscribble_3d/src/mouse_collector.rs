@@ -49,10 +49,13 @@ impl EventReaction for Pointer<Drag> {
 			data: &mut ScribbleData,
 		) {
 			let event_data = &self.event;
+			// todo check this
 			// this delta is per surface, so no [GlobalTransform] trickery required
 			let absolute_delta = event_data.delta;
 			
 			let normalized_delta = absolute_delta / Vec2::new(config.width, config.height);
+
+			trace!(message = "Received drag event", ?absolute_delta, ?normalized_delta);
 
 			data.push_partial_delta(absolute_delta, normalized_delta);
 	}

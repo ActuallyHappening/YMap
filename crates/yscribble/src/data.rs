@@ -45,7 +45,7 @@ impl ScribbleData {
 	/// [tracing::error]s if no points in partial line to resolve delta from.
 	pub fn push_partial_delta(&mut self, absolute_delta: Vec2, normalized_delta: Vec2) {
 		let Some(last_point) = self.partial_line.into_iter().last().cloned() else {
-			error!("Trying to `push_partial_delta`, but no points to resolve delta from");
+			error!(message = "Trying to `push_partial_delta`, but no points to resolve delta from");
 			return;
 		};
 
