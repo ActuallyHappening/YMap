@@ -20,7 +20,7 @@ mod pos {
 	/// A 2D vector relative to the center of a scribble pad.
 	/// The use of `x` and `y` is suggestive, but different to `bevy` coordinate systems
 	/// depending on the orientation of the pad
-	#[derive(PartialEq, Debug)]
+	#[derive(PartialEq, Clone, Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct ScribblePos {
 		/// +x is rightward
@@ -39,7 +39,7 @@ mod point {
 	use crate::prelude::*;
 
 	/// A single, generic point along a scribble path
-	#[derive(PartialEq, Debug)]
+	#[derive(PartialEq, Clone, Debug)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct ScribblePoint {
 		pos: ScribblePos,
@@ -49,6 +49,17 @@ mod point {
 	impl ScribblePoint {
 		pub fn new(pos: ScribblePos) -> Self {
 			ScribblePoint { pos }
+		}
+
+		pub(crate) fn add_delta(&self, absolute_delta: Vec2, normalized_delta: Vec2) -> Self {
+			ScribblePoint {
+				pos: ScribblePos {
+					center_x: self.pos.center_x + absolute_delta.x,
+					center_y: self.pos.center_y + absolute_delta.y,
+					normalized_x: self.pos.normalized_x + normalized_delta.x,
+					normalized_y: self.pos.normalized_y + normalized_delta.y,
+				},
+			}
 		}
 	}
 }
@@ -89,6 +100,19 @@ mod partial_line {
 				Ok(line) => Ok(line),
 				Err(data) => Err(PartialLine::from_parts(data.into_iter())),
 			}
+		}
+	}
+
+	impl<'d> IntoIterator for &'d PartialLine {
+		type Item = &'d ScribblePoint;
+		type IntoIter = std::vec::IntoIter<&'d ScribblePoint>;
+
+		fn into_iter(self) -> Self::IntoIter {
+			(&self.points)
+				.into_iter()
+				.map(|point| point)
+				.collect::<Vec<_>>()
+				.into_iter()
 		}
 	}
 }

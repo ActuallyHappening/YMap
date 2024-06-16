@@ -39,6 +39,22 @@ impl EventReaction for Pointer<DragStart> {
 	}
 }
 
+impl EventReaction for Pointer<Drag> {
+	const EV_NAME: &'static str = "Drag";
+
+	fn process_event_data(
+			&self,
+			config: &PadConfig,
+			pad_transform: &GlobalTransform,
+			data: &mut ScribbleData,
+		) {
+			let event_data = &self.event;
+			let delta = event_data.delta;
+
+			// let last_position = data.
+	}
+}
+
 /// [false] means normals are bad
 fn check_world_normal<E: EventReaction>(
 	world_normal: Option<Vec3>,
