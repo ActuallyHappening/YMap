@@ -65,8 +65,9 @@ fn expand_pad_bundles(
 					..default()
 				},
 				drag_start: On::<Pointer<DragStart>>::run(
-					mouse_collector::on_drag_start::<Pointer<DragStart>>,
-				), // todo
+					mouse_collector::handle_event::<Pointer<DragStart>>,
+				),
+				drag: On::<Pointer<Drag>>::run(mouse_collector::handle_event::<Pointer<Drag>>),
 				pickable: PickableBundle::default(),
 				name: Name::new("Pickable surface"),
 				marker: crate::DetectorMarker,

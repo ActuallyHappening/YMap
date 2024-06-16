@@ -45,13 +45,16 @@ impl EventReaction for Pointer<Drag> {
 	fn process_event_data(
 			&self,
 			config: &PadConfig,
-			pad_transform: &GlobalTransform,
+			_pad_transform: &GlobalTransform,
 			data: &mut ScribbleData,
 		) {
 			let event_data = &self.event;
-			let delta = event_data.delta;
+			// this delta is per surface, so no [GlobalTransform] trickery required
+			let absolute_delta = event_data.delta;
+			
+			let normalized_delta = absolute_delta / Vec2::new(config.width, config.height);
 
-			// let last_position = data.
+			data.push_partial_delta(absolute_delta, normalized_delta);
 	}
 }
 
@@ -151,7 +154,7 @@ fn compute_pos<E: EventReaction>(
 }
 
 #[allow(private_bounds)]
-pub(crate) fn on_drag_start<E: EventReaction>(
+pub(crate) fn handle_event<E: EventReaction>(
 	event: Listener<E>,
 	detector: Query<&Parent, With<DetectorMarker>>,
 	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
