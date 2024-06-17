@@ -33,6 +33,12 @@ mod pos {
 		/// -1 is very bottom, +1 is very top
 		pub normalized_y: f32,
 	}
+
+	impl ScribblePos {
+		pub fn absolute_position(&self) -> Vec2 {
+			Vec2::new(self.center_x, self.center_y)
+		}
+	}
 }
 
 mod point {
@@ -60,6 +66,10 @@ mod point {
 					normalized_y: self.pos.normalized_y + normalized_delta.y,
 				},
 			}
+		}
+
+		pub fn pos(&self) -> &ScribblePos {
+			&self.pos
 		}
 	}
 }

@@ -7,11 +7,34 @@ pub mod prelude {
 	pub(crate) use yscribble::prelude::*;
 	// pub(crate) use extension_traits::extension;
 	pub(crate) use bevy_mod_picking::prelude::*;
+	pub(crate) use smart_default::SmartDefault;
 	pub(crate) use std::ops::Deref as _;
 
 	pub use crate::components::*;
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
+
+	/// Shortcut for accessing [Mesh] and [StandardMaterial] [Assets],
+	/// and the [AssetServer].
+	///
+	/// See also MM
+	#[allow(clippy::upper_case_acronyms)]
+	#[derive(bevy::ecs::system::SystemParam)]
+	pub(crate) struct MMA<'w> {
+		pub meshs: ResMut<'w, Assets<Mesh>>,
+		pub mats: ResMut<'w, Assets<StandardMaterial>>,
+		pub ass: Res<'w, AssetServer>,
+	}
+
+	/// Shortcut for accessing [Mesh] and [StandardMaterial] [Assets].
+	///
+	/// See also [MMA]
+	#[allow(clippy::upper_case_acronyms)]
+	#[derive(bevy::ecs::system::SystemParam)]
+	pub(crate) struct MM<'w> {
+		pub meshs: ResMut<'w, Assets<Mesh>>,
+		pub mats: ResMut<'w, Assets<StandardMaterial>>,
+	}
 }
 mod mouse_collector;
 mod visuals;
