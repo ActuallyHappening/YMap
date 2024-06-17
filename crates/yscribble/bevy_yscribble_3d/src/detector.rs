@@ -11,6 +11,7 @@ pub(crate) struct DetectorBundle {
 	drag_start: On<Pointer<DragStart>>,
 	drag: On<Pointer<Move>>,
 	drag_end: On<Pointer<Up>>,
+	out: On<Pointer<Out>>,
 }
 
 impl DetectorBundle {
@@ -34,6 +35,7 @@ impl DetectorBundle {
 			drag_start: On::<Pointer<DragStart>>::run(handle_event::<Pointer<DragStart>>),
 			drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
 			drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
+			out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
 			pickable: PickableBundle::default(),
 			name: Name::new("Pickable surface"),
 			marker: crate::DetectorMarker,
@@ -135,6 +137,35 @@ impl EventReaction for Pointer<Up> {
 			// cuts line because this always ends the line
 			data.cut_line();
 			data.partial_line().push_partial_point(point);
+		}
+	}
+}
+
+impl EventReaction for Pointer<Out> {
+	const EV_NAME: &'static str = "Out";
+
+	fn process_event_data(
+		&self,
+		config: &PadConfig,
+		pad_transform: &GlobalTransform,
+		data: &mut ScribbleData,
+	) {
+		let event_data = self;
+		let world_point = event_data.event.hit.position;
+		let world_normal = event_data.event.hit.normal;
+
+		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+			// skip if bad normals
+			return;
+		}
+
+		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+			let point = ScribblePoint::new(pos);
+			// cuts line because this always ends the line
+			debug!("Out event received, cutting line");
+			data.cut_line();
+			// data.partial_line().push_partial_point(point);
 		}
 	}
 }
