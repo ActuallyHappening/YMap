@@ -73,7 +73,7 @@ enum InputEventRaw {
 	MouseStart {
 		id: MouseButton,
 		pos: Pos,
-	}
+	},
 }
 
 fn collect_touch_inputs(
@@ -111,7 +111,10 @@ fn collect_touch_inputs(
 		for finishing_touch in inputs.iter_just_released() {
 			emitted_events.send(InputEventRaw::FingerFinished {
 				final_pos: Pos::from_screen_coords(finishing_touch.position(), current_window_resolution),
-				previous_pos: Pos::from_screen_coords(finishing_touch.previous_position(), current_window_resolution),
+				previous_pos: Pos::from_screen_coords(
+					finishing_touch.previous_position(),
+					current_window_resolution,
+				),
 				final_force: finishing_touch.force(),
 				previous_force: finishing_touch.previous_force(),
 				id: finishing_touch.id(),

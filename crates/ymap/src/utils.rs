@@ -1,4 +1,3 @@
-
 /// Includes an asset from the root of the project
 #[macro_export]
 macro_rules! include_asset {

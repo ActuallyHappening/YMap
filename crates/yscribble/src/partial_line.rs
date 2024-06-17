@@ -59,15 +59,12 @@ impl PartialLine {
 	}
 }
 
+/// Iterates references only to avoid mutability and [Clone]ing
 impl<'d> IntoIterator for &'d PartialLine {
 	type Item = &'d ScribblePoint;
 	type IntoIter = std::vec::IntoIter<&'d ScribblePoint>;
 
 	fn into_iter(self) -> Self::IntoIter {
-		(&self.points)
-			.into_iter()
-			.map(|point| point)
-			.collect::<Vec<_>>()
-			.into_iter()
+		self.points.iter().collect::<Vec<_>>().into_iter()
 	}
 }

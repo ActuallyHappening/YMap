@@ -1,6 +1,4 @@
-use std::error::Error;
-
-use crate::{partial_line, prelude::*};
+use crate::prelude::*;
 
 /// [Vec] of [CompleteLine]s and [PartialLine]s.
 /// [PartialLine]s are mutable and public.

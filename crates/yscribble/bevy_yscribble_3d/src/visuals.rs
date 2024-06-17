@@ -1,9 +1,6 @@
 //! Internally uses the 'up' plane direction of -z, and right plane direction of +x
 
-use crate::{
-	detector::{self, DetectorBundle},
-	prelude::*,
-};
+use crate::{detector::DetectorBundle, prelude::*};
 
 pub struct YScribble3DVisuals;
 

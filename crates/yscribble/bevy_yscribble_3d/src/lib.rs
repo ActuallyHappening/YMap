@@ -9,7 +9,6 @@ pub mod prelude {
 	pub(crate) use bevy_mod_picking::prelude::*;
 	pub(crate) use smart_default::SmartDefault;
 	pub(crate) use std::ops::Deref as _;
-use std::ops::DerefMut;
 
 	pub use crate::components::*;
 	pub use crate::visuals::*;
@@ -39,15 +38,18 @@ use std::ops::DerefMut;
 		pub mats: ResMut<'w, Assets<StandardMaterial>>,
 	}
 
-	impl MM<'_> {
-		pub fn reborrow(&mut self) -> MMR {
-			MMR {
-				meshs: self.meshs.reborrow(),
-				mats: self.mats.reborrow(),
-			}
-		}
-	}
+	// impl MM<'_> {
+	// 	pub fn reborrow(&mut self) -> MMR {
+	// 		MMR {
+	// 			meshs: self.meshs.reborrow(),
+	// 			mats: self.mats.reborrow(),
+	// 		}
+	// 	}
+	// }
 
+	/// Mutable reference type, useful for extracted functions
+	#[allow(clippy::upper_case_acronyms)]
+	#[allow(dead_code)]
 	pub(crate) struct MMR<'w> {
 		pub meshs: Mut<'w, Assets<Mesh>>,
 		pub mats: Mut<'w, Assets<StandardMaterial>>,
