@@ -1,5 +1,43 @@
 use crate::{prelude::*, DetectorMarker};
 
+/// Not public as this entity is a child of the main [PadBundle].
+#[derive(Bundle)]
+pub(crate) struct DetectorBundle {
+	marker: DetectorMarker,
+	pbr: PbrBundle,
+	pickable: PickableBundle,
+	name: Name,
+	// event listeners
+	drag_start: On<Pointer<DragStart>>,
+	drag: On<Pointer<Move>>,
+	drag_end: On<Pointer<Up>>,
+}
+
+impl DetectorBundle {
+	pub fn new(
+		PadConfig {
+			width,
+			height,
+			depth,
+		}: &PadConfig,
+		MMR { mut meshs, mut mats }: MMR,
+	) -> Self {
+		DetectorBundle {
+			pbr: PbrBundle {
+				mesh: meshs.add(Cuboid::new(*width, *depth, *height)),
+				material: mats.add(Color::GRAY),
+				..default()
+			},
+			drag_start: On::<Pointer<DragStart>>::run(handle_event::<Pointer<DragStart>>),
+			drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
+			drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
+			pickable: PickableBundle::default(),
+			name: Name::new("Pickable surface"),
+			marker: crate::DetectorMarker,
+		}
+	}
+}
+
 trait EventReaction: std::fmt::Debug + EntityEvent {
 	const EV_NAME: &'static str;
 
@@ -193,8 +231,7 @@ fn compute_pos<E: EventReaction>(
 	}
 }
 
-#[allow(private_bounds)]
-pub(crate) fn handle_event<E: EventReaction>(
+fn handle_event<E: EventReaction>(
 	event: Listener<E>,
 	detector: Query<&Parent, With<DetectorMarker>>,
 	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,

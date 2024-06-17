@@ -1,6 +1,9 @@
 //! Internally uses the 'up' plane direction of -z, and right plane direction of +x
 
-use crate::{mouse_collector, prelude::*, DetectorBundle};
+use crate::{
+	detector::{self, DetectorBundle},
+	prelude::*,
+};
 
 pub struct YScribble3DVisuals;
 
@@ -130,8 +133,10 @@ mod spawner {
 fn expand_pad_bundles(
 	bundles: Query<(Entity, &PadConfig), (Added<PadConfig>, Without<Children>)>,
 	mut commands: Commands,
-	mut meshs: ResMut<Assets<Mesh>>,
-	mut materials: ResMut<Assets<StandardMaterial>>,
+	MM {
+		mut meshs,
+		mut mats,
+	}: MM,
 	ass: Res<AssetServer>,
 ) {
 	for (entity, config) in bundles.iter() {
@@ -149,28 +154,20 @@ fn expand_pad_bundles(
 		let just_above_depth = depth * 1.2;
 
 		commands.entity(entity).with_children(|parent| {
-			parent.spawn(DetectorBundle {
-				pbr: PbrBundle {
-					mesh: meshs.add(Cuboid::new(*width, *depth, *height)),
-					material: materials.add(Color::GRAY),
-					..default()
+			parent.spawn(DetectorBundle::new(
+				config,
+				MMR {
+					meshs: meshs.reborrow(),
+					mats: mats.reborrow(),
 				},
-				drag_start: On::<Pointer<DragStart>>::run(
-					mouse_collector::handle_event::<Pointer<DragStart>>,
-				),
-				drag: On::<Pointer<Move>>::run(mouse_collector::handle_event::<Pointer<Move>>),
-				drag_end: On::<Pointer<Up>>::run(mouse_collector::handle_event::<Pointer<Up>>),
-				pickable: PickableBundle::default(),
-				name: Name::new("Pickable surface"),
-				marker: crate::DetectorMarker,
-			});
+			));
 
 			parent.spawn(spawner::SpawnerBundle::default());
 
 			parent.spawn((
 				PbrBundle {
 					mesh: meshs.add(Cuboid::new(width * 0.95, *depth, *depth)),
-					material: materials.add(Color::WHITE),
+					material: mats.add(Color::WHITE),
 					transform: Transform::from_translation(Vec3::new(0.0, *depth + 0.1, -half_height)),
 					..default()
 				},
