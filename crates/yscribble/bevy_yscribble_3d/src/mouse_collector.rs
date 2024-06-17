@@ -34,30 +34,67 @@ impl EventReaction for Pointer<DragStart> {
 			// cutting because this is a [DragStart] event which is always the start of a new line
 			data.cut_line();
 			let point = ScribblePoint::new(pos);
-			data.push_partial_point(point);
+			data.partial_line().push_partial_point(point);
 		}
 	}
 }
 
-impl EventReaction for Pointer<Drag> {
-	const EV_NAME: &'static str = "Drag";
+impl EventReaction for Pointer<Move> {
+	const EV_NAME: &'static str = "Move";
 
 	fn process_event_data(
-			&self,
-			config: &PadConfig,
-			_pad_transform: &GlobalTransform,
-			data: &mut ScribbleData,
-		) {
-			let event_data = &self.event;
-			// todo check this
-			// this delta is per surface, so no [GlobalTransform] trickery required
-			let absolute_delta = event_data.delta;
-			
-			let normalized_delta = absolute_delta / Vec2::new(config.width, config.height);
+		&self,
+		config: &PadConfig,
+		pad_transform: &GlobalTransform,
+		data: &mut ScribbleData,
+	) {
+		if data.partial_line().is_empty() {
+			// skip if no points
+			return;
+		}
 
-			trace!(message = "Received drag event", ?absolute_delta, ?normalized_delta);
+		let event_data = self;
+		let world_point = event_data.event.hit.position;
+		let world_normal = event_data.event.hit.normal;
 
-			data.push_partial_delta(absolute_delta, normalized_delta);
+		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+			// skip if bad normals
+			return;
+		}
+
+		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+			let point = ScribblePoint::new(pos);
+			data.partial_line().push_partial_point(point);
+		}
+	}
+}
+
+impl EventReaction for Pointer<Up> {
+	const EV_NAME: &'static str = "Up";
+
+	fn process_event_data(
+		&self,
+		config: &PadConfig,
+		pad_transform: &GlobalTransform,
+		data: &mut ScribbleData,
+	) {
+		let event_data = self;
+		let world_point = event_data.event.hit.position;
+		let world_normal = event_data.event.hit.normal;
+
+		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+			// skip if bad normals
+			return;
+		}
+
+		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+			let point = ScribblePoint::new(pos);
+			// cuts line because this always ends the line
+			data.cut_line();
+			data.partial_line().push_partial_point(point);
+		}
 	}
 }
 

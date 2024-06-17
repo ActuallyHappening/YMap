@@ -35,23 +35,8 @@ impl ScribbleData {
 
 /// [PartialLine] impls
 impl ScribbleData {
-	pub fn push_partial_point(&mut self, point: ScribblePoint) {
-		self.partial_line.push(point);
-	}
-
-	/// Pushes a new [ScribblePoint] to [Self::partial_line] using only the
-	/// change in absolute position since the last [ScribblePoint].
-	///
-	/// [tracing::error]s if no points in partial line to resolve delta from.
-	pub fn push_partial_delta(&mut self, absolute_delta: Vec2, normalized_delta: Vec2) {
-		let Some(last_point) = self.partial_line.into_iter().last().cloned() else {
-			error!(message = "Trying to `push_partial_delta`, but no points to resolve delta from");
-			return;
-		};
-
-		let new_point = last_point.add_delta(absolute_delta, normalized_delta);
-
-		self.push_partial_point(new_point);
+	pub fn partial_line(&mut self) -> &mut PartialLine {
+		&mut self.partial_line
 	}
 
 	/// Call to begin a new partial line.

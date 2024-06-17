@@ -8,15 +8,39 @@ use bevy::{
 use bevy_mod_picking::prelude::*;
 use bevy_yscribble_3d::prelude::*;
 
+/// Used for examples to reduce picking latency. Not relevant code for the examples.
+/// Copied from https://github.com/aevyrie/bevy_mod_picking/blob/757a1ed81f80de5a102dc17136774b012e404b58/src/lib.rs#L361
+#[doc(hidden)]
+#[allow(dead_code)]
+pub fn low_latency_window_plugin() -> bevy::window::WindowPlugin {
+	bevy::window::WindowPlugin {
+		primary_window: Some(bevy::window::Window {
+			present_mode: bevy::window::PresentMode::AutoNoVsync,
+			..Default::default()
+		}),
+		..Default::default()
+	}
+}
+
+#[extension_traits::extension(pub trait YUtilsAppExt)]
+impl App {
+	/// Will add the [WindowPlugin](bevy::window::WindowPlugin)
+	fn low_power(&mut self) -> &mut Self {
+		self.insert_resource(bevy::winit::WinitSettings::desktop_app())
+	}
+}
+
 fn main() {
 	App::new()
 		.add_plugins((
-			DefaultPlugins.set(LogPlugin {
-				filter: "info,basic=trace,yscribble=trace,bevy_yscribble_3d=trace,bevy_mod_picking=info"
-					.into(),
-				level: Level::INFO,
-				..default()
-			}),
+			DefaultPlugins
+				.set(LogPlugin {
+					filter: "info,basic=trace,yscribble=trace,bevy_yscribble_3d=trace,bevy_mod_picking=info"
+						.into(),
+					level: Level::INFO,
+					..default()
+				})
+				.set(low_latency_window_plugin()),
 			YScribble3DPlugins,
 			bevy_editor_pls::EditorPlugin::default(),
 		))
@@ -25,10 +49,7 @@ fn main() {
 		.run();
 }
 
-fn setup(
-	mut commands: Commands,
-	
-) {
+fn setup(mut commands: Commands) {
 	commands.spawn(Camera3dBundle {
 		transform: Transform::from_translation(Vec3::new(0.0, 30.0, 1.0))
 			.looking_at(Vec3::ZERO, Vec3::Y),

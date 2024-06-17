@@ -79,7 +79,8 @@ mod components {
 		pub name: Name,
 		// event listeners
 		pub drag_start: On<Pointer<DragStart>>,
-		pub drag: On<Pointer<Drag>>,
+		pub drag: On<Pointer<Move>>,
+		pub drag_end: On<Pointer<Up>>,
 	}
 
 	impl Default for PadBundle {
