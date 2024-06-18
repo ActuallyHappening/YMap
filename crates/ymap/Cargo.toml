@@ -23,3 +23,6 @@ tracing = "0.1.40"
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"
 resources = ["assets"]
+
+[lints]
+workspace = true

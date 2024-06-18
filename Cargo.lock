@@ -623,6 +623,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_ecs_collections"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_ecs_macros"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1445,6 +1452,7 @@ dependencies = [
  "extension-traits",
  "smart-default",
  "yscribble",
+ "yutils",
 ]
 
 [[package]]
@@ -5780,6 +5788,13 @@ dependencies = [
  "glam 0.28.0",
  "serde",
  "tracing",
+]
+
+[[package]]
+name = "yutils"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

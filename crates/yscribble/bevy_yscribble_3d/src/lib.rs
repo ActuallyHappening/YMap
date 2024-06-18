@@ -10,50 +10,10 @@ pub mod prelude {
 	pub(crate) use smart_default::SmartDefault;
 	pub(crate) use std::ops::Deref as _;
 
+
 	pub use crate::components::*;
 	pub use crate::visuals::*;
 	pub use crate::YScribble3DPlugins;
-
-	/// Shortcut for accessing [Mesh] and [StandardMaterial] [Assets],
-	/// and the [AssetServer].
-	///
-	/// See also MM
-	#[allow(clippy::upper_case_acronyms)]
-	#[allow(dead_code)]
-	#[derive(bevy::ecs::system::SystemParam)]
-	pub(crate) struct MMA<'w> {
-		pub meshs: ResMut<'w, Assets<Mesh>>,
-		pub mats: ResMut<'w, Assets<StandardMaterial>>,
-		pub ass: Res<'w, AssetServer>,
-	}
-
-	/// Shortcut for accessing [Mesh] and [StandardMaterial] [Assets] as a [SystemParam](bevy::ecs::system::SystemParam)
-	///
-	/// See also [MMA]
-	#[allow(clippy::upper_case_acronyms)]
-	#[allow(dead_code)]
-	#[derive(bevy::ecs::system::SystemParam)]
-	pub(crate) struct MM<'w> {
-		pub meshs: ResMut<'w, Assets<Mesh>>,
-		pub mats: ResMut<'w, Assets<StandardMaterial>>,
-	}
-
-	// impl MM<'_> {
-	// 	pub fn reborrow(&mut self) -> MMR {
-	// 		MMR {
-	// 			meshs: self.meshs.reborrow(),
-	// 			mats: self.mats.reborrow(),
-	// 		}
-	// 	}
-	// }
-
-	/// Mutable reference type, useful for extracted functions
-	#[allow(clippy::upper_case_acronyms)]
-	#[allow(dead_code)]
-	pub(crate) struct MMR<'w> {
-		pub meshs: Mut<'w, Assets<Mesh>>,
-		pub mats: Mut<'w, Assets<StandardMaterial>>,
-	}
 }
 mod detector;
 mod visuals;

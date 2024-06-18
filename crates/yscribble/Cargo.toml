@@ -14,3 +14,6 @@ bevy = { workspace = true, optional = true }
 serde = { version = "1.0.203", features = ["derive"] }
 glam = "*"
 tracing = "0.1.40"
+
+[lints]
+workspace = true
