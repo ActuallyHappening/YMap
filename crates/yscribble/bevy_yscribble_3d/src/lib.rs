@@ -12,11 +12,13 @@ pub mod prelude {
 	pub(crate) use yutils::prelude::*;
 
 	pub use crate::components::*;
-	pub use crate::visuals::*;
+	pub use crate::logic::*;
+	pub use crate::data::*;
 	pub use crate::YScribble3DPlugins;
 }
 mod detector;
-mod visuals;
+mod logic;
+mod data;
 
 pub struct YScribble3DPlugins;
 
@@ -24,43 +26,12 @@ impl PluginGroup for YScribble3DPlugins {
 	fn build(self) -> bevy::app::PluginGroupBuilder {
 		PluginGroupBuilder::start::<Self>()
 			.add(InternalPlugin)
-			.add(visuals::YScribble3DVisuals)
+			.add(logic::YScribble3DVisuals)
 			.add(yscribble::YScribbleGenericTypeRegistrationPlugin)
 	}
 }
 
-mod components {
-	use crate::prelude::*;
-
-	/// Rectangular scribble pad.
-	#[derive(Bundle, Debug)]
-	pub struct PadBundle {
-		pub config: PadConfig,
-
-		pub visibility: VisibilityBundle,
-		pub transform: TransformBundle,
-		pub name: Name,
-
-		// data
-		pub committed_data: ScribbleData,
-	}
-
-	/// Marking entities that receive the touch events in the pad
-	#[derive(Component)]
-	pub(crate) struct DetectorMarker;
-
-	impl Default for PadBundle {
-		fn default() -> Self {
-			PadBundle {
-				name: Name::new("Scribble Pad (Parent)"),
-				config: PadConfig::default(),
-				transform: Default::default(),
-				visibility: Default::default(),
-				committed_data: Default::default(),
-			}
-		}
-	}
-}
+mod components;
 /// Internal setup,
 /// Adds [DefaultPickingPlugins] if not already added
 struct InternalPlugin;

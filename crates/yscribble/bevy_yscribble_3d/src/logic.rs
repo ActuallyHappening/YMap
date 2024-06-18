@@ -8,7 +8,7 @@ impl Plugin for YScribble3DVisuals {
 	fn build(&self, app: &mut App) {
 		app
 			.add_systems(Update, expand_pad_bundles)
-			.add_plugins(spawner::SpawnerPlugin)
+			.add_plugins(visuals::SpawnerPlugin)
 			.register_type::<PadConfig>();
 	}
 }
@@ -37,7 +37,7 @@ mod config {
 	}
 }
 
-mod spawner {
+mod visuals {
 	use crate::prelude::*;
 
 	/// Responsible for managing the ink visuals
@@ -45,7 +45,7 @@ mod spawner {
 
 	impl Plugin for SpawnerPlugin {
 		fn build(&self, app: &mut App) {
-			app.add_systems(Update, sync_ink_and_data);
+			// app.add_systems(Update, sync_ink_and_data);
 		}
 	}
 
@@ -64,67 +64,23 @@ mod spawner {
 		name: Name,
 	}
 
-	#[derive(Bundle, SmartDefault)]
-	struct DebugInkBundle {
-		pbr: PbrBundle,
+	/// Renders [ScribblePoint]s
+	mod ink {
+		use crate::prelude::*;
 
-		#[default(Name::new("Ink"))]
-		name: Name,
+
 	}
 
-	impl DebugInkBundle {
-		fn new(absolute_pos: Vec2, MMA { meshs, mats, .. }: &mut MMA) -> Self {
-			DebugInkBundle {
-				pbr: PbrBundle {
-					transform: Transform::from_translation(Vec3::new(absolute_pos.x, 0.0, -absolute_pos.y)),
-					material: mats.add(Color::RED),
-					mesh: meshs.add(Sphere::new(0.1)),
-					..default()
-				},
-				..default()
-			}
-		}
+	/// Spawns visuals associated with [PartialLine]
+	mod partial_line {
+		use crate::prelude::*;
+
+		/// Marker for the [Entity] that spawns
+		#[derive(Component)]
+		struct PartialLineSpawnerMarker;
 	}
 
-	fn sync_ink_and_data(
-		mut commands: Commands,
-		data: Query<(&ScribbleData, &Children)>,
-		spawners: Query<Entity, With<PadSpawner>>,
-		mut mma: MMA,
-	) {
-		for (data, children) in data.iter() {
-			let spawners = children
-				.iter()
-				.filter_map(|child| spawners.get(*child).ok())
-				.collect::<Vec<_>>();
-			if spawners.len() > 1 {
-				error!(
-					message = "More than one SpawnerBundle as a child of [ScribbleData]",
-					?spawners
-				);
-			}
-			match spawners.first() {
-				None => {
-					error!(message = "No SpawnerBundle found as a child of [ScribbleData]");
-				}
-				Some(spawner) => {
-					// replaces all children
-					commands
-						.entity(*spawner)
-						.despawn_descendants()
-						.with_children(|spawner| {
-							// todo: draw lines separate from dots
-							for point in data.iter_complete().flat_map(|line| line.iter()) {
-								spawner.spawn(DebugInkBundle::new(
-									point.pos().absolute_position(),
-									&mut mma,
-								));
-							}
-						});
-				}
-			}
-		}
-	}
+
 }
 
 fn expand_pad_bundles(
@@ -159,7 +115,7 @@ fn expand_pad_bundles(
 				},
 			));
 
-			parent.spawn(spawner::SpawnerBundle::default());
+			parent.spawn(visuals::SpawnerBundle::default());
 
 			parent.spawn((
 				PbrBundle {

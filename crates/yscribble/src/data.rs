@@ -4,7 +4,7 @@ use crate::prelude::*;
 /// [PartialLine]s are mutable and public.
 /// Can still add completed lines.
 #[derive(Debug, Default)]
-#[cfg_attr(feature = "bevy", derive(Component, Reflect))]
+#[cfg_attr(feature = "bevy", derive(Reflect))]
 pub struct ScribbleData {
 	complete_lines: Vec<CompleteLine>,
 

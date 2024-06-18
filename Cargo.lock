@@ -623,15 +623,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_ecs_collections"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_editor_pls",
- "yutils",
-]
-
-[[package]]
 name = "bevy_ecs_macros"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
