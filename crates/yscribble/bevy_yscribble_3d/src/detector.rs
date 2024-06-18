@@ -46,23 +46,13 @@ impl DetectorBundle {
 trait EventReaction: std::fmt::Debug + EntityEvent {
 	const EV_NAME: &'static str;
 
-	fn process_event_data(
-		&self,
-		config: &PadConfig,
-		pad_transform: &GlobalTransform,
-		data: &mut ScribbleData,
-	);
+	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData);
 }
 
 impl EventReaction for Pointer<Down> {
 	const EV_NAME: &'static str = "Down";
 
-	fn process_event_data(
-		&self,
-		config: &PadConfig,
-		pad_transform: &GlobalTransform,
-		data: &mut ScribbleData,
-	) {
+	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
 		trace!(
 			message = "DragStart event received",
 			detector_event = "DragStart"
@@ -80,7 +70,7 @@ impl EventReaction for Pointer<Down> {
 			return;
 		}
 
-		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
 			data.partial_line().push_partial_point(point);
 		}
@@ -90,12 +80,7 @@ impl EventReaction for Pointer<Down> {
 impl EventReaction for Pointer<Move> {
 	const EV_NAME: &'static str = "Move";
 
-	fn process_event_data(
-		&self,
-		config: &PadConfig,
-		pad_transform: &GlobalTransform,
-		data: &mut ScribbleData,
-	) {
+	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
 		if data.partial_line().is_empty() {
 			// skip if no points
 			trace!(
@@ -115,7 +100,7 @@ impl EventReaction for Pointer<Move> {
 			return;
 		}
 
-		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
 			data.partial_line().push_partial_point(point);
 		}
@@ -127,7 +112,7 @@ impl EventReaction for Pointer<Up> {
 
 	fn process_event_data(
 		&self,
-		config: &PadConfig,
+		// config: &PadConfig,
 		pad_transform: &GlobalTransform,
 		data: &mut ScribbleData,
 	) {
@@ -150,7 +135,7 @@ impl EventReaction for Pointer<Up> {
 			return;
 		}
 
-		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
 			data.partial_line().push_partial_point(point);
 		}
@@ -160,12 +145,7 @@ impl EventReaction for Pointer<Up> {
 impl EventReaction for Pointer<Out> {
 	const EV_NAME: &'static str = "Out";
 
-	fn process_event_data(
-		&self,
-		_config: &PadConfig,
-		pad_transform: &GlobalTransform,
-		data: &mut ScribbleData,
-	) {
+	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
 		// cuts line because this always ends the line
 		trace!(
 			message = "Out event received, cutting line regardless of normals",
@@ -181,11 +161,6 @@ impl EventReaction for Pointer<Out> {
 		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
 			// return;
 		}
-
-		// if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
-		// 	let point = ScribblePoint::new(pos);
-		// 	// data.partial_line().push_partial_point(point);
-		// }
 	}
 }
 
@@ -239,12 +214,6 @@ fn check_world_normal<E: EventReaction>(
 
 fn compute_pos<E: EventReaction>(
 	world_point: Option<Vec3>,
-	PadConfig {
-		width,
-		height,
-		depth,
-	}: &PadConfig,
-	pad_transform: &GlobalTransform,
 	pad_inverse_matrix: Mat4,
 ) -> Option<ScribblePos> {
 	match world_point {
@@ -254,30 +223,11 @@ fn compute_pos<E: EventReaction>(
 		}
 		Some(world_point) => {
 			// undoes the pad's transform to get the local point
-			let local_point = {
-				let mut local_point = pad_inverse_matrix.transform_point3(world_point);
-
-				// assumes scale is still 1 so depth is reasonable
-				let pad_scale = pad_transform.compute_transform().scale;
-				if pad_scale != Vec3::ONE {
-					error!(message = "Scaling is not supported yet", ?pad_scale);
-				}
-				// accounts for depth
-				local_point.y -= depth / 2.0;
-
-				// trace!(
-				// 	message = "After accounting for depth",
-				// 	?local_point,
-				// 	?world_point
-				// );
-				local_point
-			};
+			let local_point = pad_inverse_matrix.transform_point3(world_point);
 
 			let pos = ScribblePos {
 				center_x: local_point.x,
-				normalized_x: local_point.x / width * 2.0,
 				center_y: -local_point.z,
-				normalized_y: -local_point.z / height * 2.0,
 			};
 			Some(pos)
 		}
@@ -287,11 +237,11 @@ fn compute_pos<E: EventReaction>(
 fn handle_event<E: EventReaction>(
 	event: Listener<E>,
 	detector: Query<&Parent, With<DetectorMarker>>,
-	mut pad: Query<(&PadConfig, &mut ScribbleData, &GlobalTransform), With<Children>>,
+	mut pad: Query<(&mut ScribbleData, &GlobalTransform), (With<PadConfig>, With<Children>)>,
 ) {
 	let detector_entity = event.listener();
 
-	let Some((config, mut data, pad_transform)) = (match detector.get(detector_entity) {
+	let Some((mut data, pad_transform)) = (match detector.get(detector_entity) {
 		Err(_) => {
 			error!(
 				message = "No parent on pad detector?",
@@ -315,5 +265,5 @@ fn handle_event<E: EventReaction>(
 
 	let event_data: &E = event.deref();
 
-	event_data.process_event_data(config, pad_transform, &mut data);
+	event_data.process_event_data(pad_transform, &mut data);
 }

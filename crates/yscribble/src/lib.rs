@@ -14,32 +14,7 @@ pub mod prelude {
 }
 use prelude::*;
 
-mod pos {
-	use crate::prelude::*;
-
-	/// A 2D vector relative to the center of a scribble pad.
-	/// The use of `x` and `y` is suggestive, but different to `bevy` coordinate systems
-	/// depending on the orientation of the pad
-	#[derive(PartialEq, Clone, Debug)]
-	#[cfg_attr(feature = "bevy", derive(Reflect))]
-	pub struct ScribblePos {
-		/// +x is rightward
-		pub center_x: f32,
-		/// +y is upward
-		pub center_y: f32,
-
-		/// -1 is very left, +1 is very right
-		pub normalized_x: f32,
-		/// -1 is very bottom, +1 is very top
-		pub normalized_y: f32,
-	}
-
-	impl ScribblePos {
-		pub fn absolute_position(&self) -> Vec2 {
-			Vec2::new(self.center_x, self.center_y)
-		}
-	}
-}
+mod pos;
 
 mod point {
 	use crate::prelude::*;
@@ -57,13 +32,11 @@ mod point {
 			ScribblePoint { pos }
 		}
 
-		pub(crate) fn add_delta(&self, absolute_delta: Vec2, normalized_delta: Vec2) -> Self {
+		pub(crate) fn add_delta(&self, absolute_delta: Vec2) -> Self {
 			ScribblePoint {
 				pos: ScribblePos {
 					center_x: self.pos.center_x + absolute_delta.x,
 					center_y: self.pos.center_y + absolute_delta.y,
-					normalized_x: self.pos.normalized_x + normalized_delta.x,
-					normalized_y: self.pos.normalized_y + normalized_delta.y,
 				},
 			}
 		}
@@ -161,8 +134,6 @@ mod complete_line {
 			ScribblePoint::new(ScribblePos {
 				center_x: num,
 				center_y: num,
-				normalized_x: 1.0,
-				normalized_y: 0.0,
 			})
 		}
 
