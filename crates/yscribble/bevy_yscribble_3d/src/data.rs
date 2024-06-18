@@ -19,4 +19,6 @@ pub(crate) struct ScribbleDataComponent(yscribble::prelude::ScribbleData);
 #[derive(SystemParam)]
 pub struct ScribbleData<'w, 's> {
 	pads: Query<'w, 's, (&'static ScribbleDataComponent, &'static Children)>,
+	commands: Commands<'w, 's>,
+	mma: MMA<'w>,
 }
