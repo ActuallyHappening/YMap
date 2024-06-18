@@ -8,7 +8,7 @@ pub(crate) struct DetectorBundle {
 	pickable: PickableBundle,
 	name: Name,
 	// event listeners
-	drag_start: On<Pointer<DragStart>>,
+	start: On<Pointer<Down>>,
 	drag: On<Pointer<Move>>,
 	drag_end: On<Pointer<Up>>,
 	out: On<Pointer<Out>>,
@@ -32,7 +32,7 @@ impl DetectorBundle {
 				material: mats.add(Color::GRAY),
 				..default()
 			},
-			drag_start: On::<Pointer<DragStart>>::run(handle_event::<Pointer<DragStart>>),
+			start: On::<Pointer<Down>>::run(handle_event::<Pointer<Down>>),
 			drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
 			drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
 			out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
@@ -54,8 +54,8 @@ trait EventReaction: std::fmt::Debug + EntityEvent {
 	);
 }
 
-impl EventReaction for Pointer<DragStart> {
-	const EV_NAME: &'static str = "DragStart";
+impl EventReaction for Pointer<Down> {
+	const EV_NAME: &'static str = "Down";
 
 	fn process_event_data(
 		&self,
@@ -63,6 +63,13 @@ impl EventReaction for Pointer<DragStart> {
 		pad_transform: &GlobalTransform,
 		data: &mut ScribbleData,
 	) {
+		trace!(
+			message = "DragStart event received",
+			detector_event = "DragStart"
+		);
+		// cutting because this is a [DragStart] event which is always the start of a new line
+		data.cut_line();
+
 		let event_data = self;
 		let world_point = event_data.event.hit.position;
 		let world_normal = event_data.event.hit.normal;
@@ -74,8 +81,6 @@ impl EventReaction for Pointer<DragStart> {
 		}
 
 		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
-			// cutting because this is a [DragStart] event which is always the start of a new line
-			data.cut_line();
 			let point = ScribblePoint::new(pos);
 			data.partial_line().push_partial_point(point);
 		}
@@ -93,6 +98,10 @@ impl EventReaction for Pointer<Move> {
 	) {
 		if data.partial_line().is_empty() {
 			// skip if no points
+			trace!(
+				message = "Skipping Move event because there are no points",
+				detector_event = "Move"
+			);
 			return;
 		}
 
@@ -122,6 +131,15 @@ impl EventReaction for Pointer<Up> {
 		pad_transform: &GlobalTransform,
 		data: &mut ScribbleData,
 	) {
+		trace!(
+			message = "Up even received, cutting line regardless of normals",
+			detector_event = "Up"
+		);
+
+		// cuts line because this always ends the line
+		// even if there is bad normals
+		data.cut_line();
+
 		let event_data = self;
 		let world_point = event_data.event.hit.position;
 		let world_normal = event_data.event.hit.normal;
@@ -134,8 +152,6 @@ impl EventReaction for Pointer<Up> {
 
 		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
-			// cuts line because this always ends the line
-			data.cut_line();
 			data.partial_line().push_partial_point(point);
 		}
 	}
@@ -150,23 +166,27 @@ impl EventReaction for Pointer<Out> {
 		pad_transform: &GlobalTransform,
 		data: &mut ScribbleData,
 	) {
-		let event_data = self;
-		let world_point = event_data.event.hit.position;
-		let world_normal = event_data.event.hit.normal;
+		// cuts line because this always ends the line
+		trace!(
+			message = "Out event received, cutting line regardless of normals",
+			detector_event = "Out"
+		);
+		data.cut_line();
 
-		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
-		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
-			// skip if bad normals
-			return;
-		}
+		// let event_data = self;
+		// let world_point = event_data.event.hit.position;
+		// let world_normal = event_data.event.hit.normal;
 
-		if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
-			let point = ScribblePoint::new(pos);
-			// cuts line because this always ends the line
-			debug!("Out event received, cutting line");
-			data.cut_line();
-			// data.partial_line().push_partial_point(point);
-		}
+		// let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		// if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+		// 	// skip if bad normals
+		// 	return;
+		// }
+
+		// if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
+		// 	let point = ScribblePoint::new(pos);
+		// 	// data.partial_line().push_partial_point(point);
+		// }
 	}
 }
 
@@ -246,11 +266,11 @@ fn compute_pos<E: EventReaction>(
 				// accounts for depth
 				local_point.y -= depth / 2.0;
 
-				trace!(
-					message = "After accounting for depth",
-					?local_point,
-					?world_point
-				);
+				// trace!(
+				// 	message = "After accounting for depth",
+				// 	?local_point,
+				// 	?world_point
+				// );
 				local_point
 			};
 
