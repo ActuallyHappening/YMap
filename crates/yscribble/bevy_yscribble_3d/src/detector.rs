@@ -162,7 +162,7 @@ impl EventReaction for Pointer<Out> {
 
 	fn process_event_data(
 		&self,
-		config: &PadConfig,
+		_config: &PadConfig,
 		pad_transform: &GlobalTransform,
 		data: &mut ScribbleData,
 	) {
@@ -173,15 +173,14 @@ impl EventReaction for Pointer<Out> {
 		);
 		data.cut_line();
 
-		// let event_data = self;
+		let event_data = self;
 		// let world_point = event_data.event.hit.position;
-		// let world_normal = event_data.event.hit.normal;
+		let world_normal = event_data.event.hit.normal;
 
-		// let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
-		// if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
-		// 	// skip if bad normals
-		// 	return;
-		// }
+		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
+		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
+			// return;
+		}
 
 		// if let Some(pos) = compute_pos::<Self>(world_point, config, pad_transform, pad_inverse_matrix) {
 		// 	let point = ScribblePoint::new(pos);
