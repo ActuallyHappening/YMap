@@ -9,7 +9,7 @@ pub mod prelude {
 	pub(crate) use bevy_mod_picking::prelude::*;
 	pub(crate) use smart_default::SmartDefault;
 	pub(crate) use std::ops::Deref as _;
-
+	pub(crate) use yutils::prelude::*;
 
 	pub use crate::components::*;
 	pub use crate::visuals::*;
