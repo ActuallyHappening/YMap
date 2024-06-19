@@ -22,8 +22,8 @@ impl ScribbleData {
 		}
 	}
 
-	pub fn extend_completed(&mut self, data: impl Iterator<Item = CompleteLine>) {
-		self.complete_lines.extend(data);
+	pub fn push_completed(&mut self, line: CompleteLine) {
+		self.complete_lines.push(line);
 	}
 
 	pub fn iter_complete(&self) -> impl Iterator<Item = &CompleteLine> {

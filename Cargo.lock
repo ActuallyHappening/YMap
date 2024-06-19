@@ -1444,6 +1444,7 @@ dependencies = [
  "bevy_mod_picking",
  "extension-traits",
  "smart-default",
+ "static_assertions",
  "yscribble",
  "yutils",
 ]

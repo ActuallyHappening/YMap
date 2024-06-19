@@ -113,7 +113,26 @@ pub struct PadData<'data> {
 }
 
 impl<'s> PadData<'s> {
-	pub fn cut_line(&mut self) {
+	/// Forcibly removes all [PartialLine]s and visuals, and if possible
+	/// converts them to [CompleteLine].
+	///
+	/// Mirrors [yscribble::prelude::ScribbleData::cut_line].
+	pub fn cut_line(&'s mut self) {
+		// let consolidated = self.consolidate();
 
+		// if let Some(line) = consolidated {
+		// 	self.push_completed(line);
+		// }
+		let consolidated = self.consolidate().unwrap();
+		self.push_completed(consolidated);
+	}
+
+	fn consolidate(&'s mut self) -> Option<CompleteLine> {
+		self.partial_line().consolidate()
+	}
+
+	/// Mirrors [yscribble::prelude::ScribbleData::push_completed].
+	pub fn push_completed(&'s mut self, line: CompleteLine) {
+		self.completed_lines().push(line);
 	}
 }

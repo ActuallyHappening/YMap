@@ -54,7 +54,7 @@ mod complete_line {
 
 	/// Guaranteed to have at least two points, a start and end.
 	/// Is immutable.
-	#[derive(Debug)]
+	#[derive(Debug, Clone)]
 	#[cfg_attr(feature = "bevy", derive(Reflect))]
 	pub struct CompleteLine {
 		first: ScribblePoint,

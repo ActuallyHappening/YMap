@@ -53,78 +53,8 @@ mod ink {
 
 pub use partial_line::*;
 /// Spawns visuals associated with [PartialLine]
-mod partial_line {
-	use bevy::ecs::system::EntityCommands;
-
-	use crate::prelude::*;
-
-	use super::ink;
-
-	/// Marker for the [Entity] that spawns [PartialLine]s
-	#[derive(Component, Default)]
-	pub(crate) struct PartialLineSpawnerMarker;
-
-	/// [Entity] responsible for spawning [PartialLine]s
-	#[derive(Bundle, SmartDefault)]
-	pub(crate) struct PartialSpawnerBundle {
-		transform: TransformBundle,
-		visibility: VisibilityBundle,
-		#[default(Name::new("Partial Line Spawner Parent"))]
-		name: Name,
-		marker: PartialLineSpawnerMarker,
-	}
-
-	impl<'s> PadData<'s> {
-		pub fn partial_line(&'s mut self) -> PartialPadData<'s> {
-			PartialPadData {
-				partial_data: self.data.partial_line(),
-				partial_spawner: self.partial_spawner.reborrow(),
-				mma: self.mma.reborrow(),
-			}
-		}
-	}
-
-	pub struct PartialPadData<'s> {
-		partial_data: &'s mut yscribble::prelude::PartialLine,
-		partial_spawner: EntityCommands<'s>,
-		mma: MMR<'s>,
-	}
-
-	impl<'s> PartialPadData<'s> {
-		/// Mirrors [yscribble::prelude::PartialLine::push] but also renders to [bevy::ecs]
-		pub fn push(&mut self, point: ScribblePoint) {
-			self.partial_data.push(point.clone());
-			self.spawn_point(point);
-		}
-
-		/// Visuals only
-		fn spawn_point(&mut self, point: ScribblePoint) {
-			self.partial_spawner.with_children(|partial_spawner| {
-				partial_spawner.spawn(ink::DebugInkBundle::new(
-					point.pos().absolute_position(),
-					&mut self.mma,
-				));
-			});
-		}
-	}
-}
+mod partial_line;
 
 pub use complete_line::*;
 /// Spawns visuals associated with [PartialLine]
-mod complete_line {
-	use crate::prelude::*;
-
-	/// Marker for the [Entity] that spawns [CompleteLine]s
-	#[derive(Component, Default)]
-	pub(crate) struct CompleteLineSpawnerMarker;
-
-	/// [Entity] responsible for spawning [PartialLine]s
-	#[derive(Bundle, SmartDefault)]
-	pub(crate) struct CompleteSpawnerBundle {
-		transform: TransformBundle,
-		visibility: VisibilityBundle,
-		#[default(Name::new("Complete Line Spawner Parent"))]
-		name: Name,
-		marker: CompleteLineSpawnerMarker,
-	}
-}
+mod complete_line;
