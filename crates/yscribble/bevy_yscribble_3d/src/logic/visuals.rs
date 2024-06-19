@@ -24,7 +24,7 @@ pub(super) struct SpawnerBundle {
 	name: Name,
 }
 
-use ink::*;
+pub use ink::*;
 /// Renders [ScribblePoint]s
 mod ink {
 	use crate::prelude::*;
@@ -51,7 +51,7 @@ mod ink {
 	}
 }
 
-use partial_line::*;
+pub use partial_line::*;
 /// Spawns visuals associated with [PartialLine]
 mod partial_line {
 	use crate::prelude::*;
@@ -71,7 +71,7 @@ mod partial_line {
 	}
 }
 
-use complete_line::*;
+pub use complete_line::*;
 /// Spawns visuals associated with [PartialLine]
 mod complete_line {
 	use crate::prelude::*;

@@ -44,6 +44,7 @@ mod config {
 	}
 }
 
+pub use visuals::*;
 mod visuals;
 
 fn expand_pad_bundles(
