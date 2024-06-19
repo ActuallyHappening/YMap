@@ -37,7 +37,7 @@ mod ink {
 	}
 
 	impl DebugInkBundle {
-		pub fn new(absolute_pos: Vec2, MMA { meshs, mats, .. }: &mut MMA) -> Self {
+		pub fn new(absolute_pos: Vec2, MMR { meshs, mats, .. }: &mut MMR) -> Self {
 			DebugInkBundle {
 				pbr: PbrBundle {
 					transform: Transform::from_translation(Vec3::new(absolute_pos.x, 0.0, -absolute_pos.y)),
@@ -54,7 +54,11 @@ mod ink {
 pub use partial_line::*;
 /// Spawns visuals associated with [PartialLine]
 mod partial_line {
+	use bevy::ecs::system::EntityCommands;
+
 	use crate::prelude::*;
+
+	use super::ink;
 
 	/// Marker for the [Entity] that spawns [PartialLine]s
 	#[derive(Component, Default)]
@@ -68,6 +72,40 @@ mod partial_line {
 		#[default(Name::new("Partial Line Spawner Parent"))]
 		name: Name,
 		marker: PartialLineSpawnerMarker,
+	}
+
+	impl<'s> PadData<'s> {
+		pub fn partial_line(&'s mut self) -> PartialPadData<'s> {
+			PartialPadData {
+				partial_data: self.data.partial_line(),
+				partial_spawner: self.partial_spawner.reborrow(),
+				mma: self.mma.reborrow(),
+			}
+		}
+	}
+
+	pub struct PartialPadData<'s> {
+		partial_data: &'s mut yscribble::prelude::PartialLine,
+		partial_spawner: EntityCommands<'s>,
+		mma: MMR<'s>,
+	}
+
+	impl<'s> PartialPadData<'s> {
+		/// Mirrors [yscribble::prelude::PartialLine::push] but also renders to [bevy::ecs]
+		pub fn push(&mut self, point: ScribblePoint) {
+			self.partial_data.push(point.clone());
+			self.spawn_point(point);
+		}
+
+		/// Visuals only
+		fn spawn_point(&mut self, point: ScribblePoint) {
+			self.partial_spawner.with_children(|partial_spawner| {
+				partial_spawner.spawn(ink::DebugInkBundle::new(
+					point.pos().absolute_position(),
+					&mut self.mma,
+				));
+			});
+		}
 	}
 }
 

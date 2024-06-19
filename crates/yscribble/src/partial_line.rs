@@ -35,10 +35,6 @@ impl PartialLine {
 		}
 	}
 
-	pub fn push_partial_point(&mut self, point: ScribblePoint) {
-		self.push(point);
-	}
-
 	/// Pushes a new [ScribblePoint] to [Self::partial_line] using only the
 	/// change in absolute position since the last [ScribblePoint].
 	///
@@ -51,7 +47,7 @@ impl PartialLine {
 
 		let new_point = last_point.add_delta(absolute_delta);
 
-		self.push_partial_point(new_point);
+		self.push(new_point);
 	}
 
 	pub fn is_empty(&self) -> bool {

@@ -19,6 +19,16 @@ mod bevy_utils {
 		pub ass: Res<'w, AssetServer>,
 	}
 
+	impl<'w> MMA<'w> {
+		/// Converts the [SystemParam](bevy::ecs::system::SystemParam) [MMA] into the mutable reference [MMR].
+		pub fn reborrow(&'w mut self) -> MMR<'w> {
+			MMR {
+				meshs: self.meshs.reborrow(),
+				mats: self.mats.reborrow(),
+			}
+		}
+	}
+
 	/// Shortcut for accessing [Mesh] and [StandardMaterial] [Assets] as a [SystemParam](bevy::ecs::system::SystemParam)
 	///
 	/// See also [MMA]
@@ -34,5 +44,15 @@ mod bevy_utils {
 	pub struct MMR<'w> {
 		pub meshs: Mut<'w, Assets<Mesh>>,
 		pub mats: Mut<'w, Assets<StandardMaterial>>,
+	}
+
+	impl<'w> MMR<'w> {
+		/// Useful in converting `&mut MMR` into [MMR]
+		pub fn reborrow(&'w mut self) -> MMR<'w> {
+			MMR {
+				meshs: self.meshs.reborrow(),
+				mats: self.mats.reborrow(),
+			}
+		}
 	}
 }

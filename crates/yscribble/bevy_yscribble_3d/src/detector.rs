@@ -72,7 +72,7 @@ impl EventReaction for Pointer<Down> {
 
 		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
-			data.partial_line().push_partial_point(point);
+			data.partial_line().push(point);
 		}
 	}
 }
@@ -102,7 +102,7 @@ impl EventReaction for Pointer<Move> {
 
 		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
-			data.partial_line().push_partial_point(point);
+			data.partial_line().push(point);
 		}
 	}
 }
@@ -137,7 +137,7 @@ impl EventReaction for Pointer<Up> {
 
 		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
 			let point = ScribblePoint::new(pos);
-			data.partial_line().push_partial_point(point);
+			data.partial_line().push(point);
 		}
 	}
 }

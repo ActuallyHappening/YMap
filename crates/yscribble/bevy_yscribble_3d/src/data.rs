@@ -99,17 +99,21 @@ impl<'s> ScribbleData<'s, 's> {
 			config,
 			complete_spawner,
 			partial_spawner,
+			mma: self.mma.reborrow(),
 		})
 	}
 }
 
-pub struct PadData<'s> {
-	data: &'s mut yscribble::prelude::ScribbleData,
-	config: &'s PadConfig,
-	complete_spawner: EntityCommands<'s>,
-	partial_spawner: EntityCommands<'s>,
+pub struct PadData<'data> {
+	pub(crate) data: &'data mut yscribble::prelude::ScribbleData,
+	config: &'data PadConfig,
+	pub(crate) complete_spawner: EntityCommands<'data>,
+	pub(crate) partial_spawner: EntityCommands<'data>,
+	pub(crate) mma: MMR<'data>,
 }
 
-// impl PadData<'_> {
-// 	pub fn cut_line(&mut self) {}
-// }
+impl<'s> PadData<'s> {
+	pub fn cut_line(&mut self) {
+
+	}
+}
