@@ -1,4 +1,11 @@
 //! Internally uses the 'up' plane direction of -z, and right plane direction of +x
+//!
+//! Internal structure:
+//! [PadConfig] parent marker
+//!   [DetectorBundle] with [DetectorMarker]
+//!   [SpawnerBundle] with [PadSpawner] marker
+//!     [CompleteSpawner] TODO
+//!     [PartialSpawner] with [PartialLineSpawnerMarker]
 
 use crate::{detector::DetectorBundle, prelude::*};
 
@@ -37,51 +44,7 @@ mod config {
 	}
 }
 
-mod visuals {
-	use crate::prelude::*;
-
-	/// Responsible for managing the ink visuals
-	pub struct SpawnerPlugin;
-
-	impl Plugin for SpawnerPlugin {
-		fn build(&self, app: &mut App) {
-			// app.add_systems(Update, sync_ink_and_data);
-		}
-	}
-
-	/// Used to mark the entity that is a [Child](Children) of the main [PadBundle].
-	/// This [Entity] contains [Children] that render the actual scribble.
-	#[derive(Component, Default)]
-	struct PadSpawner;
-
-	#[derive(Bundle, SmartDefault)]
-	pub(super) struct SpawnerBundle {
-		transform: TransformBundle,
-		visibility: VisibilityBundle,
-		marker: PadSpawner,
-
-		#[default(Name::new("Scribble Spawner parent"))]
-		name: Name,
-	}
-
-	/// Renders [ScribblePoint]s
-	mod ink {
-		use crate::prelude::*;
-
-
-	}
-
-	/// Spawns visuals associated with [PartialLine]
-	mod partial_line {
-		use crate::prelude::*;
-
-		/// Marker for the [Entity] that spawns
-		#[derive(Component)]
-		struct PartialLineSpawnerMarker;
-	}
-
-
-}
+mod visuals;
 
 fn expand_pad_bundles(
 	bundles: Query<(Entity, &PadConfig), (Added<PadConfig>, Without<Children>)>,

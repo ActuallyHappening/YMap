@@ -8,10 +8,10 @@ pub(crate) struct DetectorBundle {
 	pickable: PickableBundle,
 	name: Name,
 	// event listeners
-	start: On<Pointer<Down>>,
-	drag: On<Pointer<Move>>,
-	drag_end: On<Pointer<Up>>,
-	out: On<Pointer<Out>>,
+	// start: On<Pointer<Down>>,
+	// drag: On<Pointer<Move>>,
+	// drag_end: On<Pointer<Up>>,
+	// out: On<Pointer<Out>>,
 }
 
 impl DetectorBundle {
@@ -32,10 +32,10 @@ impl DetectorBundle {
 				material: mats.add(Color::GRAY),
 				..default()
 			},
-			start: On::<Pointer<Down>>::run(handle_event::<Pointer<Down>>),
-			drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
-			drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
-			out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
+			// start: On::<Pointer<Down>>::run(handle_event::<Pointer<Down>>),
+			// drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
+			// drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
+			// out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
 			pickable: PickableBundle::default(),
 			name: Name::new("Pickable surface"),
 			marker: crate::DetectorMarker,
@@ -234,36 +234,36 @@ fn compute_pos<E: EventReaction>(
 	}
 }
 
-fn handle_event<E: EventReaction>(
-	event: Listener<E>,
-	detector: Query<&Parent, With<DetectorMarker>>,
-	mut pad: Query<(&mut ScribbleData, &GlobalTransform), (With<PadConfig>, With<Children>)>,
-) {
-	let detector_entity = event.listener();
+// fn handle_event<E: EventReaction>(
+// 	event: Listener<E>,
+// 	detector: Query<&Parent, With<DetectorMarker>>,
+// 	mut pad: Query<(&mut ScribbleData, &GlobalTransform), (With<PadConfig>, With<Children>)>,
+// ) {
+// 	let detector_entity = event.listener();
 
-	let Some((mut data, pad_transform)) = (match detector.get(detector_entity) {
-		Err(_) => {
-			error!(
-				message = "No parent on pad detector?",
-				note = "Could also be an event being triggered on the wrong entity"
-			);
-			None
-		}
-		Ok(pad_entity) => {
-			let pad_entity = pad_entity.get();
-			match pad.get_mut(pad_entity) {
-				Err(_) => {
-					error!(message = "Pad detector is not child of PadConfig?");
-					None
-				}
-				Ok(d) => Some(d),
-			}
-		}
-	}) else {
-		return;
-	};
+// 	let Some((mut data, pad_transform)) = (match detector.get(detector_entity) {
+// 		Err(_) => {
+// 			error!(
+// 				message = "No parent on pad detector?",
+// 				note = "Could also be an event being triggered on the wrong entity"
+// 			);
+// 			None
+// 		}
+// 		Ok(pad_entity) => {
+// 			let pad_entity = pad_entity.get();
+// 			match pad.get_mut(pad_entity) {
+// 				Err(_) => {
+// 					error!(message = "Pad detector is not child of PadConfig?");
+// 					None
+// 				}
+// 				Ok(d) => Some(d),
+// 			}
+// 		}
+// 	}) else {
+// 		return;
+// 	};
 
-	let event_data: &E = event.deref();
+// 	let event_data: &E = event.deref();
 
-	event_data.process_event_data(pad_transform, &mut data);
-}
+// 	event_data.process_event_data(pad_transform, &mut data);
+// }
