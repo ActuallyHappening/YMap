@@ -98,53 +98,64 @@ impl<'w, 's> ScribbleData<'w, 's> {
 		let pad_entity = self
 			.pad_entity_from_detector(detector_entity)
 			.ok_or(WithDetectorError::PadEntityNotFound)?;
+
 		let (_pad_entity, config, data, pad_transform, pad_children) = self
 			.pads
 			.get_mut(pad_entity)
 			.ok()
 			.ok_or(WithDetectorError::PadEntityNotFound)?;
+		debug_assert_eq!(_pad_entity, pad_entity);
+
 		let spawner_children = pad_children
 			.iter()
 			.find_map(|pad_child| self.spawner_parent.get(*pad_child).ok())
 			.ok_or(WithDetectorError::NoSpawnerParent)?;
-		let complete_spawners = spawner_children
-			.iter()
-			.filter_map(|child| self.complete_spawner.get(*child).ok())
-			.collect::<Vec<_>>();
-		if complete_spawners.len() > 1 {
-			error!(
-				internal_error = true,
-				message = MULTIPLE_COMPLETE,
-				note = "As children of a [PadSpawner]",
-				?complete_spawners
-			);
-			return Err(WithDetectorError::MultipleCompleteSpawners);
-		}
-		let complete_spawner = self.complete_commands.entity(
-			complete_spawners
-				.into_iter()
-				.next()
-				.ok_or(WithDetectorError::NoCompleteSpawners)?,
-		);
 
-		let partial_spawners = spawner_children
-			.iter()
-			.filter_map(|child| self.partial_spawner.get(*child).ok())
-			.collect::<Vec<_>>();
-		if partial_spawners.len() > 1 {
-			error!(
-				internal_error = true,
-				message = MULTIPLE_PARTIAL,
-				note = "As children of a [PadSpawner]"
+		let complete_spawner = {
+			let complete_spawners = spawner_children
+				.iter()
+				.filter_map(|child| self.complete_spawner.get(*child).ok())
+				.collect::<Vec<_>>();
+
+			if complete_spawners.len() > 1 {
+				error!(
+					internal_error = true,
+					message = MULTIPLE_COMPLETE,
+					note = "As children of a [PadSpawner]",
+					?complete_spawners
+				);
+				return Err(WithDetectorError::MultipleCompleteSpawners);
+			}
+			let complete_spawner = self.complete_commands.entity(
+				complete_spawners
+					.into_iter()
+					.next()
+					.ok_or(WithDetectorError::NoCompleteSpawners)?,
 			);
-			return Err(WithDetectorError::MultiplePartialSpawners);
-		}
-		let partial_spawner: EntityCommands<'a> = self.partial_commands.entity(
-			partial_spawners
-				.into_iter()
-				.next()
-				.ok_or(WithDetectorError::NoPartialSpawners)?,
-		);
+			complete_spawner
+		};
+
+		let partial_spawner = {
+			let partial_spawners = spawner_children
+				.iter()
+				.filter_map(|child| self.partial_spawner.get(*child).ok())
+				.collect::<Vec<_>>();
+			if partial_spawners.len() > 1 {
+				error!(
+					internal_error = true,
+					message = MULTIPLE_PARTIAL,
+					note = "As children of a [PadSpawner]"
+				);
+				return Err(WithDetectorError::MultiplePartialSpawners);
+			}
+			let partial_spawner: EntityCommands<'a> = self.partial_commands.entity(
+				partial_spawners
+					.into_iter()
+					.next()
+					.ok_or(WithDetectorError::NoPartialSpawners)?,
+			);
+			partial_spawner
+		};
 
 		Ok(PadData {
 			data: ScribbleDataComponent::downgrade(data),

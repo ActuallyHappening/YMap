@@ -1,3 +1,10 @@
+//! Uses the tracing attribute `event_type = <event name>`
+//! Use a `RUST_LOG` like below to view *only* events
+//!
+//! ```nu
+//! RUST_LOG="bevy_yscribble_3d[detector_event]" cargo r --example basic
+//! ```
+
 use crate::{prelude::*, DetectorMarker};
 
 /// Not public as this entity is a child of the main [PadBundle].
@@ -46,18 +53,23 @@ impl DetectorBundle {
 trait EventReaction: std::fmt::Debug + EntityEvent {
 	const EV_NAME: &'static str;
 
-	fn process_event_data(&self, data: &mut PadData);
+	/// Implement this, don't call it
+	fn untraced_process_event_data(&self, data: &mut PadData);
+
+	/// Call this, don't re-implement it
+	#[tracing::instrument(level = "info", skip_all, name = "detector_event", fields(
+		event_type = Self::EV_NAME,
+	))]
+	fn process_event_data(&self, data: &mut PadData) {
+		self.untraced_process_event_data(data);
+	}
 }
 
 impl EventReaction for Pointer<Down> {
 	const EV_NAME: &'static str = "Down";
 
-	fn process_event_data(&self, data: &mut PadData) {
+	fn untraced_process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
-		trace!(
-			message = "Event received",
-			detector_event = Self::EV_NAME
-		);
 		// cutting line because this type of event always starts a new line
 		data.cut_line();
 
@@ -81,14 +93,11 @@ impl EventReaction for Pointer<Down> {
 impl EventReaction for Pointer<Move> {
 	const EV_NAME: &'static str = "Move";
 
-	fn process_event_data(&self, data: &mut PadData) {
+	fn untraced_process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 		if data.partial_line().is_empty() {
 			// skip if no points
-			trace!(
-				message = "Skipping event because there are no points",
-				detector_event = Self::EV_NAME,
-			);
+			trace!(message = "Skipping event because there are no points",);
 			return;
 		}
 
@@ -112,12 +121,8 @@ impl EventReaction for Pointer<Move> {
 impl EventReaction for Pointer<Up> {
 	const EV_NAME: &'static str = "Up";
 
-	fn process_event_data(&self, data: &mut PadData) {
+	fn untraced_process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
-		trace!(
-			message = "Event received, cutting line regardless of normals",
-			detector_event = Self::EV_NAME,
-		);
 
 		// cuts line because this always ends the line
 		// even if there is bad normals
@@ -143,14 +148,10 @@ impl EventReaction for Pointer<Up> {
 impl EventReaction for Pointer<Out> {
 	const EV_NAME: &'static str = "Out";
 
-	fn process_event_data(&self, data: &mut PadData) {
+	fn untraced_process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 		// cuts line because this always ends the line
-		trace!(
-			message = "Event received, cutting line regardless of normals",
-			detector_event = Self::EV_NAME,
-		);
-		data.cut_line();
+		// data.cut_line();
 
 		let event_data = self;
 		// let world_point = event_data.event.hit.position;
@@ -171,7 +172,7 @@ fn check_world_normal<E: EventReaction>(
 	let ev_name = E::EV_NAME;
 	match world_normal {
 		None => {
-			debug!("No normals received from {} event", ev_name);
+			debug!(message = "No normals received from event");
 			true
 		}
 		Some(world_normal) => {
@@ -195,15 +196,15 @@ fn check_world_normal<E: EventReaction>(
 					face = "back edge"
 				}
 
-				warn!(
+				warn_once!(
+					message = "An event was received, but it appears to not be the expected normal",
 					note = "This is likely because the user didn't click the primary face",
 					note = "Not registering this as an event",
+					once = "This only warns once, but may occur more than once",
 					local_face_pressed = face,
 					?expected,
 					?local_normal,
 					?world_normal,
-					"A {} event was received, but it appears to not be the expected normal",
-					ev_name
 				);
 				false
 			}
@@ -235,6 +236,7 @@ fn compute_pos<E: EventReaction>(
 
 fn handle_event<E: EventReaction>(event: Listener<E>, mut pad: ScribbleData) {
 	let detector_entity = event.listener();
+	debug_assert_eq!(detector_entity, event.target());
 	let event_data: &E = event.deref();
 
 	match pad.with_detector(detector_entity) {

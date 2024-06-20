@@ -12,6 +12,7 @@ extension-traits = "1.0.1"
 smart-default = "0.7.1"
 static_assertions = "1.1.0"
 thiserror = "1.0.61"
+tracing = "0.1.40"
 
 [dependencies.yscribble]
 path = ".."
