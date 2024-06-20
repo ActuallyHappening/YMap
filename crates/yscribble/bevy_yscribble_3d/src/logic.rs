@@ -79,7 +79,12 @@ fn expand_pad_bundles(
 				},
 			));
 
-			parent.spawn(visuals::SpawnerBundle::default());
+			parent
+				.spawn(visuals::SpawnerBundle::default())
+				.with_children(|spawner_parent| {
+					spawner_parent.spawn(visuals::PartialSpawnerBundle::default());
+					spawner_parent.spawn(visuals::CompleteSpawnerBundle::default());
+				});
 
 			parent.spawn((
 				PbrBundle {

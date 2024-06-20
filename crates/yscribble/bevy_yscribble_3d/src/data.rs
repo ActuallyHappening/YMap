@@ -14,15 +14,13 @@ impl Plugin for DataPlugin {
 }
 
 /// Public for convenience not functionality.
-/// 
+///
 /// Privately wraps a [yscribble::prelude::ScribbleData] struct.
 #[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
 pub struct ScribbleDataComponent(yscribble::prelude::ScribbleData);
 
 impl ScribbleDataComponent {
-	fn downgrade(
-		this: Mut<'_, ScribbleDataComponent>,
-	) -> &mut yscribble::prelude::ScribbleData {
+	fn downgrade(this: Mut<'_, ScribbleDataComponent>) -> &mut yscribble::prelude::ScribbleData {
 		this.into_inner()
 	}
 }
@@ -62,10 +60,47 @@ impl<'w, 's> ScribbleData<'w, 's> {
 	}
 
 	/// Constructs [PadData] from the detector entity
-	pub(crate) fn with_detector<'a>(&'a mut self, detector_entity: Entity) -> Option<PadData<'a>> {
-		let pad_entity = self.pad_entity_from_detector(detector_entity)?;
+	pub(crate) fn with_detector<'a>(
+		&'a mut self,
+		detector_entity: Entity,
+	) -> Result<PadData<'a>, impl std::error::Error> {
+		const MULTIPLE_COMPLETE: &str = "Multiple [Entity]s with [CompleteLineSpawnerMarker] found";
+		const NO_COMPLETE: &str = "No entities with [CompleteLineSpawnerMarker] found";
+		const MULTIPLE_PARTIAL: &str = "Multiple [Entity]s with [PartialLineSpawnerMarker] found";
+		const NO_PARTIAL: &str = "No entities with [PartialLineSpawnerMarker] found";
+
+		#[derive(Debug, thiserror::Error)]
+		enum WithDetectorError {
+			PadEntityNotFound,
+			MultipleCompleteSpawnersFound,
+			NoCompleteSpawnersFound,
+			MultiplePartialSpawnersFound,
+			NoPartialSpawnersFound,
+			Other,
+		}
+
+		impl std::fmt::Display for WithDetectorError {
+			fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+				match self {
+					WithDetectorError::PadEntityNotFound => write!(f, "Pad Entity not found"),
+					WithDetectorError::MultipleCompleteSpawnersFound => write!(f, "{}", MULTIPLE_COMPLETE),
+					WithDetectorError::NoCompleteSpawnersFound => write!(f, "{}", NO_COMPLETE),
+					WithDetectorError::MultiplePartialSpawnersFound => write!(f, "{}", MULTIPLE_PARTIAL),
+					WithDetectorError::NoPartialSpawnersFound => write!(f, "{}", NO_PARTIAL),
+					WithDetectorError::Other => write!(f, "TODO"),
+				}
+			}
+		}
+
+		let pad_entity = self
+			.pad_entity_from_detector(detector_entity)
+			.ok_or(WithDetectorError::PadEntityNotFound)?;
 		let (_pad_entity, config, data, pad_transform, children) =
-			self.pads.get_mut(pad_entity).ok()?;
+			self
+				.pads
+				.get_mut(pad_entity)
+				.ok()
+				.ok_or(WithDetectorError::PadEntityNotFound)?;
 		let complete_spawners = children
 			.iter()
 			.filter_map(|child| self.complete_spawner.get(*child).ok())
@@ -73,14 +108,18 @@ impl<'w, 's> ScribbleData<'w, 's> {
 		if complete_spawners.len() > 1 {
 			error!(
 				internal_error = true,
-				message = "Multiple [Entity]s with [CompleteLineSpawnerMarker] found",
+				message = MULTIPLE_COMPLETE,
 				note = "As children of a [PadSpawner]",
 				?complete_spawners
 			);
+			return Err(WithDetectorError::MultipleCompleteSpawnersFound);
 		}
-		let complete_spawner = self
-			.complete_commands
-			.entity(complete_spawners.into_iter().next()?);
+		let complete_spawner = self.complete_commands.entity(
+			complete_spawners
+				.into_iter()
+				.next()
+				.ok_or(WithDetectorError::NoCompleteSpawnersFound)?,
+		);
 
 		let partial_spawners = children
 			.iter()
@@ -89,15 +128,19 @@ impl<'w, 's> ScribbleData<'w, 's> {
 		if partial_spawners.len() > 1 {
 			error!(
 				internal_error = true,
-				message = "Multiple [Entity]s with [PartialLineSpawnerMarker] found",
+				message = MULTIPLE_PARTIAL,
 				note = "As children of a [PadSpawner]"
 			);
+			return Err(WithDetectorError::MultiplePartialSpawnersFound);
 		}
-		let partial_spawner: EntityCommands<'a> = self
-			.partial_commands
-			.entity(partial_spawners.into_iter().next()?);
+		let partial_spawner: EntityCommands<'a> = self.partial_commands.entity(
+			partial_spawners
+				.into_iter()
+				.next()
+				.ok_or(WithDetectorError::NoPartialSpawnersFound)?,
+		);
 
-		Some(PadData {
+		Ok(PadData {
 			data: ScribbleDataComponent::downgrade(data),
 			config,
 			pad_transform,

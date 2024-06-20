@@ -233,19 +233,22 @@ fn compute_pos<E: EventReaction>(
 	}
 }
 
-fn handle_event<E: EventReaction>(
-	event: Listener<E>,
-	mut pad: ScribbleData,
-) {
+fn handle_event<E: EventReaction>(event: Listener<E>, mut pad: ScribbleData) {
 	let detector_entity = event.listener();
 	let event_data: &E = event.deref();
 
-	if let Some(mut data) = pad.with_detector(detector_entity) {
-		event_data.process_event_data(&mut data);
-	} else {
-		error!(
-			internal_error = true,
-			message = "Entity emitting rigged event is not a detector entity"
-		);
+	match pad.with_detector(detector_entity) {
+		Ok(mut data) => {
+			event_data.process_event_data(&mut data);
+		}
+		Err(err) => {
+			error!(
+				internal_error = true,
+				message = "Entity emitting event is not part of correct internal hierarchy",
+				note = "May be many reasons",
+				event_type = E::EV_NAME,
+				?err,
+			);
+		}
 	}
 }

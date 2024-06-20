@@ -1445,6 +1445,7 @@ dependencies = [
  "extension-traits",
  "smart-default",
  "static_assertions",
+ "thiserror",
  "yscribble",
  "yutils",
 ]
