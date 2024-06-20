@@ -74,7 +74,7 @@ mod complete_line {
 				Some(first) => first,
 				None => {
 					// no points at all
-					debug!(message = "CompleteLine::new called with no points");
+					trace!(message = "CompleteLine::new called with no points");
 					return Err(Vec::new());
 				}
 			};
@@ -82,7 +82,7 @@ mod complete_line {
 				Some(second) => second,
 				None => {
 					// only one point, not enough without cloning
-					debug!(message = "CompleteLine::new called with only one point");
+					trace!(message = "CompleteLine::new called with only one point");
 					return Err(vec![first]);
 				}
 			};

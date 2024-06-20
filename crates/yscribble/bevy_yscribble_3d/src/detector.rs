@@ -55,10 +55,10 @@ impl EventReaction for Pointer<Down> {
 	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 		trace!(
-			message = "DragStart event received",
-			detector_event = "DragStart"
+			message = "Event received",
+			detector_event = Self::EV_NAME
 		);
-		// cutting because this is a [DragStart] event which is always the start of a new line
+		// cutting line because this type of event always starts a new line
 		data.cut_line();
 
 		let event_data = self;
@@ -86,8 +86,8 @@ impl EventReaction for Pointer<Move> {
 		if data.partial_line().is_empty() {
 			// skip if no points
 			trace!(
-				message = "Skipping Move event because there are no points",
-				detector_event = "Move"
+				message = "Skipping event because there are no points",
+				detector_event = Self::EV_NAME,
 			);
 			return;
 		}
@@ -115,8 +115,8 @@ impl EventReaction for Pointer<Up> {
 	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 		trace!(
-			message = "Up even received, cutting line regardless of normals",
-			detector_event = "Up"
+			message = "Event received, cutting line regardless of normals",
+			detector_event = Self::EV_NAME,
 		);
 
 		// cuts line because this always ends the line
@@ -147,8 +147,8 @@ impl EventReaction for Pointer<Out> {
 		let pad_transform = data.pad_transform();
 		// cuts line because this always ends the line
 		trace!(
-			message = "Out event received, cutting line regardless of normals",
-			detector_event = "Out"
+			message = "Event received, cutting line regardless of normals",
+			detector_event = Self::EV_NAME,
 		);
 		data.cut_line();
 
