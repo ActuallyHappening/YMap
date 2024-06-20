@@ -18,9 +18,11 @@ pub(crate) struct CompleteSpawnerBundle {
 	marker: CompleteLineSpawnerMarker,
 }
 
-
 impl<'s> PadData<'s> {
-	pub fn completed_lines(&'s mut self) -> CompletePadData<'s> {
+	pub fn completed_lines<'a>(&'a mut self) -> CompletePadData<'a>
+	where
+		's: 'a,
+	{
 		CompletePadData {
 			complete_data: self.data,
 			complete_spawner: self.partial_spawner.reborrow(),

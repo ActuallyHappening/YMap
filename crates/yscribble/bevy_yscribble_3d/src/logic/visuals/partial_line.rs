@@ -19,7 +19,10 @@ pub(crate) struct PartialSpawnerBundle {
 }
 
 impl<'s> PadData<'s> {
-	pub fn partial_line(&'s mut self) -> PartialPadData<'s> {
+	pub fn partial_line<'a>(&'a mut self) -> PartialPadData<'a>
+	where
+		's: 'a,
+	{
 		PartialPadData {
 			partial_data: self.data.partial_line(),
 			partial_spawner: self.partial_spawner.reborrow(),
@@ -49,6 +52,11 @@ impl<'s> PartialPadData<'s> {
 				&mut self.mma,
 			));
 		});
+	}
+
+	/// Mirrors [yscribble::prelude::PartialLine::is_empty].
+	pub fn is_empty(&self) -> bool {
+		self.partial_data.is_empty()
 	}
 
 	/// Fallibly removes [PartialLine] and converts to [CompleteLine],

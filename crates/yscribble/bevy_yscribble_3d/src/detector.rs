@@ -8,10 +8,10 @@ pub(crate) struct DetectorBundle {
 	pickable: PickableBundle,
 	name: Name,
 	// event listeners
-	// start: On<Pointer<Down>>,
-	// drag: On<Pointer<Move>>,
-	// drag_end: On<Pointer<Up>>,
-	// out: On<Pointer<Out>>,
+	start: On<Pointer<Down>>,
+	drag: On<Pointer<Move>>,
+	drag_end: On<Pointer<Up>>,
+	out: On<Pointer<Out>>,
 }
 
 impl DetectorBundle {
@@ -32,10 +32,10 @@ impl DetectorBundle {
 				material: mats.add(Color::GRAY),
 				..default()
 			},
-			// start: On::<Pointer<Down>>::run(handle_event::<Pointer<Down>>),
-			// drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
-			// drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
-			// out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
+			start: On::<Pointer<Down>>::run(handle_event::<Pointer<Down>>),
+			drag: On::<Pointer<Move>>::run(handle_event::<Pointer<Move>>),
+			drag_end: On::<Pointer<Up>>::run(handle_event::<Pointer<Up>>),
+			out: On::<Pointer<Out>>::run(handle_event::<Pointer<Out>>),
 			pickable: PickableBundle::default(),
 			name: Name::new("Pickable surface"),
 			marker: crate::DetectorMarker,
@@ -46,13 +46,14 @@ impl DetectorBundle {
 trait EventReaction: std::fmt::Debug + EntityEvent {
 	const EV_NAME: &'static str;
 
-	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData);
+	fn process_event_data(&self, data: &mut PadData);
 }
 
 impl EventReaction for Pointer<Down> {
 	const EV_NAME: &'static str = "Down";
 
-	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
+	fn process_event_data(&self, data: &mut PadData) {
+		let pad_transform = data.pad_transform();
 		trace!(
 			message = "DragStart event received",
 			detector_event = "DragStart"
@@ -80,7 +81,8 @@ impl EventReaction for Pointer<Down> {
 impl EventReaction for Pointer<Move> {
 	const EV_NAME: &'static str = "Move";
 
-	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
+	fn process_event_data(&self, data: &mut PadData) {
+		let pad_transform = data.pad_transform();
 		if data.partial_line().is_empty() {
 			// skip if no points
 			trace!(
@@ -110,12 +112,8 @@ impl EventReaction for Pointer<Move> {
 impl EventReaction for Pointer<Up> {
 	const EV_NAME: &'static str = "Up";
 
-	fn process_event_data(
-		&self,
-		// config: &PadConfig,
-		pad_transform: &GlobalTransform,
-		data: &mut ScribbleData,
-	) {
+	fn process_event_data(&self, data: &mut PadData) {
+		let pad_transform = data.pad_transform();
 		trace!(
 			message = "Up even received, cutting line regardless of normals",
 			detector_event = "Up"
@@ -145,7 +143,8 @@ impl EventReaction for Pointer<Up> {
 impl EventReaction for Pointer<Out> {
 	const EV_NAME: &'static str = "Out";
 
-	fn process_event_data(&self, pad_transform: &GlobalTransform, data: &mut ScribbleData) {
+	fn process_event_data(&self, data: &mut PadData) {
+		let pad_transform = data.pad_transform();
 		// cuts line because this always ends the line
 		trace!(
 			message = "Out event received, cutting line regardless of normals",
@@ -234,36 +233,19 @@ fn compute_pos<E: EventReaction>(
 	}
 }
 
-// fn handle_event<E: EventReaction>(
-// 	event: Listener<E>,
-// 	detector: Query<&Parent, With<DetectorMarker>>,
-// 	mut pad: Query<(&mut ScribbleData, &GlobalTransform), (With<PadConfig>, With<Children>)>,
-// ) {
-// 	let detector_entity = event.listener();
+fn handle_event<E: EventReaction>(
+	event: Listener<E>,
+	mut pad: ScribbleData,
+) {
+	let detector_entity = event.listener();
+	let event_data: &E = event.deref();
 
-// 	let Some((mut data, pad_transform)) = (match detector.get(detector_entity) {
-// 		Err(_) => {
-// 			error!(
-// 				message = "No parent on pad detector?",
-// 				note = "Could also be an event being triggered on the wrong entity"
-// 			);
-// 			None
-// 		}
-// 		Ok(pad_entity) => {
-// 			let pad_entity = pad_entity.get();
-// 			match pad.get_mut(pad_entity) {
-// 				Err(_) => {
-// 					error!(message = "Pad detector is not child of PadConfig?");
-// 					None
-// 				}
-// 				Ok(d) => Some(d),
-// 			}
-// 		}
-// 	}) else {
-// 		return;
-// 	};
-
-// 	let event_data: &E = event.deref();
-
-// 	event_data.process_event_data(pad_transform, &mut data);
-// }
+	if let Some(mut data) = pad.with_detector(detector_entity) {
+		event_data.process_event_data(&mut data);
+	} else {
+		error!(
+			internal_error = true,
+			message = "Entity emitting rigged event is not a detector entity"
+		);
+	}
+}

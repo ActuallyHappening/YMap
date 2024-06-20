@@ -4,22 +4,24 @@ use crate::prelude::*;
 
 pub mod prelude {
 	pub(crate) use bevy::prelude::*;
-	pub(crate) use yscribble::prelude::*;
+	#[allow(unused_imports)]
+	pub(crate) use yscribble::prelude::{CompleteLine, PartialLine, ScribblePoint, ScribblePos};
 	// pub(crate) use extension_traits::extension;
 	pub(crate) use bevy_mod_picking::prelude::*;
 	pub(crate) use smart_default::SmartDefault;
-	// pub(crate) use std::ops::DerefMut as _;
+	#[allow(unused_imports)]
+	pub(crate) use std::ops::{Deref as _, DerefMut as _};
 	pub(crate) use yutils::prelude::*;
 
 	pub use crate::components::*;
-	pub use crate::logic::*;
-	pub use crate::data::*;
 	pub use crate::data::ScribbleData;
+	pub use crate::data::*;
+	pub use crate::logic::*;
 	pub use crate::YScribble3DPlugins;
 }
+mod data;
 mod detector;
 mod logic;
-mod data;
 
 pub struct YScribble3DPlugins;
 
@@ -29,6 +31,7 @@ impl PluginGroup for YScribble3DPlugins {
 			.add(InternalPlugin)
 			.add(logic::YScribble3DVisuals)
 			.add(yscribble::YScribbleGenericTypeRegistrationPlugin)
+			.add(data::DataPlugin)
 	}
 }
 

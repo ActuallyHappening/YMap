@@ -21,7 +21,10 @@ mod bevy_utils {
 
 	impl<'w> MMA<'w> {
 		/// Converts the [SystemParam](bevy::ecs::system::SystemParam) [MMA] into the mutable reference [MMR].
-		pub fn reborrow(&'w mut self) -> MMR<'w> {
+		pub fn reborrow<'a>(&'a mut self) -> MMR<'a>
+		where
+			'w: 'a,
+		{
 			MMR {
 				meshs: self.meshs.reborrow(),
 				mats: self.mats.reborrow(),
@@ -48,7 +51,10 @@ mod bevy_utils {
 
 	impl<'w> MMR<'w> {
 		/// Useful in converting `&mut MMR` into [MMR]
-		pub fn reborrow(&'w mut self) -> MMR<'w> {
+		pub fn reborrow<'a>(&'a mut self) -> MMR<'a>
+		where
+			'w: 'a,
+		{
 			MMR {
 				meshs: self.meshs.reborrow(),
 				mats: self.mats.reborrow(),

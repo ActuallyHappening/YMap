@@ -1,8 +1,6 @@
 //! Manages access to [ScribbleData] so that fine-grained reactivity
 //! can be achieved for the bevy ecs [World].
 
-use std::{collections::HashSet, ops::DerefMut};
-
 use bevy::ecs::system::{EntityCommands, SystemParam};
 
 use crate::prelude::*;
@@ -15,13 +13,16 @@ impl Plugin for DataPlugin {
 	}
 }
 
+/// Public for convenience not functionality.
+/// 
+/// Privately wraps a [yscribble::prelude::ScribbleData] struct.
 #[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
-pub(crate) struct ScribbleDataComponent(yscribble::prelude::ScribbleData);
+pub struct ScribbleDataComponent(yscribble::prelude::ScribbleData);
 
 impl ScribbleDataComponent {
-	fn downgrade<'w>(
-		this: Mut<'w, ScribbleDataComponent>,
-	) -> &'w mut yscribble::prelude::ScribbleData {
+	fn downgrade(
+		this: Mut<'_, ScribbleDataComponent>,
+	) -> &mut yscribble::prelude::ScribbleData {
 		this.into_inner()
 	}
 }
@@ -35,6 +36,7 @@ pub struct ScribbleData<'w, 's> {
 			Entity,
 			&'static PadConfig,
 			&'static mut ScribbleDataComponent,
+			&'static GlobalTransform,
 			&'static Children,
 		),
 	>,
@@ -45,12 +47,12 @@ pub struct ScribbleData<'w, 's> {
 	mma: MMA<'w>,
 }
 
-impl<'s> ScribbleData<'s, 's> {
+impl<'w, 's> ScribbleData<'w, 's> {
 	fn pad_entity_from_detector(&self, detector_entity: Entity) -> Option<Entity> {
 		self
 			.pads
 			.iter()
-			.filter_map(|(pad, _, _, children)| {
+			.filter_map(|(pad, _, _, _, children)| {
 				children
 					.iter()
 					.find(|child| *child == &detector_entity)
@@ -60,9 +62,10 @@ impl<'s> ScribbleData<'s, 's> {
 	}
 
 	/// Constructs [PadData] from the detector entity
-	pub(crate) fn with_detector(&'s mut self, detector_entity: Entity) -> Option<PadData<'s>> {
+	pub(crate) fn with_detector<'a>(&'a mut self, detector_entity: Entity) -> Option<PadData<'a>> {
 		let pad_entity = self.pad_entity_from_detector(detector_entity)?;
-		let (_pad_entity, config, data, children) = self.pads.get_mut(pad_entity).ok()?;
+		let (_pad_entity, config, data, pad_transform, children) =
+			self.pads.get_mut(pad_entity).ok()?;
 		let complete_spawners = children
 			.iter()
 			.filter_map(|child| self.complete_spawner.get(*child).ok())
@@ -90,13 +93,14 @@ impl<'s> ScribbleData<'s, 's> {
 				note = "As children of a [PadSpawner]"
 			);
 		}
-		let partial_spawner = self
+		let partial_spawner: EntityCommands<'a> = self
 			.partial_commands
 			.entity(partial_spawners.into_iter().next()?);
 
 		Some(PadData {
 			data: ScribbleDataComponent::downgrade(data),
 			config,
+			pad_transform,
 			complete_spawner,
 			partial_spawner,
 			mma: self.mma.reborrow(),
@@ -107,6 +111,7 @@ impl<'s> ScribbleData<'s, 's> {
 pub struct PadData<'data> {
 	pub(crate) data: &'data mut yscribble::prelude::ScribbleData,
 	config: &'data PadConfig,
+	pad_transform: &'data GlobalTransform,
 	pub(crate) complete_spawner: EntityCommands<'data>,
 	pub(crate) partial_spawner: EntityCommands<'data>,
 	pub(crate) mma: MMR<'data>,
@@ -117,22 +122,33 @@ impl<'s> PadData<'s> {
 	/// converts them to [CompleteLine].
 	///
 	/// Mirrors [yscribble::prelude::ScribbleData::cut_line].
-	pub fn cut_line(&'s mut self) {
-		// let consolidated = self.consolidate();
+	pub fn cut_line<'a>(&'a mut self)
+	where
+		's: 'a,
+	{
+		let consolidated = self.consolidate();
 
-		// if let Some(line) = consolidated {
-		// 	self.push_completed(line);
-		// }
-		let consolidated = self.consolidate().unwrap();
-		self.push_completed(consolidated);
+		if let Some(line) = consolidated {
+			self.push_completed(line);
+		}
 	}
 
-	fn consolidate(&'s mut self) -> Option<CompleteLine> {
+	fn consolidate<'a>(&'a mut self) -> Option<CompleteLine>
+	where
+		's: 'a,
+	{
 		self.partial_line().consolidate()
 	}
 
 	/// Mirrors [yscribble::prelude::ScribbleData::push_completed].
-	pub fn push_completed(&'s mut self, line: CompleteLine) {
+	pub fn push_completed<'a>(&'a mut self, line: CompleteLine)
+	where
+		's: 'a,
+	{
 		self.completed_lines().push(line);
+	}
+
+	pub(crate) fn pad_transform(&self) -> GlobalTransform {
+		*self.pad_transform
 	}
 }

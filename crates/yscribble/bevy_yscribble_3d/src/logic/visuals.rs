@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub struct SpawnerPlugin;
 
 impl Plugin for SpawnerPlugin {
-	fn build(&self, app: &mut App) {
+	fn build(&self, _app: &mut App) {
 		// app.add_systems(Update, sync_ink_and_data);
 	}
 }
@@ -24,7 +24,6 @@ pub(super) struct SpawnerBundle {
 	name: Name,
 }
 
-pub use ink::*;
 /// Renders [ScribblePoint]s
 mod ink {
 	use crate::prelude::*;
