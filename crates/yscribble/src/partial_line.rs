@@ -53,6 +53,7 @@ impl PartialLine {
 		self.push(new_point);
 	}
 
+	/// See [Vec::is_empty]
 	pub fn is_empty(&self) -> bool {
 		self.points.is_empty()
 	}

@@ -38,6 +38,7 @@ pub struct ScribbleData<'w, 's> {
 			&'static Children,
 		),
 	>,
+	spawner_parent: Query<'w, 's, &'static Children, With<SpawnerMarker>>,
 	complete_spawner: Query<'w, 's, Entity, With<CompleteLineSpawnerMarker>>,
 	complete_commands: Commands<'w, 's>,
 	partial_spawner: Query<'w, 's, Entity, With<PartialLineSpawnerMarker>>,
@@ -72,22 +73,24 @@ impl<'w, 's> ScribbleData<'w, 's> {
 		#[derive(Debug, thiserror::Error)]
 		enum WithDetectorError {
 			PadEntityNotFound,
-			MultipleCompleteSpawnersFound,
-			NoCompleteSpawnersFound,
-			MultiplePartialSpawnersFound,
-			NoPartialSpawnersFound,
-			Other,
+			NoSpawnerParent,
+			MultipleCompleteSpawners,
+			NoCompleteSpawners,
+			MultiplePartialSpawners,
+			NoPartialSpawners,
 		}
 
 		impl std::fmt::Display for WithDetectorError {
 			fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 				match self {
 					WithDetectorError::PadEntityNotFound => write!(f, "Pad Entity not found"),
-					WithDetectorError::MultipleCompleteSpawnersFound => write!(f, "{}", MULTIPLE_COMPLETE),
-					WithDetectorError::NoCompleteSpawnersFound => write!(f, "{}", NO_COMPLETE),
-					WithDetectorError::MultiplePartialSpawnersFound => write!(f, "{}", MULTIPLE_PARTIAL),
-					WithDetectorError::NoPartialSpawnersFound => write!(f, "{}", NO_PARTIAL),
-					WithDetectorError::Other => write!(f, "TODO"),
+					WithDetectorError::NoSpawnerParent => {
+						write!(f, "No spawner parent with [SpawnerMarker] found")
+					}
+					WithDetectorError::MultipleCompleteSpawners => write!(f, "{}", MULTIPLE_COMPLETE),
+					WithDetectorError::NoCompleteSpawners => write!(f, "{}", NO_COMPLETE),
+					WithDetectorError::MultiplePartialSpawners => write!(f, "{}", MULTIPLE_PARTIAL),
+					WithDetectorError::NoPartialSpawners => write!(f, "{}", NO_PARTIAL),
 				}
 			}
 		}
@@ -95,13 +98,16 @@ impl<'w, 's> ScribbleData<'w, 's> {
 		let pad_entity = self
 			.pad_entity_from_detector(detector_entity)
 			.ok_or(WithDetectorError::PadEntityNotFound)?;
-		let (_pad_entity, config, data, pad_transform, children) =
-			self
-				.pads
-				.get_mut(pad_entity)
-				.ok()
-				.ok_or(WithDetectorError::PadEntityNotFound)?;
-		let complete_spawners = children
+		let (_pad_entity, config, data, pad_transform, pad_children) = self
+			.pads
+			.get_mut(pad_entity)
+			.ok()
+			.ok_or(WithDetectorError::PadEntityNotFound)?;
+		let spawner_children = pad_children
+			.iter()
+			.find_map(|pad_child| self.spawner_parent.get(*pad_child).ok())
+			.ok_or(WithDetectorError::NoSpawnerParent)?;
+		let complete_spawners = spawner_children
 			.iter()
 			.filter_map(|child| self.complete_spawner.get(*child).ok())
 			.collect::<Vec<_>>();
@@ -112,16 +118,16 @@ impl<'w, 's> ScribbleData<'w, 's> {
 				note = "As children of a [PadSpawner]",
 				?complete_spawners
 			);
-			return Err(WithDetectorError::MultipleCompleteSpawnersFound);
+			return Err(WithDetectorError::MultipleCompleteSpawners);
 		}
 		let complete_spawner = self.complete_commands.entity(
 			complete_spawners
 				.into_iter()
 				.next()
-				.ok_or(WithDetectorError::NoCompleteSpawnersFound)?,
+				.ok_or(WithDetectorError::NoCompleteSpawners)?,
 		);
 
-		let partial_spawners = children
+		let partial_spawners = spawner_children
 			.iter()
 			.filter_map(|child| self.partial_spawner.get(*child).ok())
 			.collect::<Vec<_>>();
@@ -131,13 +137,13 @@ impl<'w, 's> ScribbleData<'w, 's> {
 				message = MULTIPLE_PARTIAL,
 				note = "As children of a [PadSpawner]"
 			);
-			return Err(WithDetectorError::MultiplePartialSpawnersFound);
+			return Err(WithDetectorError::MultiplePartialSpawners);
 		}
 		let partial_spawner: EntityCommands<'a> = self.partial_commands.entity(
 			partial_spawners
 				.into_iter()
 				.next()
-				.ok_or(WithDetectorError::NoPartialSpawnersFound)?,
+				.ok_or(WithDetectorError::NoPartialSpawners)?,
 		);
 
 		Ok(PadData {

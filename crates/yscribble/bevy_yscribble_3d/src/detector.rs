@@ -247,7 +247,7 @@ fn handle_event<E: EventReaction>(event: Listener<E>, mut pad: ScribbleData) {
 				message = "Entity emitting event is not part of correct internal hierarchy",
 				note = "May be many reasons",
 				event_type = E::EV_NAME,
-				?err,
+				%err,
 			);
 		}
 	}

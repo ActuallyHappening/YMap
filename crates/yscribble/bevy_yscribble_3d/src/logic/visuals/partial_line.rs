@@ -31,6 +31,7 @@ impl<'s> PadData<'s> {
 	}
 }
 
+/// Wraps a stateful `&mut` to [yscribble::prelude::PartialLine]
 pub struct PartialPadData<'s> {
 	partial_data: &'s mut yscribble::prelude::PartialLine,
 	partial_spawner: EntityCommands<'s>,

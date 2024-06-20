@@ -12,13 +12,13 @@ impl Plugin for SpawnerPlugin {
 /// Used to mark the entity that is a [Child](Children) of the main [PadBundle].
 /// This [Entity] contains [Children] that render the actual scribble.
 #[derive(Component, Default)]
-pub(crate) struct PadSpawner;
+pub(crate) struct SpawnerMarker;
 
 #[derive(Bundle, SmartDefault)]
 pub(super) struct SpawnerBundle {
 	transform: TransformBundle,
 	visibility: VisibilityBundle,
-	marker: PadSpawner,
+	marker: SpawnerMarker,
 
 	#[default(Name::new("Scribble Spawner parent"))]
 	name: Name,
