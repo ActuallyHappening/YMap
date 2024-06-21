@@ -45,7 +45,10 @@ pub fn main() {
 						title: "YMap Application".into(),
 						canvas: Some("#app".into()),
 						prevent_default_event_handling: false,
+						#[cfg(target_os = "macos")]
 						mode: bevy::window::WindowMode::Windowed,
+						#[cfg(not(target_os = "macos"))]
+						mode: bevy::window::WindowMode::Fullscreen,
 						..default()
 					}),
 					..default()
@@ -56,7 +59,8 @@ pub fn main() {
 				})
 				.set(LogPlugin {
 					level: Level::ERROR,
-					filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
+					// filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
+					filter: "ymap=trace,bevy_yscribble_3d=trace".into(),
 					..default()
 				}),
 		)
