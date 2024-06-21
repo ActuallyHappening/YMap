@@ -31,7 +31,7 @@ impl Default for PrimaryCameraBundle {
 fn setup(mut commands: Commands) {
 	commands.spawn(PrimaryCameraBundle {
 		camera: Camera3dBundle {
-			transform: Transform::from_translation(Vec3::new(0., 10., 1.)).looking_at(Vec3::ZERO),
+			transform: Transform::from_translation(Vec3::new(0., 10., 1.)).looking_at(Vec3::ZERO, pos::up()),
 			..default()
 		},
 		..default()

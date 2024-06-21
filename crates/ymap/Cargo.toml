@@ -25,5 +25,8 @@ tracing = "0.1.40"
 identifier = "com.ymap.test-ios69"
 resources = ["assets"]
 
+[package.metadata.scripts]
+open-xcode = "open *.xcodeproj"
+
 [lints]
 workspace = true
