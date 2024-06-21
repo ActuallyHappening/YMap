@@ -21,11 +21,11 @@ mod bevy_utils {
 
 	impl<'w> MMA<'w> {
 		/// Converts the [SystemParam](bevy::ecs::system::SystemParam) [MMA] into the mutable reference [MMR].
-		pub fn reborrow<'a>(&'a mut self) -> MMR<'a>
+		pub fn reborrow<'a>(&'a mut self) -> MMAR<'a>
 		where
 			'w: 'a,
 		{
-			MMR {
+			MMAR {
 				meshs: self.meshs.reborrow(),
 				mats: self.mats.reborrow(),
 			}
@@ -44,18 +44,18 @@ mod bevy_utils {
 
 	/// Mutable reference type, useful for extracted functions
 	#[allow(clippy::upper_case_acronyms)]
-	pub struct MMR<'w> {
+	pub struct MMAR<'w> {
 		pub meshs: Mut<'w, Assets<Mesh>>,
 		pub mats: Mut<'w, Assets<StandardMaterial>>,
 	}
 
-	impl<'w> MMR<'w> {
+	impl<'w> MMAR<'w> {
 		/// Useful in converting `&mut MMR` into [MMR]
-		pub fn reborrow<'a>(&'a mut self) -> MMR<'a>
+		pub fn reborrow<'a>(&'a mut self) -> MMAR<'a>
 		where
 			'w: 'a,
 		{
-			MMR {
+			MMAR {
 				meshs: self.meshs.reborrow(),
 				mats: self.mats.reborrow(),
 			}

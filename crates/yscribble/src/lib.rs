@@ -7,6 +7,7 @@ pub mod prelude {
 	pub(crate) use tracing::{debug, error, info, trace, warn};
 
 	pub use crate::complete_line::CompleteLine;
+	pub use crate::complete_lines::CompleteLines;
 	pub use crate::data::ScribbleData;
 	pub use crate::partial_line::PartialLine;
 	pub use crate::point::ScribblePoint;
@@ -148,6 +149,8 @@ mod complete_line {
 		}
 	}
 }
+
+mod complete_lines;
 
 mod data;
 

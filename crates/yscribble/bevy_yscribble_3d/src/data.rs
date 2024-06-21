@@ -174,7 +174,7 @@ pub struct PadData<'data> {
 	pad_transform: &'data GlobalTransform,
 	pub(crate) complete_spawner: EntityCommands<'data>,
 	pub(crate) partial_spawner: EntityCommands<'data>,
-	pub(crate) mma: MMR<'data>,
+	pub(crate) mma: MMAR<'data>,
 }
 
 impl<'s> PadData<'s> {
@@ -187,6 +187,7 @@ impl<'s> PadData<'s> {
 		's: 'a,
 	{
 		let consolidated = self.partial_line().consolidate();
+		debug_assert!(self.data.partial_line().is_empty());
 
 		if let Some(line) = consolidated {
 			self.push_completed(line);

@@ -30,10 +30,10 @@ impl DetectorBundle {
 			height,
 			depth,
 		}: &PadConfig,
-		MMR {
+		MMAR {
 			mut meshs,
 			mut mats,
-		}: MMR,
+		}: MMAR,
 	) -> Self {
 		DetectorBundle {
 			pbr: PbrBundle {

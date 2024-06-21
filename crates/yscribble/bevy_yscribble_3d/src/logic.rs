@@ -73,7 +73,7 @@ fn expand_pad_bundles(
 		commands.entity(entity).with_children(|parent| {
 			parent.spawn(DetectorBundle::new(
 				config,
-				MMR {
+				MMAR {
 					meshs: meshs.reborrow(),
 					mats: mats.reborrow(),
 				},

@@ -42,11 +42,11 @@ mod ink {
 	}
 
 	impl DebugInkBundle {
-		pub fn new(absolute_pos: Vec2, MMR { meshs, mats, .. }: &mut MMR) -> Self {
+		pub fn new_with_colour(absolute_pos: Vec2, MMAR { meshs, mats, .. }: &mut MMAR, color: Color) -> Self {
 			DebugInkBundle {
 				pbr: PbrBundle {
 					transform: Transform::from_translation(Vec3::new(absolute_pos.x, 0.0, -absolute_pos.y)),
-					material: mats.add(Color::RED),
+					material: mats.add(color),
 					mesh: meshs.add(Sphere::new(0.1)),
 					..default()
 				},

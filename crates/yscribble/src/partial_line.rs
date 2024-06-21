@@ -6,7 +6,7 @@ use crate::prelude::*;
 /// Is mutable.
 ///
 /// See also [CompleteLine], which is a finished and immutable version.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 #[cfg_attr(feature = "bevy", derive(Reflect))]
 pub struct PartialLine {
 	points: Vec<ScribblePoint>,
@@ -14,6 +14,10 @@ pub struct PartialLine {
 
 impl PartialLine {
 	pub fn new() -> Self {
+		PartialLine::default()
+	}
+
+	pub fn empty() -> Self {
 		PartialLine::default()
 	}
 

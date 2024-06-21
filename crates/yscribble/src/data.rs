@@ -6,7 +6,7 @@ use crate::prelude::*;
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "bevy", derive(Reflect))]
 pub struct ScribbleData {
-	complete_lines: Vec<CompleteLine>,
+	pub complete_lines: CompleteLines,
 
 	/// Ideally should be processed into complete lines soon.
 	pub partial_line: PartialLine,
@@ -14,20 +14,16 @@ pub struct ScribbleData {
 
 /// [CompleteLine] impls
 impl ScribbleData {
-	/// Empty [Self::partial_lines] to start
+	/// Empty [Self::partial_line] to start
 	pub fn new(data: impl Iterator<Item = CompleteLine>) -> Self {
 		ScribbleData {
-			complete_lines: data.collect(),
+			complete_lines: CompleteLines::from_parts(data),
 			partial_line: Default::default(),
 		}
 	}
 
-	pub fn push_completed(&mut self, line: CompleteLine) {
-		self.complete_lines.push(line);
-	}
-
-	pub fn iter_complete(&self) -> impl Iterator<Item = &CompleteLine> {
-		self.complete_lines.iter()
+	pub fn complete_lines(&mut self) -> &mut CompleteLines {
+		&mut self.complete_lines
 	}
 }
 
