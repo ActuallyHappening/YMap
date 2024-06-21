@@ -103,12 +103,12 @@
 /* Begin PBXLegacyTarget section */
 		D08AEBE0B1A9C9A7B8C7B33F /* cargo_ios */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = build_rust_deps.sh;
+			buildArgumentsString = build_rust_deps.nu;
 			buildConfigurationList = AA00A0CFDB11F37F2BA3FC2E /* Build configuration list for PBXLegacyTarget "cargo_ios" */;
 			buildPhases = (
 				FE045B3D04D57B713A565FF8 /* Sources */,
 			);
-			buildToolPath = /bin/sh;
+			buildToolPath = "/usr/bin/env nu";
 			buildWorkingDirectory = .;
 			dependencies = (
 			);

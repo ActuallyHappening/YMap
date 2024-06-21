@@ -45,10 +45,13 @@ pub fn main() {
 						title: "YMap Application".into(),
 						canvas: Some("#app".into()),
 						prevent_default_event_handling: false,
+
 						#[cfg(target_os = "macos")]
 						mode: bevy::window::WindowMode::Windowed,
+
 						#[cfg(not(target_os = "macos"))]
 						mode: bevy::window::WindowMode::Fullscreen,
+						
 						..default()
 					}),
 					..default()

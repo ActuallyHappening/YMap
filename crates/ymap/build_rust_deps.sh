@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# based on https://github.com/mozilla/glean/blob/main/build-scripts/xc-universal-binary.sh
+# based on https://github.com/bevyengine/bevy/blob/main/examples/mobile/build_rust_deps.sh ...
+# which is based on https://github.com/mozilla/glean/blob/main/build-scripts/xc-universal-binary.sh
 
 set -eux
 
@@ -14,6 +15,8 @@ fi
 set -euvx
 
 pwd
+
+echo $DEVELOPER_SDK_DIR
 
 if [[ -n "${DEVELOPER_SDK_DIR:-}" ]]; then
 	# Assume we're in Xcode, which means we're probably cross-compiling.
