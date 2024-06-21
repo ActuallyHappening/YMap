@@ -71,7 +71,7 @@ impl EventReaction for Pointer<Down> {
 	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 
-		// cutting line because this type of event always starts a new line
+		// cutting line at the start because this type of event always starts a new line
 		data.cut_line();
 
 		let event_data = self;
@@ -131,26 +131,8 @@ impl EventReaction for Pointer<Up> {
 	}
 
 	fn process_event_data(&self, data: &mut PadData) {
-		let pad_transform = data.pad_transform();
-
 		// cuts line because this always ends the line
-		// even if there is bad normals
 		data.cut_line();
-
-		let event_data = self;
-		let world_point = event_data.event.hit.position;
-		let world_normal = event_data.event.hit.normal;
-
-		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
-		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
-			// skip if bad normals
-			return;
-		}
-
-		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
-			let point = ScribblePoint::new(pos);
-			data.partial_line().push(point);
-		}
 	}
 }
 
@@ -164,17 +146,25 @@ impl EventReaction for Pointer<Out> {
 	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 
-		// cuts line because this always ends the line
-		data.cut_line();
-
 		let event_data = self;
 		// let world_point = event_data.event.hit.position;
 		let world_normal = event_data.event.hit.normal;
 
 		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
 		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
-			// return;
+			return;
 		}
+
+		let event_data = self.hit_data();
+		let world_point = event_data.position;
+
+		if let Some(pos) = compute_pos::<Self>(world_point, pad_inverse_matrix) {
+			let point = ScribblePoint::new(pos);
+			data.partial_line().push(point);
+		}
+
+		// cuts line at the end because this always ends the line
+		data.cut_line();
 	}
 }
 

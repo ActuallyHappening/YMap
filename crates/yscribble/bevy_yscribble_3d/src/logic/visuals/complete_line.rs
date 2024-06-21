@@ -23,7 +23,7 @@ pub(crate) struct CompleteSpawnerBundle {
 }
 
 impl<'s> PadData<'s> {
-	pub fn completed_lines<'a>(&'a mut self) -> CompletePadData<'a>
+	pub fn complete_lines<'a>(&'a mut self) -> CompletePadData<'a>
 	where
 		's: 'a,
 	{

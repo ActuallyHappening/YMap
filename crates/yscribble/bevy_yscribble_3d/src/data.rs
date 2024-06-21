@@ -190,16 +190,8 @@ impl<'s> PadData<'s> {
 		debug_assert!(self.data.partial_line().is_empty());
 
 		if let Some(line) = consolidated {
-			self.push_completed(line);
+			self.complete_lines().push(line);
 		}
-	}
-
-	/// Mirrors [yscribble::prelude::ScribbleData::push_completed].
-	pub fn push_completed<'a>(&'a mut self, line: CompleteLine)
-	where
-		's: 'a,
-	{
-		self.completed_lines().push(line);
 	}
 
 	pub(crate) fn pad_transform(&self) -> GlobalTransform {

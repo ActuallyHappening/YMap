@@ -47,7 +47,9 @@ impl Plugin for InternalPlugin {
 				message = "Adding `DefaultPickingPlugins` from `bevy_mod_picking`",
 				note = "This is required for the scribble pad to work",
 			);
-			app.add_plugins(DefaultPickingPlugins);
+			app
+				.add_plugins(DefaultPickingPlugins)
+				.insert_resource(HighlightPluginSettings { is_enabled: false });
 		}
 	}
 }
