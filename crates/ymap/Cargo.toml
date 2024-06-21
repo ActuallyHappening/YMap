@@ -15,6 +15,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [dependencies]
 bevy.workspace = true
 bevy_editor_pls.workspace = true
+bevy_yscribble_3d.workspace = true
 bevy_cosmic_edit = { version = "0.20.0", features = ["multicam"] }
 bevy_egui = "0.27.1"
 derive_more = "0.99.17"

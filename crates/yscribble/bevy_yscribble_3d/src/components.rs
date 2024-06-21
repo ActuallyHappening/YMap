@@ -1,6 +1,8 @@
 use crate::prelude::*;
 
-/// Rectangular scribble pad.
+/// Primary [Bundle] for [bevy_yscribble_3d](crate)
+/// 
+/// By default, spawns along the X, -Z plane, so that -Z is upwards and +X is rightwards
 #[derive(Bundle, Debug)]
 pub struct PadBundle {
 	pub config: PadConfig,

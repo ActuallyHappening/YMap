@@ -10,8 +10,8 @@ mod prelude {
 mod camera;
 mod consts;
 mod debug;
-mod input;
 mod utils;
+mod scribble_pad;
 
 pub struct YMapPlugins;
 
@@ -29,6 +29,7 @@ impl PluginGroup for YMapPlugins {
 		PluginGroupBuilder::start::<Self>()
 			.add(camera::CameraPlugin)
 			.add(CosmicEditPlugin { font_config })
+			.add(scribble_pad::ScribblePadPlugin)
 	}
 }
 

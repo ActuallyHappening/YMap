@@ -13,6 +13,9 @@ branch = "update-gizmos"
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 
+[workspace.dependencies.bevy_yscribble_3d]
+path = "crates/yscribble/bevy_yscribble_3d"
+
 [workspace.lints.clippy]
 type_complexity = "allow"
 

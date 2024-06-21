@@ -5635,6 +5635,7 @@ dependencies = [
  "bevy_cosmic_edit",
  "bevy_editor_pls",
  "bevy_egui",
+ "bevy_yscribble_3d",
  "derive_more",
  "tracing",
 ]

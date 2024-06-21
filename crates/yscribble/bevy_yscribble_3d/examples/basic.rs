@@ -1,5 +1,5 @@
 //! Basic example using the scribble pad in bevy 3D
-//! Also includes [bevy_editor_pls]
+//! Also includes [bevy_editor_pls] and lower power mode logic
 
 use bevy::{
 	log::{Level, LogPlugin},
@@ -8,6 +8,7 @@ use bevy::{
 use bevy_mod_picking::prelude::*;
 use bevy_yscribble_3d::prelude::*;
 
+// not necessary
 /// Used for examples to reduce picking latency. Not relevant code for the examples.
 /// Copied from https://github.com/aevyrie/bevy_mod_picking/blob/757a1ed81f80de5a102dc17136774b012e404b58/src/lib.rs#L361
 #[doc(hidden)]
@@ -22,6 +23,7 @@ pub fn low_latency_window_plugin() -> bevy::window::WindowPlugin {
 	}
 }
 
+// not necessary
 #[extension_traits::extension(pub trait YUtilsAppExt)]
 impl App {
 	/// Will add the [WindowPlugin](bevy::window::WindowPlugin)
@@ -42,6 +44,7 @@ fn main() {
 				})
 				.set(low_latency_window_plugin()),
 			YScribble3DPlugins,
+			// not necessary
 			bevy_editor_pls::EditorPlugin::default(),
 		))
 		.insert_resource(DebugPickingMode::Normal)
