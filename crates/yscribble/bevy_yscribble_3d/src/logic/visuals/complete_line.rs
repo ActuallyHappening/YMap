@@ -13,9 +13,13 @@ pub(crate) struct CompleteLineSpawnerMarker;
 pub(crate) struct CompleteSpawnerBundle {
 	transform: TransformBundle,
 	visibility: VisibilityBundle,
+	
 	#[default(Name::new("Complete Line Spawner Parent"))]
 	name: Name,
 	marker: CompleteLineSpawnerMarker,
+
+	#[default(Pickable::IGNORE)]
+	picking_ignore: Pickable,
 }
 
 impl<'s> PadData<'s> {

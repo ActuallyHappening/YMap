@@ -13,9 +13,13 @@ pub(crate) struct PartialLineSpawnerMarker;
 pub(crate) struct PartialSpawnerBundle {
 	transform: TransformBundle,
 	visibility: VisibilityBundle,
+
 	#[default(Name::new("Partial Line Spawner Parent"))]
 	name: Name,
 	marker: PartialLineSpawnerMarker,
+
+	#[default(Pickable::IGNORE)]
+	picking_ignore: Pickable,
 }
 
 impl<'s> PadData<'s> {
@@ -80,7 +84,7 @@ impl<'s> PartialPadData<'s> {
 		}
 	}
 
-	/// *Forcibly* removes [PartialLine]s and visuals
+	/// *Forcibly* removes [PartialLine]s and despawns all partial point visuals
 	///
 	/// No mirror in [yscribble::prelude::PartialLine]
 	pub fn consolidate(mut self) -> Option<CompleteLine> {

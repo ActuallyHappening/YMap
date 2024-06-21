@@ -22,6 +22,9 @@ pub(super) struct SpawnerBundle {
 
 	#[default(Name::new("Scribble Spawner parent"))]
 	name: Name,
+
+	#[default(Pickable::IGNORE)]
+	picking_ignore: Pickable,
 }
 
 /// Renders [ScribblePoint]s
@@ -33,6 +36,9 @@ mod ink {
 
 		#[default(Name::new("Ink"))]
 		name: Name,
+
+		#[default(Pickable::IGNORE)]
+		picking_ignore: Pickable,
 	}
 
 	impl DebugInkBundle {

@@ -5,6 +5,8 @@
 //! RUST_LOG="bevy_yscribble_3d[detector_event]" cargo r --example basic
 //! ```
 
+use backend::HitData;
+
 use crate::{prelude::*, DetectorMarker};
 
 /// Not public as this entity is a child of the main [PadBundle].
@@ -50,26 +52,25 @@ impl DetectorBundle {
 	}
 }
 
+/// Implemented for events that can be handled
 trait EventReaction: std::fmt::Debug + EntityEvent {
 	const EV_NAME: &'static str;
 
-	/// Implement this, don't call it
-	fn untraced_process_event_data(&self, data: &mut PadData);
+	fn hit_data(&self) -> &HitData;
 
-	/// Call this, don't re-implement it
-	#[tracing::instrument(level = "info", skip_all, name = "detector_event", fields(
-		event_type = Self::EV_NAME,
-	))]
-	fn process_event_data(&self, data: &mut PadData) {
-		self.untraced_process_event_data(data);
-	}
+	fn process_event_data(&self, data: &mut PadData);
 }
 
 impl EventReaction for Pointer<Down> {
 	const EV_NAME: &'static str = "Down";
 
-	fn untraced_process_event_data(&self, data: &mut PadData) {
+	fn hit_data(&self) -> &HitData {
+		&self.event.hit
+	}
+
+	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
+
 		// cutting line because this type of event always starts a new line
 		data.cut_line();
 
@@ -93,17 +94,21 @@ impl EventReaction for Pointer<Down> {
 impl EventReaction for Pointer<Move> {
 	const EV_NAME: &'static str = "Move";
 
-	fn untraced_process_event_data(&self, data: &mut PadData) {
+	fn hit_data(&self) -> &HitData {
+		&self.event.hit
+	}
+
+	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 		if data.partial_line().is_empty() {
 			// skip if no points
-			trace!(message = "Skipping event because there are no points",);
+			// trace!(message = "Skipping event because there are no points",);
 			return;
 		}
 
-		let event_data = self;
-		let world_point = event_data.event.hit.position;
-		let world_normal = event_data.event.hit.normal;
+		let event_data = self.hit_data();
+		let world_point = event_data.position;
+		let world_normal = event_data.normal;
 
 		let pad_inverse_matrix = pad_transform.compute_matrix().inverse();
 		if !check_world_normal::<Self>(world_normal, pad_inverse_matrix) {
@@ -121,7 +126,11 @@ impl EventReaction for Pointer<Move> {
 impl EventReaction for Pointer<Up> {
 	const EV_NAME: &'static str = "Up";
 
-	fn untraced_process_event_data(&self, data: &mut PadData) {
+	fn hit_data(&self) -> &HitData {
+		&self.event.hit
+	}
+
+	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
 
 		// cuts line because this always ends the line
@@ -148,10 +157,15 @@ impl EventReaction for Pointer<Up> {
 impl EventReaction for Pointer<Out> {
 	const EV_NAME: &'static str = "Out";
 
-	fn untraced_process_event_data(&self, data: &mut PadData) {
+	fn hit_data(&self) -> &HitData {
+		&self.event.hit
+	}
+
+	fn process_event_data(&self, data: &mut PadData) {
 		let pad_transform = data.pad_transform();
+
 		// cuts line because this always ends the line
-		// data.cut_line();
+		data.cut_line();
 
 		let event_data = self;
 		// let world_point = event_data.event.hit.position;
@@ -169,7 +183,6 @@ fn check_world_normal<E: EventReaction>(
 	world_normal: Option<Vec3>,
 	pad_inverse_matrix: Mat4,
 ) -> bool {
-	let ev_name = E::EV_NAME;
 	match world_normal {
 		None => {
 			debug!(message = "No normals received from event");
@@ -234,10 +247,26 @@ fn compute_pos<E: EventReaction>(
 	}
 }
 
-fn handle_event<E: EventReaction>(event: Listener<E>, mut pad: ScribbleData) {
+fn handle_event<E: EventReaction>(
+	event: Listener<E>,
+	mut pad: ScribbleData,
+	name_lookup: Query<&Name>,
+) {
 	let detector_entity = event.listener();
+	// if fails, detector entity has children
 	debug_assert_eq!(detector_entity, event.target());
 	let event_data: &E = event.deref();
+
+	let detector_event_span = tracing::span!(
+		tracing::Level::TRACE,
+		"detector_event",
+		event_type = E::EV_NAME,
+		camera_name = ?name_lookup.get(event.hit_data().camera),
+		// detector_name = ?name_lookup.get(detector_entity),
+		// target_name = ?name_lookup.get(event.target()),
+		// ?event_data,
+	);
+	let _g = detector_event_span.enter();
 
 	match pad.with_detector(detector_entity) {
 		Ok(mut data) => {
