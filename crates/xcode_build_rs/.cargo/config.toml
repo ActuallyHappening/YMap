@@ -1,0 +1,2 @@
+[alias]
+is = "install --path ."

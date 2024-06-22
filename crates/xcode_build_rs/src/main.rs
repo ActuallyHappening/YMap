@@ -16,6 +16,12 @@ fn main() -> Result<(), color_eyre::Report> {
 		color_eyre::install().expect("Error reporting couldn't be installed (lol)");
 	}
 
+	// log all environment variables
+	{
+		let vars = env::vars().collect::<std::collections::HashMap<_, _>>();
+		info!(?vars);
+	}
+
 	let mut release_profile = false;
 	if env::var("CONFIGURATION") == Ok("Debug".into()) {
 		release_profile = true;
