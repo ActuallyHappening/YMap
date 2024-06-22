@@ -7,6 +7,69 @@ use color_eyre::{
 };
 use tracing::info;
 
+pub fn install_tracing() {
+	use tracing_error::ErrorLayer;
+	use tracing_subscriber::prelude::*;
+	use tracing_subscriber::{fmt, EnvFilter};
+
+	let mut fmt_layer = fmt::Layer::default().with_target(false);
+
+	// reads better in XCode terminal
+	fmt_layer.set_ansi(false);
+
+	let filter_layer = EnvFilter::try_from_default_env()
+		.or_else(|_| EnvFilter::try_new("info"))
+		.unwrap();
+
+	tracing_subscriber::registry()
+		.with(filter_layer)
+		.with(fmt_layer)
+		.with(ErrorLayer::default())
+		.init();
+}
+
+pub fn release_profile() -> Result<bool, Report> {
+	let mut is_release_build = true;
+	const CONFIGURATION: &str = "CONFIGURATION";
+	let configuration_env_var = env::var(CONFIGURATION);
+	if configuration_env_var == Ok("Release".into()) {
+		is_release_build = true;
+		info!(
+			message =
+				"Assuming a --release profile since the CONFIGURATION env flag was set to 'Release'",
+			?configuration_env_var
+		);
+	} else if configuration_env_var == Ok("Debug".into()) {
+		is_release_build = false;
+		info!(
+			message =
+				"Assuming not a release profile since the CONFIGURATION env flag was set to 'Debug'",
+			?configuration_env_var
+		);
+	} else {
+		info!(
+			message = "No known release profile was provided in the CONFIGURATION env var",
+			?configuration_env_var,
+			?is_release_build
+		);
+	}
+	Ok(is_release_build)
+}
+
+pub fn is_simulator() -> Result<bool, Report> {
+	let mut is_simulator = false;
+	if let Some(llvm_target_triple_suffix) = env::var_os("LLVM_TARGET_TRIPLE_SUFFIX") {
+		if llvm_target_triple_suffix == *"-simulator" {
+			info!(
+				message = "Assuming building for a simulator",
+				?llvm_target_triple_suffix
+			);
+			is_simulator = true;
+		}
+	}
+	Ok(is_simulator)
+}
+
 pub enum Archs {
 	X86_64,
 	Arm64,
@@ -53,21 +116,4 @@ pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
 
 pub fn cwd() -> Result<Utf8PathBuf, Report> {
 	Utf8PathBuf::try_from(env::current_dir().wrap_err("Cannot find cwd")?).wrap_err("CWD is not UTF8")
-}
-
-pub fn install_tracing() {
-	use tracing_error::ErrorLayer;
-	use tracing_subscriber::prelude::*;
-	use tracing_subscriber::{fmt, EnvFilter};
-
-	let fmt_layer = fmt::layer().with_target(false);
-	let filter_layer = EnvFilter::try_from_default_env()
-		.or_else(|_| EnvFilter::try_new("info"))
-		.unwrap();
-
-	tracing_subscriber::registry()
-		.with(filter_layer)
-		.with(fmt_layer)
-		.with(ErrorLayer::default())
-		.init();
 }

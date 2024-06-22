@@ -5767,6 +5767,7 @@ version = "0.1.0"
 dependencies = [
  "bossy",
  "camino",
+ "clap",
  "color-eyre",
  "dirs",
  "tracing",
