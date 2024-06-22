@@ -26,7 +26,7 @@ identifier = "com.ymap.test-ios69"
 resources = ["assets"]
 
 [package.metadata.scripts]
-open-xcode = "open *.xcodeproj"
+open-xcode = "open xcode/*.xcodeproj"
 
 [lints]
 workspace = true
