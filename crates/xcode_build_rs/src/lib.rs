@@ -7,27 +7,6 @@ use color_eyre::{
 };
 use tracing::info;
 
-pub fn install_tracing() {
-	use tracing_error::ErrorLayer;
-	use tracing_subscriber::prelude::*;
-	use tracing_subscriber::{fmt, EnvFilter};
-
-	let mut fmt_layer = fmt::Layer::default().with_target(false);
-
-	// reads better in XCode terminal
-	fmt_layer.set_ansi(false);
-
-	let filter_layer = EnvFilter::try_from_default_env()
-		.or_else(|_| EnvFilter::try_new("info"))
-		.unwrap();
-
-	tracing_subscriber::registry()
-		.with(filter_layer)
-		.with(fmt_layer)
-		.with(ErrorLayer::default())
-		.init();
-}
-
 pub fn release_profile() -> Result<bool, Report> {
 	let mut is_release_build = true;
 	const CONFIGURATION: &str = "CONFIGURATION";

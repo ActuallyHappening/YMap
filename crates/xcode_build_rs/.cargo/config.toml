@@ -1,2 +1,3 @@
 [alias]
 is = "install --path ."
+rt = "r -- --colour test"

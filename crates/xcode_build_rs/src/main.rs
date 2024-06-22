@@ -1,4 +1,5 @@
 use camino::Utf8PathBuf;
+use clap::{Args, Parser, Subcommand};
 use color_eyre::{
 	eyre::{eyre, Context, ContextCompat, Report},
 	Section, SectionExt,
@@ -9,13 +10,42 @@ use tracing::{debug, error, info, trace, warn};
 
 use xcode_build_rs::*;
 
+#[derive(Parser, Debug)]
+#[command(version, about)]
+pub struct Cli {
+	#[clap(subcommand)]
+	pub mode: Mode,
+
+	#[clap(flatten)]
+	pub options: Options,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum Mode {
+	Xcode,
+	Test,
+}
+
+#[derive(Args, Debug)]
+pub struct Options {
+	/// By default, doesn't display colour because this can be annoying in the XCode terminal
+	#[arg(long, alias = "colour")]
+	pub colour: bool,
+}
+
 fn main() -> Result<(), color_eyre::Report> {
+	let args = Cli::parse();
+
 	// init error handling and tracing
 	{
-		install_tracing();
+		install_tracing(args.options.colour);
 		color_eyre::install().expect("Error reporting couldn't be installed (lol)");
 	}
 
+	run_script(args)
+}
+
+fn run_script(args: Cli) -> Result<(), Report> {
 	// log all environment variables
 	{
 		let vars = env::vars().collect::<std::collections::HashMap<_, _>>();
@@ -30,6 +60,14 @@ fn main() -> Result<(), color_eyre::Report> {
 	append_library_paths()?;
 
 	let is_simulator = is_simulator()?;
+
+	if let Mode::Test = args.mode {
+		info!("Skipping actual compilation, running a test rustc build for M1 iOS simulator");
+
+		rustc("aarch64-apple-ios-sim", is_release_build)?;
+
+		return Ok(());
+	}
 
 	match parse_archs()? {
 		Archs::X86_64 => {
@@ -59,6 +97,25 @@ fn main() -> Result<(), color_eyre::Report> {
 	Ok(())
 }
 
+pub fn install_tracing(ansi: bool) {
+	use tracing_error::ErrorLayer;
+	use tracing_subscriber::prelude::*;
+	use tracing_subscriber::{fmt, EnvFilter};
+
+	let mut fmt_layer = fmt::Layer::default().with_target(false);
+	fmt_layer.set_ansi(ansi);
+
+	let filter_layer = EnvFilter::try_from_default_env()
+		.or_else(|_| EnvFilter::try_new("info"))
+		.unwrap();
+
+	tracing_subscriber::registry()
+		.with(filter_layer)
+		.with(fmt_layer)
+		.with(ErrorLayer::default())
+		.init();
+}
+
 /// Add `$HOME/.cargo/bin` to PATH env variable
 /// Adds /opt/homebrew/bin to PATH env variable
 fn append_useful_paths() -> Result<(), Report> {
@@ -74,6 +131,23 @@ fn append_useful_paths() -> Result<(), Report> {
 
 		let homebrew_dir = Utf8PathBuf::from("/opt/homebrew/bin");
 		paths.push(homebrew_dir.clone().into());
+
+		// debug check for `cc`
+		{
+			let cc_path = which::which("cc").wrap_err("Couldn't find cc binary")?;
+			let cc_dir = {
+				let mut cc_path = cc_path.clone();
+				cc_path.pop();
+				cc_path
+			};
+			let cc_contained = paths.contains(&cc_dir);
+			info!(
+				message = "Debug searching for `cc` compiler path",
+				?cc_dir,
+				?cc_contained,
+				?cc_path,
+			);
+		}
 
 		let new_path = env::join_paths(paths.clone())
 			.wrap_err("Unable to add path to PATH env variable")
