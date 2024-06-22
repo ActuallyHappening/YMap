@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# based on https://github.com/bevyengine/bevy/blob/main/examples/mobile/build_rust_deps.sh ...
+# based on https://github.com/bevyengine/bevy/blob/release-0.13.2/examples/mobile/build_rust_deps.sh ...
 # which is based on https://github.com/mozilla/glean/blob/main/build-scripts/xc-universal-binary.sh
 
 set -eux

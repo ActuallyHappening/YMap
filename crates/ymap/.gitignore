@@ -1,0 +1,13 @@
+/*
+
+!.gitignore
+
+# rust
+!assets
+!src
+!Cargo.toml
+!index.html
+!Trunk.toml
+
+# xcode
+!xcode

@@ -61,9 +61,9 @@ pub fn main() {
 					..default()
 				})
 				.set(LogPlugin {
-					level: Level::ERROR,
+					level: Level::INFO,
 					// filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
-					filter: "ymap=trace,bevy_yscribble_3d=trace".into(),
+					filter: "ymap=trace".into(),
 					..default()
 				}),
 		)
