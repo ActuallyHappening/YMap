@@ -5,6 +5,7 @@ edition = "2021"
 description = "Build script for xcode when compiling rust in XCode"
 
 [dependencies]
+bossy = "0.2.1"
 camino = "1.1.7"
 color-eyre = "0.6.3"
 dirs = "5.0.1"

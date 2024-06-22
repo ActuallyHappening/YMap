@@ -1612,6 +1612,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bossy"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c004d74bd688ab2f7ed4d8e3db0c4cc4db8eec9e4f44bd82221ddc31deeedbec"
+dependencies = [
+ "libc",
+ "log",
+ "winapi",
+]
+
+[[package]]
 name = "bstr"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5819,6 +5830,7 @@ dependencies = [
 name = "yxcode_build"
 version = "0.1.0"
 dependencies = [
+ "bossy",
  "camino",
  "color-eyre",
  "dirs",
