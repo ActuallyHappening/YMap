@@ -22,10 +22,34 @@ fn main() -> Result<(), color_eyre::Report> {
 		info!(?vars);
 	}
 
-	let mut release_profile = false;
-	if env::var("CONFIGURATION") == Ok("Debug".into()) {
-		release_profile = true;
-	}
+	// release profile
+	let is_release_build = {
+		let mut is_release_build = true;
+		const CONFIGURATION: &str = "CONFIGURATION";
+		let configuration_env_var = env::var(CONFIGURATION);
+		if configuration_env_var == Ok("Release".into()) {
+			is_release_build = true;
+			info!(
+				message =
+					"Assuming a --release profile since the CONFIGURATION env flag was set to 'Release'",
+				?configuration_env_var
+			);
+		} else if configuration_env_var == Ok("Debug".into()) {
+			is_release_build = false;
+			info!(
+				message =
+					"Assuming not a release profile since the CONFIGURATION env flag was set to 'Debug'",
+				?configuration_env_var
+			);
+		} else {
+			info!(
+				message = "No known release profile was provided in the CONFIGURATION env var",
+				?configuration_env_var,
+				?is_release_build
+			);
+		}
+		is_release_build
+	};
 
 	// Add `$HOME/.cargo/bin` to PATH env variable
 	// Adds /opt/homebrew/bin to PATH env variable
@@ -128,15 +152,15 @@ fn main() -> Result<(), color_eyre::Report> {
 			// tbh I don't know what this does yet, haven't bothered removing it
 			env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
 
-			rustc("x86_64-apple-ios", release_profile)?;
+			rustc("x86_64-apple-ios", is_release_build)?;
 		}
 		Archs::Arm64 => {
 			if is_simulator {
 				// M1 iOS simulator
-				rustc("aarch64-apple-ios-sim", release_profile)?;
+				rustc("aarch64-apple-ios-sim", is_release_build)?;
 			} else {
 				// Hardware iOS
-				rustc("aarch64-apple-ios", release_profile)?;
+				rustc("aarch64-apple-ios", is_release_build)?;
 			}
 		}
 	}

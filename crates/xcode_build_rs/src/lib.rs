@@ -1,9 +1,11 @@
 use std::env;
 
+use camino::Utf8PathBuf;
 use color_eyre::{
 	eyre::{eyre, Context as _, Report},
 	Section as _,
 };
+use tracing::info;
 
 pub enum Archs {
 	X86_64,
@@ -30,7 +32,8 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 }
 
 pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
-	let mut rustc = bossy::Command::pure("cargo").with_args([
+	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
+	let mut rustc = bossy::Command::pure(&rustc_path).with_args([
 		"rustc",
 		"--crate-type",
 		"staticlib",
@@ -41,10 +44,15 @@ pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
 	if release {
 		rustc.add_arg("--release");
 	}
+	info!(message = "About to run rustc", cwd = ?cwd(), ?rustc_path);
 	rustc
 		.run_and_wait()
 		.wrap_err("rustc invocation failed, likely a Rust-side build error")?;
 	Ok(())
+}
+
+pub fn cwd() -> Result<Utf8PathBuf, Report> {
+	Utf8PathBuf::try_from(env::current_dir().wrap_err("Cannot find cwd")?).wrap_err("CWD is not UTF8")
 }
 
 pub fn install_tracing() {
