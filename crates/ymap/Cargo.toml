@@ -27,6 +27,7 @@ resources = ["assets"]
 
 [package.metadata.scripts]
 open-xcode = "open xcode/*.xcodeproj"
+# open-app = "open xcode/build/Debug-iphoneos/YMap.app"
 
 [lints]
 workspace = true
