@@ -1,9 +1,9 @@
 use camino::Utf8PathBuf;
 use color_eyre::{
-	eyre::{eyre, Context, Report},
+	eyre::{eyre, Context},
 	Section, SectionExt,
 };
-use std::{env, ffi::OsStr, path::PathBuf};
+use std::env;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
@@ -17,7 +17,7 @@ fn main() -> Result<(), color_eyre::Report> {
 	}
 
 	let mut release_profile = false;
-	if env::var("CONFIGURATION") == Ok(String::from("Debug").into()) {
+	if env::var("CONFIGURATION") == Ok("Debug".into()) {
 		release_profile = true;
 	}
 
@@ -30,8 +30,8 @@ fn main() -> Result<(), color_eyre::Report> {
 			let home_dir = &dirs::home_dir().unwrap_or("~".into());
 			paths.push(home_dir.clone());
 
-			let homebrew_dir = PathBuf::from("/opt/homebrew/bin");
-			paths.push(homebrew_dir.clone());
+			let homebrew_dir = Utf8PathBuf::from("/opt/homebrew/bin");
+			paths.push(homebrew_dir.clone().into());
 
 			let new_path = env::join_paths(paths.clone())
 				.wrap_err("Unable to add path to PATH env variable")
@@ -60,10 +60,10 @@ fn main() -> Result<(), color_eyre::Report> {
 				Ok(true) => {
 					let library_path = env::var("LIBRARY_PATH").unwrap_or_default();
 					let mut library_paths = env::split_paths(&library_path).collect::<Vec<_>>();
-					library_paths.push(PathBuf::from(format!(
+					library_paths.push(Utf8PathBuf::from(format!(
 						"{}/MacOSZ.sdk/usr/lib",
 						developer_sdk_dir
-					)));
+					)).into());
 					let new_library_path =
 						env::join_paths(library_paths).wrap_err("Cannot join paths for DEVELOPER_SDK_DIR")?;
 
