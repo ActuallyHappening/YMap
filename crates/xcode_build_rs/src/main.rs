@@ -1,6 +1,6 @@
 use camino::Utf8PathBuf;
 use color_eyre::{
-	eyre::{eyre, Context},
+	eyre::{eyre, Context, ContextCompat},
 	Section, SectionExt,
 };
 use std::env;
@@ -27,20 +27,32 @@ fn main() -> Result<(), color_eyre::Report> {
 		if let Ok(path) = env::var("PATH") {
 			let mut paths = env::split_paths(&path).collect::<Vec<_>>();
 
-			let home_dir = &dirs::home_dir().unwrap_or("~".into());
-			paths.push(home_dir.clone());
+			let home_dir = dirs::home_dir().wrap_err("Could not find home dir")?;
+			let home_dir = Utf8PathBuf::try_from(home_dir).wrap_err("Home dir not UTF8")?;
+			paths.push(home_dir.clone().into());
 
 			let homebrew_dir = Utf8PathBuf::from("/opt/homebrew/bin");
 			paths.push(homebrew_dir.clone().into());
 
+			let cargo_bin_dir = home_dir.join(".cargo").join("bin");
+			paths.push(cargo_bin_dir.clone().into());
+
 			let new_path = env::join_paths(paths.clone())
 				.wrap_err("Unable to add path to PATH env variable")
 				.note(format!("Original PATH: {:?}", paths.clone()))
-				.note(format!("Home path: {:?}", home_dir))
-				.note(format!("Homebrew path: {:?}", homebrew_dir))?;
+				.note(format!("+Cargo bin dir: {:?}", cargo_bin_dir))
+				.note(format!("+Home path: {:?}", home_dir))
+				.note(format!("+Homebrew path: {:?}", homebrew_dir))?;
 			env::set_var("PATH", new_path.clone());
 
-			info!(message = "Updated PATH env variable", from = ?path, to = ?new_path, ?home_dir, ?homebrew_dir);
+			info!(
+				message = "Updated PATH env variable",
+				note = "To add cargo_bin_dir, home_dir and homebrew_dir",
+				?cargo_bin_dir,
+				?home_dir,
+				?homebrew_dir,
+			);
+			debug!(message = "Path env variable updated", from = ?path, to = ?new_path);
 		} else {
 			info!("No PATH env variable to update");
 		}
