@@ -75,7 +75,8 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 
 pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
 	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
-	let mut rustc = bossy::Command::pure(&rustc_path).with_args([
+	// don't change this to pure. just don't.
+	let mut rustc = bossy::Command::impure(&rustc_path).with_args([
 		"rustc",
 		"--crate-type",
 		"staticlib",
@@ -95,4 +96,26 @@ pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
 
 pub fn cwd() -> Result<Utf8PathBuf, Report> {
 	Utf8PathBuf::try_from(env::current_dir().wrap_err("Cannot find cwd")?).wrap_err("CWD is not UTF8")
+}
+
+pub fn debug_confirm_on_path(
+	paths: &[std::path::PathBuf],
+	bin: &'static str,
+) -> Result<bool, Report> {
+	let bin_path = which::which(bin).wrap_err("Couldn't find binary")?;
+	let bin_dir = {
+		let mut bin_path = bin_path.clone();
+		bin_path.pop();
+		bin_path
+	};
+	let bin_contained = paths.contains(&bin_dir);
+	info!(
+		?bin_contained,
+		?bin_dir,
+		?bin_path,
+		"Debug searching for `{}` bin path, was successful: {}",
+		bin,
+		bin_contained
+	);
+	Ok(bin_contained)
 }

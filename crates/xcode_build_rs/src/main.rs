@@ -78,7 +78,9 @@ fn run_script(args: Cli) -> Result<(), Report> {
 			}
 
 			// Intel iOS simulator
-			// tbh I don't know what this does yet, haven't bothered removing it
+			// this talks to the `cc` compiler rust library
+			// https://docs.rs/cc/latest/cc/#external-configuration-via-environment-variables
+			// these end up being passed to the underlying C compiler
 			env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
 
 			rustc("x86_64-apple-ios", is_release_build)?;
@@ -133,20 +135,8 @@ fn append_useful_paths() -> Result<(), Report> {
 		paths.push(homebrew_dir.clone().into());
 
 		// debug check for `cc`
-		{
-			let cc_path = which::which("cc").wrap_err("Couldn't find cc binary")?;
-			let cc_dir = {
-				let mut cc_path = cc_path.clone();
-				cc_path.pop();
-				cc_path
-			};
-			let cc_contained = paths.contains(&cc_dir);
-			info!(
-				message = "Debug searching for `cc` compiler path",
-				?cc_dir,
-				?cc_contained,
-				?cc_path,
-			);
+		if !debug_confirm_on_path(&paths, "cc")? {
+			info!("`cc` compiler not found on $PATH");
 		}
 
 		let new_path = env::join_paths(paths.clone())
@@ -187,7 +177,7 @@ fn append_library_paths() -> Result<(), Report> {
 					let library_path = env::var("LIBRARY_PATH").unwrap_or_default();
 					let mut library_paths = env::split_paths(&library_path).collect::<Vec<_>>();
 					library_paths.push(Utf8PathBuf::from(format!(
-						"{}/MacOSZ.sdk/usr/lib",
+						"{}/MacOSX.sdk/usr/lib",
 						developer_sdk_dir
 					)).into());
 					let new_library_path =
