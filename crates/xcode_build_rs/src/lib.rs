@@ -6,16 +6,16 @@ use color_eyre::{
 };
 
 pub enum Archs {
-	x86_64,
-	arm64,
+	X86_64,
+	Arm64,
 }
 
 pub fn parse_archs() -> color_eyre::Result<Archs> {
 	impl Archs {
 		fn try_from_str(str: &str) -> Result<Self, Report> {
 			Ok(match str {
-				"x86_64" => Archs::x86_64,
-				"arm64" => Archs::arm64,
+				"x86_64" => Archs::X86_64,
+				"arm64" => Archs::Arm64,
 				_ => {
 					return Err(eyre!("Cannot parse ARCHS env variable").note(format!("ARCHS: {:?}", str)))
 				}

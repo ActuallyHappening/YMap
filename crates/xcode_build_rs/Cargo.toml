@@ -1,5 +1,5 @@
 [package]
-name = "xcode_build"
+name = "xcode-build-rs"
 version = "0.1.0"
 edition = "2021"
 description = "Build script for xcode when compiling rust in XCode"
@@ -11,7 +11,7 @@ color-eyre = "0.6.3"
 dirs = "5.0.1"
 tracing = "0.1.40"
 tracing-error = "0.2.0"
-tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }
 
 [lints]
 workspace = true

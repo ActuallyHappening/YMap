@@ -7,7 +7,7 @@ use std::env;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
-use xcode_build::*;
+use xcode_build_rs::*;
 
 fn main() -> Result<(), color_eyre::Report> {
 	// init error handling and tracing
@@ -99,7 +99,7 @@ fn main() -> Result<(), color_eyre::Report> {
 	}
 
 	match parse_archs()? {
-		Archs::x86_64 => {
+		Archs::X86_64 => {
 			if is_simulator {
 				return Err(eyre!(
 					"Building for x86_64 but not on a simulator. This is not yet supported"
@@ -112,7 +112,7 @@ fn main() -> Result<(), color_eyre::Report> {
 
 			rustc("x86_64-apple-ios", release_profile)?;
 		}
-		Archs::arm64 => {
+		Archs::Arm64 => {
 			if is_simulator {
 				// M1 iOS simulator
 				rustc("aarch64-apple-ios-sim", release_profile)?;
