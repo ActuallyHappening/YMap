@@ -1,5 +1,5 @@
 [package]
-name = "yxcode_build"
+name = "xcode_build"
 version = "0.1.0"
 edition = "2021"
 description = "Build script for xcode when compiling rust in XCode"
