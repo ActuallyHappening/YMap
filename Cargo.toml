@@ -18,9 +18,6 @@ path = "crates/yutils"
 [workspace.dependencies.bevy_yscribble_3d]
 path = "crates/yscribble/bevy_yscribble_3d"
 
-[workspace.dependencies.bevy_ios_log]
-path = "crates/bevy_ios_log"
-
 [workspace.lints.clippy]
 type_complexity = "allow"
 

@@ -67,7 +67,7 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 	if let Mode::Test = args.mode {
 		info!("Skipping actual compilation, running a test rustc build for M1 iOS simulator");
 
-		rustc("aarch64-apple-ios-sim", is_release_build, config.ios_features())?;
+		rustc("aarch64-apple-ios-sim", is_release_build, config.ios_feature_flags())?;
 
 		return Ok(());
 	}
@@ -86,15 +86,15 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 			// these end up being passed to the underlying C compiler
 			env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
 
-			rustc("x86_64-apple-ios", is_release_build, config.ios_features())?;
+			rustc("x86_64-apple-ios", is_release_build, config.ios_feature_flags())?;
 		}
 		Archs::Arm64 => {
 			if is_simulator {
 				// M1 iOS simulator
-				rustc("aarch64-apple-ios-sim", is_release_build, config.ios_features())?;
+				rustc("aarch64-apple-ios-sim", is_release_build, config.ios_feature_flags())?;
 			} else {
 				// Hardware iOS
-				rustc("aarch64-apple-ios", is_release_build, config.ios_features())?;
+				rustc("aarch64-apple-ios", is_release_build, config.ios_feature_flags())?;
 			}
 		}
 	}

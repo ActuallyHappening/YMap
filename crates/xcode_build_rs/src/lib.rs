@@ -3,34 +3,74 @@
 use std::env;
 
 use camino::Utf8PathBuf;
-use clap::Args;
 use color_eyre::{
 	eyre::{eyre, Context as _, Report},
 	Section as _,
 };
-use tracing::info;
 use serde::Deserialize;
+use tracing::info;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct Config {
 	/// What features to enable for iOS builds
-	// #[arg(long)]
-	ios_features: Option<Vec<String>>
+	#[serde(default)]
+	ios: Flags,
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct Flags {
+	features: Vec<String>,
+	no_default: bool,
 }
 
 impl Config {
 	pub fn retrieve_from_toml_config() -> Result<Config, Report> {
 		let config_path = Utf8PathBuf::from("Cargo.toml");
-		let config = std::fs::read_to_string(&config_path)
-			.wrap_err_with(|| format!("Cannot read config file: {:?}", config_path))?;
-		let config: Config = toml::from_str(&config)
-			.wrap_err_with(|| format!("Cannot parse config file: {:?}", config_path))?;
-
-		Ok(config)
+		match std::fs::read_to_string(&config_path) {
+			Err(err) => {
+				info!(message = "Cannot find `Cargo.toml` file in CWD, using default config", ?err, cwd = ?cwd());
+				Ok(Config::default())
+			}
+			Ok(config) => {
+				let raw_config: toml::Value = toml::from_str(&config)
+					.wrap_err_with(|| format!("Cannot parse Cargo.toml file: {:?}", config_path))?;
+				let config = raw_config
+					.get("package")
+					.and_then(|package| package.get("metadata"))
+					.and_then(|metadata| metadata.get("xcode-build-rs"));
+				match config {
+					None => {
+						info!("Using default config since `package.metadata.xcode_build_rs` section is missing from Cargo.toml");
+						Ok(Config::default())
+					}
+					Some(config) => {
+						let config: Config = config
+							.clone()
+							.try_into()
+							.wrap_err("Cannot deserialize `xcode-build-rs` section of Cargo.toml")?;
+						Ok(config)
+					}
+				}
+			}
+		}
 	}
 
-	pub fn ios_features(&self) -> Vec<String> {
-		self.ios_features.clone().unwrap_or_default()
+	pub fn ios_feature_flags(&self) -> Flags {
+		self.ios.clone()
+	}
+}
+
+impl Flags {
+	pub fn into_args(self) -> Vec<String> {
+		let mut args = vec![];
+		if self.no_default {
+			args.push("--no-default-features".into());
+		}
+		for feature in self.features {
+			args.push("--features".into());
+			args.push(feature);
+		}
+		args
 	}
 }
 
@@ -100,7 +140,7 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 	}
 }
 
-pub fn rustc(target: &'static str, release: bool, extra_features: Vec<String>) -> Result<(), Report> {
+pub fn rustc(target: &'static str, release: bool, feature_flags: Flags) -> Result<(), Report> {
 	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
 	// don't change this to pure. just don't.
 	let mut rustc = bossy::Command::impure(&rustc_path).with_args([
@@ -111,9 +151,8 @@ pub fn rustc(target: &'static str, release: bool, extra_features: Vec<String>) -
 		"--target",
 		target,
 	]);
-	for feature in extra_features {
-		rustc.add_arg("--features");
-		rustc.add_arg(feature);
+	for flag in feature_flags.into_args() {
+		rustc.add_arg(flag);
 	}
 	if release {
 		rustc.add_arg("--release");

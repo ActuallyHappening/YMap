@@ -11,7 +11,10 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
 default = []
-ios = ["dep:bevy_ios_log"]
+ios = []
+
+[package.metadata.xcode-build-rs.ios]
+features = ["ios"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,7 +22,6 @@ ios = ["dep:bevy_ios_log"]
 bevy.workspace = true
 bevy_editor_pls.workspace = true
 bevy_yscribble_3d.workspace = true
-bevy_ios_log = { workspace = true, optional = true }
 bevy_cosmic_edit = { version = "0.20.0", features = ["multicam"] }
 bevy_egui = "0.27.1"
 derive_more = "0.99.17"

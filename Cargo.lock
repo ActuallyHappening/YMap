@@ -901,15 +901,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_ios_log"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "bevy_log"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5898,7 +5889,6 @@ dependencies = [
  "bevy_cosmic_edit",
  "bevy_editor_pls",
  "bevy_egui",
- "bevy_ios_log",
  "bevy_yscribble_3d",
  "derive_more",
  "tracing",

@@ -44,32 +44,34 @@ impl PluginGroup for YMapPlugins {
 pub fn main() {
 	let mut app = App::new();
 
-	/// These are annoying on iOS
-	const IGNORED_EVENTS: &[&str] = &[
-		"processing non `RedrawRequested` event after the main event loop: AboutToWait",
-		"processing `RedrawRequested` during the main event loop",
-	];
-	let ignored_directives = IGNORED_EVENTS
-		.iter()
-		.map(|s| format!("[{{message}}=\"{}\"]=trace", s))
-		.collect::<Vec<_>>()
-		.join(",");
+	// /// These are annoying on iOS
+	// const IGNORED_EVENTS: &[&str] = &[
+	// 	"processing non `RedrawRequested` event after the main event loop: AboutToWait",
+	// 	"processing `RedrawRequested` during the main event loop",
+	// ];
+	// let ignored_directives = IGNORED_EVENTS
+	// 	.iter()
+	// 	.map(|s| format!("[{{message}}=\"{}\"]=trace", s))
+	// 	.collect::<Vec<_>>()
+	// 	.join(",");
 
-	// let tracing_callback = |s: BoxedSubscriber| -> BoxedSubscriber {
-	// 	use tracing_subscriber::prelude::*;
-	// 	Box::new(s.with(tracing_subscriber::filter::FilterFn::new(|meta| {
-	// 		if meta.fields().field("message")
-	// 			== Some(
-	// 				"processing non `RedrawRequested` event after the main event loop: AboutToWait".into(),
-	// 			) {
-	// 			return true;
-	// 		}
-	// 		false
-	// 	})))
-	// };
-	// let fmt_layer = fmt_layer.with_filter(tracing_subscriber::filter::FilterFn::new(|meta| {
-	// 	meta.fields().field("tracy.frame_mark").is_none()
-	// }));
+	// // let tracing_callback = |s: BoxedSubscriber| -> BoxedSubscriber {
+	// // 	use tracing_subscriber::prelude::*;
+	// // 	Box::new(s.with(tracing_subscriber::filter::FilterFn::new(|meta| {
+	// // 		if meta.fields().field("message")
+	// // 			== Some(
+	// // 				"processing non `RedrawRequested` event after the main event loop: AboutToWait".into(),
+	// // 			) {
+	// // 			return true;
+	// // 		}
+	// // 		false
+	// // 	})))
+	// // };
+	// // let fmt_layer = fmt_layer.with_filter(tracing_subscriber::filter::FilterFn::new(|meta| {
+	// // 	meta.fields().field("tracy.frame_mark").is_none()
+	// // }));
+
+	std::env::set_var("NO_COLOR", "1");
 
 	let default_plugins = DefaultPlugins
 		.set(WindowPlugin {
@@ -95,13 +97,10 @@ pub fn main() {
 		.set(LogPlugin {
 			level: Level::INFO,
 			// filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
-			filter: format!("ymap=trace,{}", ignored_directives),
+			filter: r#"ymap=trace,[{message="processing non `RedrawRequested` event after the main event loop: AboutToWait"}]=error,[{message="processing `RedrawRequested` during the main event loop"}]=error"#.into(),
 			// update_subscriber: Some(tracing_callback),
 			..default()
 		});
-
-	#[cfg(feature = "ios")]
-	let default_plugins = default_plugins.disable::<LogPlugin>().add(bevy_log_plugin::IosLogPlugin);
 
 	App::new()
 		.add_plugins(default_plugins)
