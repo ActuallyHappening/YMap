@@ -14,6 +14,7 @@ default = []
 ios = []
 
 [package.metadata.xcode-build-rs.ios]
+## What features to enable for `io` builds, see `xcode-build-rs` for more information
 features = ["ios"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

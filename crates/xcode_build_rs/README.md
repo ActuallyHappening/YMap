@@ -19,6 +19,19 @@ This is how I used it in my XCode project, which was copied from the `bevy` mobi
 Use `xcode-build-rs xcode` in the actual xcode script.
 Use `xcode-build-rs --colour test` to begin a test iOS simulator build, which shouldn't be necessary normally.
 
+## Configuration
+To compiles projects for iOS with special Cargo features enabled, add a `package.metadata.xcode-build-rs` section to your `Cargo.toml` file. For example:
+```toml
+[package.metadata.xcode-build-rs.ios]
+## As an example, when set to true enabled default features
+## which is already the default.
+## Set to false to disable default features
+## See Cargo's docs: https://doc.rust-lang.org/cargo/reference/features.html#dependency-features
+default-features = true
+## What features to enable
+features = ["ios"]
+```
+
 ### Help message `xcode-build-rs --help`
 ```
 Build script for XCode when compiling rust for iOS

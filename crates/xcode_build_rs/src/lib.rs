@@ -17,10 +17,29 @@ pub struct Config {
 	ios: Flags,
 }
 
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Flags {
+	#[serde(default)]
 	features: Vec<String>,
-	no_default: bool,
+	/// Whether or not to pass the flag `--no-default-features` to `cargo rustc`
+	/// See https://doc.rust-lang.org/cargo/reference/features.html#command-line-feature-options
+	#[serde(default = "Flags::default_default_features")]
+	default_features: bool,
+}
+impl Flags {
+	/// Default for [Self::default_features]
+	fn default_default_features() -> bool {
+		true
+	}
+}
+
+impl Default for Flags {
+	fn default() -> Self {
+		Flags {
+			default_features: Flags::default_default_features(),
+			features: vec![],
+		}
+	}
 }
 
 impl Config {
@@ -63,7 +82,7 @@ impl Config {
 impl Flags {
 	pub fn into_args(self) -> Vec<String> {
 		let mut args = vec![];
-		if self.no_default {
+		if !self.default_features {
 			args.push("--no-default-features".into());
 		}
 		for feature in self.features {
