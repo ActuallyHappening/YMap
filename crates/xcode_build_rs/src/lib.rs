@@ -1,3 +1,5 @@
+//! # Warning: This library is unstable, only the executable's behaviour is subject to semver
+
 use std::env;
 
 use camino::Utf8PathBuf;

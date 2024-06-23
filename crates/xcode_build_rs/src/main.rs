@@ -22,7 +22,9 @@ pub struct Cli {
 
 #[derive(Subcommand, Clone, Debug)]
 pub enum Mode {
+	/// Run in XCode
 	Xcode,
+	/// Run a test build for an iOS simulator
 	Test,
 }
 
