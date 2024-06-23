@@ -8,6 +8,12 @@ Benefits of using a Rust script over a `sh` (or `nu`):
 - Logs everything using human-understandable languages (rather than `set -exu`)
 
 ## Installation
+```nu
+cargo install xcode-build-rs
+```
+
+This is how I used it in my XCode project, which was copied from the `bevy` mobile example:
+![XCode usage example](docs/xcode-usage.png)
 
 ## Usage
 Use `xcode-build-rs xcode` in the actual xcode script.
