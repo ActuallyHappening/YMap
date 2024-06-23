@@ -37,6 +37,7 @@ pub struct Options {
 
 fn main() -> Result<(), color_eyre::Report> {
 	let args = Cli::parse();
+	let config = Config::retrieve_from_toml_config()?;
 
 	// init error handling and tracing
 	{
@@ -44,10 +45,10 @@ fn main() -> Result<(), color_eyre::Report> {
 		color_eyre::install().expect("Error reporting couldn't be installed (lol)");
 	}
 
-	run_script(args)
+	run_script(args, config)
 }
 
-fn run_script(args: Cli) -> Result<(), Report> {
+fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 	// log all environment variables
 	{
 		let vars = env::vars().collect::<std::collections::HashMap<_, _>>();
@@ -66,7 +67,7 @@ fn run_script(args: Cli) -> Result<(), Report> {
 	if let Mode::Test = args.mode {
 		info!("Skipping actual compilation, running a test rustc build for M1 iOS simulator");
 
-		rustc("aarch64-apple-ios-sim", is_release_build)?;
+		rustc("aarch64-apple-ios-sim", is_release_build, config.ios_features())?;
 
 		return Ok(());
 	}
@@ -85,15 +86,15 @@ fn run_script(args: Cli) -> Result<(), Report> {
 			// these end up being passed to the underlying C compiler
 			env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
 
-			rustc("x86_64-apple-ios", is_release_build)?;
+			rustc("x86_64-apple-ios", is_release_build, config.ios_features())?;
 		}
 		Archs::Arm64 => {
 			if is_simulator {
 				// M1 iOS simulator
-				rustc("aarch64-apple-ios-sim", is_release_build)?;
+				rustc("aarch64-apple-ios-sim", is_release_build, config.ios_features())?;
 			} else {
 				// Hardware iOS
-				rustc("aarch64-apple-ios", is_release_build)?;
+				rustc("aarch64-apple-ios", is_release_build, config.ios_features())?;
 			}
 		}
 	}

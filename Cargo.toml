@@ -2,8 +2,10 @@
 members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
 resolver = "2"
 
-[workspace.dependencies]
-bevy = { version = "0.13.2" }
+[workspace.dependencies.bevy]
+version = "0.13.2"
+# git = "https://github.com/ActuallyHappening/bevy.git"
+# branch = "add-ansi-log-option"
 
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"
@@ -15,6 +17,9 @@ path = "crates/yutils"
 
 [workspace.dependencies.bevy_yscribble_3d]
 path = "crates/yscribble/bevy_yscribble_3d"
+
+[workspace.dependencies.bevy_ios_log]
+path = "crates/bevy_ios_log"
 
 [workspace.lints.clippy]
 type_complexity = "allow"

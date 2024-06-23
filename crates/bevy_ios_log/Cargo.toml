@@ -1,0 +1,12 @@
+[package]
+name = "bevy_ios_log"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
+
+[lints]
+workspace = true

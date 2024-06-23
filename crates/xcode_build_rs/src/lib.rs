@@ -3,11 +3,36 @@
 use std::env;
 
 use camino::Utf8PathBuf;
+use clap::Args;
 use color_eyre::{
 	eyre::{eyre, Context as _, Report},
 	Section as _,
 };
 use tracing::info;
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+pub struct Config {
+	/// What features to enable for iOS builds
+	// #[arg(long)]
+	ios_features: Option<Vec<String>>
+}
+
+impl Config {
+	pub fn retrieve_from_toml_config() -> Result<Config, Report> {
+		let config_path = Utf8PathBuf::from("Cargo.toml");
+		let config = std::fs::read_to_string(&config_path)
+			.wrap_err_with(|| format!("Cannot read config file: {:?}", config_path))?;
+		let config: Config = toml::from_str(&config)
+			.wrap_err_with(|| format!("Cannot parse config file: {:?}", config_path))?;
+
+		Ok(config)
+	}
+
+	pub fn ios_features(&self) -> Vec<String> {
+		self.ios_features.clone().unwrap_or_default()
+	}
+}
 
 pub fn release_profile() -> Result<bool, Report> {
 	let mut is_release_build = true;
@@ -75,7 +100,7 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 	}
 }
 
-pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
+pub fn rustc(target: &'static str, release: bool, extra_features: Vec<String>) -> Result<(), Report> {
 	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
 	// don't change this to pure. just don't.
 	let mut rustc = bossy::Command::impure(&rustc_path).with_args([
@@ -86,6 +111,10 @@ pub fn rustc(target: &'static str, release: bool) -> Result<(), Report> {
 		"--target",
 		target,
 	]);
+	for feature in extra_features {
+		rustc.add_arg("--features");
+		rustc.add_arg(feature);
+	}
 	if release {
 		rustc.add_arg("--release");
 	}
