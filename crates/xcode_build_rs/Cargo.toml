@@ -2,7 +2,11 @@
 name = "xcode-build-rs"
 version = "0.1.0"
 edition = "2021"
-description = "Build script for xcode when compiling rust in XCode"
+description = "Build script for XCode when compiling rust for iOS"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ActuallyHappening/YMap"
+homepage = "https://github.com/ActuallyHappening/YMap/tree/master/crates/xcode_build_rs"
+include = ["src", "Cargo.toml", "Cargo.lock", "README.md"]
 
 [dependencies]
 bossy = "0.2.1"
@@ -23,3 +27,8 @@ default = ["tracing-subscriber/ansi"]
 
 # [profile.dev.package.backtrace]
 # opt-level = 3
+
+[package.metadata.docs.rs]
+rustdoc-args = ["-Zunstable-options", "--cfg", "docsrs"]
+all-features = true
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
