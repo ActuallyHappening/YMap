@@ -10,6 +10,7 @@ publish = false
 bevy.workspace = true
 bevy_mod_picking = "0.19.0"
 bevy_replicon = { version = "0.26.3", optional = true }
+document-features = "0.2.8"
 extension-traits = "1.0.1"
 smart-default = "0.7.1"
 static_assertions = "1.1.0"

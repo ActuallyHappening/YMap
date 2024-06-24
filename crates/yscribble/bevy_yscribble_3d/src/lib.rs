@@ -1,4 +1,7 @@
 //! See [prelude::PadBundle]
+//! 
+//! ## Feature flags
+#![doc = document_features::document_features!()]
 
 use bevy::app::PluginGroupBuilder;
 
@@ -60,9 +63,12 @@ impl Plugin for InternalPlugin {
 				message = "Adding `DefaultPickingPlugins` from `bevy_mod_picking`",
 				note = "This is required for the scribble pad to work",
 			);
-			app
-				.add_plugins(DefaultPickingPlugins)
-				.insert_resource(HighlightPluginSettings { is_enabled: false });
+			app.add_plugins(DefaultPickingPlugins);
+		}
+		{
+			let debug_settings = HighlightPluginSettings { is_enabled: false };
+			debug!(debug_settings = ?&debug_settings, "Disabling debug highlighting settings resource for `bevy_mod_picking`");
+			app.insert_resource(debug_settings);
 		}
 	}
 }

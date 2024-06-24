@@ -18,11 +18,20 @@ path = "crates/yutils"
 
 [workspace.dependencies.bevy_yscribble_3d]
 path = "crates/yscribble/bevy_yscribble_3d"
+features = ["bevy_replicon_replicated"]
 
 [patch.crates-io.winit]
 # version = "0.29"
 git = "https://github.com/ActuallyHappening/winit.git"
 branch = "remove-noisy-logs"
+
+## For `Debug` impl on `ParentSync`
+[patch.crates-io.bevy_replicon]
+# version = "0.26.3"
+# git = "https://github.com/ActuallyHappening/bevy_replicon.git"
+# branch = "debug-parent-sync"
+git = "https://github.com/projectharmonia/bevy_replicon.git"
+branch = "master"
 
 [workspace.lints.clippy]
 type_complexity = "allow"

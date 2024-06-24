@@ -4,8 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "./crates/ymap/src",
-			"name": "ymap-src"
+			"path": "./crates/ymap",
 		}
 	]
 }
