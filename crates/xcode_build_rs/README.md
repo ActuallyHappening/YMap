@@ -1,4 +1,5 @@
 # DEPRECIATED use [cargo-xcode-build-rs](https://crates.io/crates/cargo-xcode-build-rs) instead
+This name can be reused if desired
 <!-- # XCode Build RS
 A 100% Rust wrapper around the iOS XCode build script found in the `bevy` examples.
 
