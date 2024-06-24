@@ -1,5 +1,5 @@
 //! See [prelude::PadBundle]
-//! 
+//!
 //! ## Feature flags
 #![doc = document_features::document_features!()]
 
@@ -59,16 +59,30 @@ struct InternalPlugin;
 impl Plugin for InternalPlugin {
 	fn build(&self, app: &mut App) {
 		if !app.is_plugin_added::<bevy_mod_picking::picking_core::CorePlugin>() {
-			debug!(
+			info_span!(
+				"Adding `DefaultPickingPlugins` from `bevy_mod_picking`",
 				message = "Adding `DefaultPickingPlugins` from `bevy_mod_picking`",
 				note = "This is required for the scribble pad to work",
-			);
-			app.add_plugins(DefaultPickingPlugins);
-		}
-		{
-			let debug_settings = HighlightPluginSettings { is_enabled: false };
-			debug!(debug_settings = ?&debug_settings, "Disabling debug highlighting settings resource for `bevy_mod_picking`");
-			app.insert_resource(debug_settings);
+				note = "To customize debugging, insert `DefaultPickingPlugins` yourself before adding this plugin"
+			)
+			.in_scope(|| {
+				app.add_plugins(DefaultPickingPlugins);
+
+				let highlight_settings = HighlightPluginSettings { is_enabled: false };
+				let overlay_settings = if cfg!(feature = "debug") {
+					DebugPickingMode::Normal
+				} else {
+					DebugPickingMode::Disabled
+				};
+				debug!(
+					?highlight_settings,
+					?overlay_settings,
+					"Disabling debug highlighting settings resource for `bevy_mod_picking`"
+				);
+				app
+					.insert_resource(highlight_settings)
+					.insert_resource(overlay_settings);
+			});
 		}
 	}
 }

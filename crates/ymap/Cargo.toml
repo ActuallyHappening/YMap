@@ -10,8 +10,10 @@ publish = false
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-default = []
+default = ["debug"]
 ios = []
+## Enabled bevy_yscribble_3d/debug
+debug = ["bevy_yscribble_3d/debug"]
 
 [package.metadata.xcode-build-rs.ios]
 ## What features to enable for `io` builds, see `xcode-build-rs` for more information
@@ -41,7 +43,6 @@ resources = ["assets"]
 [package.metadata.scripts]
 open-xcode = "open xcode/*.xcodeproj"
 # open-app = "open xcode/build/Debug-iphoneos/YMap.app"
-xcb = "xcode-build-rs --colour test"
 
 [lints]
 workspace = true

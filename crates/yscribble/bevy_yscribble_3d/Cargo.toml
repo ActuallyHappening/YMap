@@ -24,6 +24,10 @@ path = ".."
 workspace = true
 
 [features]
+default = ["debug"]
+## Enables `bevy_mod_picking` debug features without you having to import them yourself
+# Enabled by default anynway
+debug = ["bevy_mod_picking/debug"]
 bevy_replicon = ["dep:bevy_replicon", "bevy_replicon_replicated", "bevy_replicon_parent_sync"]
 ## Whether to add `ParentSync` components to entities
 bevy_replicon_parent_sync = ["dep:bevy_replicon"]

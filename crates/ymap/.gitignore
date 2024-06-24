@@ -8,6 +8,7 @@
 !Cargo.toml
 !index.html
 !Trunk.toml
+!.cargo
 
 # xcode
 !xcode
