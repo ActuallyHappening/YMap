@@ -61,14 +61,16 @@ pub struct Options {
 	#[arg(long, alias = "colour")]
 	pub colour: bool,
 
-	/// The --manifest-path option to pass to `cargo rustc builds`
+	/// The --manifest-path option to pass to `cargo rustc builds`.
+	/// Often you can pass `.`
 	#[arg(long, alias = "manifest-dir", env = "CARGO_MANIFEST_DIR")]
 	manifest_dir: Utf8PathBuf,
 }
 
 impl Options {
-	pub fn manifest_dir(&self) -> Utf8PathBuf {
-		self.manifest_dir.to_owned()
+	/// Specifically to the *file* `Cargo.toml`, *not directory*
+	pub fn manifest_path(&self) -> Utf8PathBuf {
+		self.manifest_dir.to_owned().join("Cargo.toml")
 	}
 }
 
@@ -106,20 +108,19 @@ impl Default for Flags {
 }
 
 impl Config {
-	pub fn retrieve_from_toml_config(manifest_dir: &Utf8Path) -> Result<Config, Report> {
-		let config_path = manifest_dir.join("Cargo.toml");
-		match std::fs::read_to_string(&config_path) {
+	pub fn retrieve_from_toml_config(manifest_path: &Utf8Path) -> Result<Config, Report> {
+		match std::fs::read_to_string(manifest_path) {
 			Err(err) => {
 				info!(
 					message = "Cannot find `Cargo.toml` file in manifest_dir, using default config",
 					?err,
-					?manifest_dir
+					?manifest_path
 				);
 				Ok(Config::default())
 			}
 			Ok(config) => {
 				let raw_config: toml::Value = toml::from_str(&config)
-					.wrap_err_with(|| format!("Cannot parse Cargo.toml file: {:?}", config_path))?;
+					.wrap_err_with(|| format!("Cannot parse Cargo.toml file: {:?}", manifest_path))?;
 				let config = raw_config
 					.get("package")
 					.and_then(|package| package.get("metadata"))
@@ -242,7 +243,7 @@ pub fn rustc(
 		"--lib",
 		"--target",
 		target,
-		"--manifest-dir",
+		"--manifest-path",
 		manifest_dir.as_str(),
 	]);
 	for flag in flags.into_args() {

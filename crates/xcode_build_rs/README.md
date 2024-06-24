@@ -13,6 +13,7 @@ cargo install xcode-build-rs
 ```
 
 This is how I used it in my XCode project, which was copied from the `bevy` mobile example:
+![Example usage in XCode](docs/xcode-usage.png)
 
 ## Usage
 Use `cargo xcode-build-rs xcode` in the actual xcode script.

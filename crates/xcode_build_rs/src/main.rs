@@ -25,7 +25,7 @@ fn main() -> Result<(), color_eyre::Report> {
 		color_eyre::install().expect("Error reporting couldn't be installed (lol)");
 	}
 
-	let config = Config::retrieve_from_toml_config(&args.options().manifest_dir())?;
+	let config = Config::retrieve_from_toml_config(&args.options().manifest_path())?;
 
 	run_script(args, config)
 }
@@ -47,7 +47,7 @@ fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 			"aarch64-apple-ios-sim",
 			is_release_build,
 			config.ios_feature_flags(),
-			&args.options().manifest_dir(),
+			&args.options().manifest_path(),
 		)?;
 
 		return Ok(());
@@ -71,7 +71,7 @@ fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 				"x86_64-apple-ios",
 				is_release_build,
 				config.ios_feature_flags(),
-				&args.options().manifest_dir(),
+				&args.options().manifest_path(),
 			)?;
 		}
 		Archs::Arm64 => {
@@ -81,7 +81,7 @@ fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 					"aarch64-apple-ios-sim",
 					is_release_build,
 					config.ios_feature_flags(),
-					&args.options().manifest_dir(),
+					&args.options().manifest_path(),
 				)?;
 			} else {
 				// Hardware iOS
@@ -89,7 +89,7 @@ fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 					"aarch64-apple-ios",
 					is_release_build,
 					config.ios_feature_flags(),
-					&args.options().manifest_dir(),
+					&args.options().manifest_path(),
 				)?;
 			}
 		}
