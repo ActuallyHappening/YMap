@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{debug::debug_marker, prelude::*};
 use bevy_yscribble_3d::prelude::*;
 
 pub struct ScribblePadPlugin;
@@ -13,5 +13,5 @@ fn spawn_example(mut commands: Commands) {
 	commands.spawn(PadBundle {
 		transform: TransformBundle::from_transform(Transform::from_translation(Vec3::ZERO)),
 		..default()
-	});
+	}).insert(debug_marker());
 }
