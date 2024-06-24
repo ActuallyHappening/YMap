@@ -1,13 +1,13 @@
 use bevy::{
 	app::PluginGroupBuilder,
-	log::{BoxedSubscriber, LogPlugin},
+	log::LogPlugin,
 	prelude::*,
 };
 use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
 mod prelude {
-	pub use crate::consts::{pos, rot};
+	pub use crate::consts::pos;
 	pub use bevy::prelude::*;
 }
 

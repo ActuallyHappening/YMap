@@ -4,6 +4,7 @@ resolver = "2"
 
 [workspace.dependencies.bevy]
 version = "0.13.2"
+features = ["serialize"]
 # git = "https://github.com/ActuallyHappening/bevy.git"
 # branch = "add-ansi-log-option"
 

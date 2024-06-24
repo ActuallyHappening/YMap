@@ -1,15 +1,47 @@
 use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use bevy_replicon::{prelude::AppRuleExt, RepliconPlugins};
+use bevy_replicon_renet::RepliconRenetPlugins;
 
 /// Enables much very useful debugging, that is NOT part of the normal UI
 pub struct DebugPlugin;
 
+const DEBUG_PORT: u16 = 42069;
+
 impl Plugin for DebugPlugin {
 	fn build(&self, app: &mut App) {
 		app
+			.add_plugins(NetworkDebuggingPlugin)
 			.add_systems(Update, touch_system)
 			.add_plugins(bevy_editor_pls::EditorPlugin::default())
+			.replicate::<Transform>()
 			.insert_resource(editor_controls());
 	}
+}
+
+struct NetworkDebuggingPlugin;
+
+impl Plugin for NetworkDebuggingPlugin {
+	fn build(&self, app: &mut App) {
+		app
+			.insert_resource(bevy::winit::WinitSettings {
+				focused_mode: bevy::winit::UpdateMode::Continuous,
+				unfocused_mode: bevy::winit::UpdateMode::Continuous,
+			})
+			.add_plugins((RepliconPlugins, RepliconRenetPlugins))
+			.add_systems(Update, debug_window);
+		if !app.is_plugin_added::<EguiPlugin>() {
+			info!("Adding EGui plugin");
+			app.add_plugins(EguiPlugin);
+		}
+	}
+}
+
+fn debug_window(mut contexts: EguiContexts) {
+	egui::SidePanel::right("Debug")
+		.show(contexts.ctx_mut(), |ui| {
+			ui.label("Hello World!");
+		});
 }
 
 /// Changes the button from E to backslash \
