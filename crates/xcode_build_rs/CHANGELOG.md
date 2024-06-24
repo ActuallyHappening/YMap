@@ -9,3 +9,4 @@ Change name to `cargo-xcode-build-rs`
 
 ## 0.2.1
 Updated docs
+
