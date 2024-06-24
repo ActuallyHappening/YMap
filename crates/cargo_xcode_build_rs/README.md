@@ -1,7 +1,4 @@
-# DEPRECIATED use [cargo-xcode-build-rs](https://crates.io/crates/cargo-xcode-build-rs) instead
-This name can be reused if desired
-
-<!-- # Cargo xcode-build-rs
+# Cargo xcode-build-rs
 A 100% Rust wrapper around the iOS XCode build script found in the `bevy` examples.
 
 Benefits of using a Rust script over a `sh`ell script (or `nu`shell):
@@ -61,4 +58,4 @@ That script is also based on the mozilla script [here](https://github.com/mozill
 `git clone https://github.com/ActuallyHappening/YMap.git`
 `cd crates/xcode_build_rs`
 `cargo is` to install this locally on your system.
-`cargo rt` to run the CLI in test mode locally on your system. -->
+`cargo rt` to run the CLI in test mode locally on your system.

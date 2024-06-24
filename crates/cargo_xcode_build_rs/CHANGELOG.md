@@ -8,5 +8,6 @@ Added the config option for features to enable for ios builds.
 Change name to `cargo-xcode-build-rs`
 
 ## 0.2.1
-Updated docs
+Updated docs.
+Annoying versions and `cargo publish` mistakes
 
