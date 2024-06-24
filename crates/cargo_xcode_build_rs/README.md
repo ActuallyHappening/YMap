@@ -13,7 +13,8 @@ cargo install cargo-xcode-build-rs
 ```
 
 This is how I used it in my XCode project, which was copied from the `bevy` mobile example:
-![Example usage in XCode](docs/xcode-usage.png)
+<https://github.com/ActuallyHappening/YMap/blob/master/crates/cargo_xcode_build_rs/docs/xcode-usage.png>
+![Example usage using XCode](docs-xcode-usage)
 
 ## Usage
 Use `cargo xcode-build-rs --manifest-dir . xcode` in the actual xcode script.
@@ -33,7 +34,7 @@ features = ["ios"]
 ```
 
 ### Help message `cargo xcode-build-rs --help`
-```
+```text
 Build script for XCode when compiling rust for iOS
 
 Usage: cargo xcode-build-rs [OPTIONS] --manifest-dir <MANIFEST_DIR> <COMMAND>

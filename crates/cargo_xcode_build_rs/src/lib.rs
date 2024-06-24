@@ -1,4 +1,7 @@
-//! # Warning: This library is unstable, only the executable's behaviour is subject to semver
+//! <h1 class="warning">
+//! Warning: This library is unstable, only the executable's behaviour is subject to semver
+//! </h1>
+#![doc = include_str!("../README.md")]
 
 use std::env;
 
