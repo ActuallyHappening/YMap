@@ -1,8 +1,8 @@
 [package]
-name = "cargo-xcode-build-rs"
+name = "xcode-build-rs"
 version = "0.2.0"
 edition = "2021"
-description = "Build script for XCode when compiling rust for iOS"
+description = "DEPRECIATED Build script for XCode when compiling rust for iOS"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ActuallyHappening/YMap"
 homepage = "https://github.com/ActuallyHappening/YMap/tree/master/crates/xcode_build_rs"
@@ -10,23 +10,23 @@ include = ["src", "Cargo.toml", "Cargo.lock", "README.md", "docs"]
 publish = true
 
 [dependencies]
-bossy = "0.2.1"
-camino = "1.1.7"
-clap = { version = "4.5.7", features = ["cargo", "derive", "env"] }
-color-eyre = "0.6.3"
-dirs = "5.0.1"
-serde = { version = "1.0.203", features = ["derive"] }
-toml = "0.8.14"
-tracing = "0.1.40"
-tracing-error = "0.2.0"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }
-which = "6.0.1"
+# bossy = "0.2.1"
+# camino = "1.1.7"
+# clap = { version = "4.5.7", features = ["cargo", "derive", "env"] }
+# color-eyre = "0.6.3"
+# dirs = "5.0.1"
+# serde = { version = "1.0.203", features = ["derive"] }
+# toml = "0.8.14"
+# tracing = "0.1.40"
+# tracing-error = "0.2.0"
+# tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }
+# which = "6.0.1"
 
 [lints]
 workspace = true
 
 [features]
-default = ["tracing-subscriber/ansi"]
+# default = ["tracing-subscriber/ansi"]
 
 # [profile.dev.package.backtrace]
 # opt-level = 3
