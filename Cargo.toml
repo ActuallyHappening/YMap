@@ -19,10 +19,10 @@ path = "crates/yutils"
 [workspace.dependencies.bevy_yscribble_3d]
 path = "crates/yscribble/bevy_yscribble_3d"
 
-# [patch.crates-io.winit]
-# # version = "0.29"
-# git = "https://github.com/ActuallyHappening/winit.git"
-# branch = "remove-noisy-logs"
+[patch.crates-io.winit]
+# version = "0.29"
+git = "https://github.com/ActuallyHappening/winit.git"
+branch = "remove-noisy-logs"
 
 [workspace.lints.clippy]
 type_complexity = "allow"

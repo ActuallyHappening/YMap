@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use crate::prelude::*;
+use std::marker::PhantomData;
+
+use bevy::ecs::entity::MapEntities;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use bevy_replicon::{prelude::*, RepliconPlugins};
 use bevy_replicon_renet::RepliconRenetPlugins;
@@ -10,15 +13,15 @@ const DEBUG_PORT: u16 = 42069;
 
 pub type DebugMarker = Replicated;
 pub fn debug_marker() -> DebugMarker {
-	Replicated
+	bevy_replicon::prelude::Replicated
 }
 
 impl Plugin for DebugPlugin {
 	fn build(&self, app: &mut App) {
 		app
+			.add_plugins(bevy_editor_pls::EditorPlugin::default())
 			.add_plugins(NetworkDebuggingPlugin)
 			.add_systems(Update, touch_system)
-			.add_plugins(bevy_editor_pls::EditorPlugin::default())
 			.insert_resource(editor_controls());
 	}
 }
@@ -44,9 +47,69 @@ impl Plugin for NetworkDebuggingPlugin {
 		if cfg!(feature = "ios") {
 			app.insert_resource(NetcodeConfig::new_hosting_public());
 		} else {
-			app.insert_resource(NetcodeConfig::new_client_machine_local());
+			app.insert_resource(NetcodeConfig::new_client_public(
+				std::env::var("LOCAL_IP")
+					.expect("Pass LOCAL_IP env var")
+					.parse()
+					.expect("Couldn't parse LOCAL_IP"),
+			));
 		}
 		app.add_systems(Startup, NetcodeConfig::add_netcode.map(bevy::utils::error));
+
+		// control server
+		app
+			.add_mapped_client_event::<ComponentChanged<Transform>>(ChannelKind::Ordered)
+			.add_systems(
+				Update,
+				sync_transforms_ios::<Transform>.run_if(|| cfg!(feature = "ios")),
+			)
+			.add_systems(
+				Update,
+				sync_transforms_non_ios::<Transform>.run_if(|| !cfg!(feature = "ios")),
+			);
+	}
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Event)]
+struct ComponentChanged<T: Component> {
+	entity: Entity,
+	new_component: T,
+	_phantom: PhantomData<T>,
+}
+
+impl<T: Component> MapEntities for ComponentChanged<T> {
+	fn map_entities<M: EntityMapper>(&mut self, entity_mapper: &mut M) {
+		self.entity = entity_mapper.map_entity(self.entity);
+	}
+}
+
+/// Update local state
+// #[cfg(feature = "ios")]
+fn sync_transforms_ios<T: Component + std::fmt::Debug + Clone>(
+	mut receive_events: EventReader<FromClient<ComponentChanged<T>>>,
+	mut query: Query<&mut T, With<Replicated>>,
+) {
+	for event in receive_events.read() {
+		if let Ok(mut transform) = query.get_mut(event.event.entity) {
+			*transform = event.event.new_component.clone();
+		} else {
+			error_once!(message = "Couldn't find entity that was sent from client", event = ?event.event, query = ?query.iter().collect::<Vec<_>>());
+		}
+	}
+}
+
+/// Send from client
+// #[cfg(not(feature = "ios"))]
+fn sync_transforms_non_ios<T: Component + Clone>(
+	mut send_events: EventWriter<ComponentChanged<T>>,
+	change: Query<(Entity, &T), (With<Replicated>, Changed<T>)>,
+) {
+	for (entity, new_component) in change.iter() {
+		send_events.send(ComponentChanged {
+			entity,
+			new_component: new_component.clone(),
+			_phantom: PhantomData,
+		});
 	}
 }
 
@@ -218,11 +281,6 @@ mod netcode {
 		}
 	}
 
-	/// Only necessary for one-time setup
-	impl Plugin for NetcodeConfig {
-		fn build(&self, app: &mut App) {}
-	}
-
 	impl NetcodeConfig {
 		pub const fn new_hosting_public() -> Self {
 			NetcodeConfig::Server {
@@ -241,6 +299,13 @@ mod netcode {
 		pub const fn new_client_machine_local() -> Self {
 			NetcodeConfig::Client {
 				ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
+				port: DEFAULT_PORT,
+			}
+		}
+
+		pub const fn new_client_public(ip: Ipv4Addr) -> Self {
+			NetcodeConfig::Client {
+				ip: IpAddr::V4(ip),
 				port: DEFAULT_PORT,
 			}
 		}

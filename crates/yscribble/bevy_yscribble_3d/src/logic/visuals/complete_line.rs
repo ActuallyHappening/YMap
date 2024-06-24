@@ -13,13 +13,19 @@ pub(crate) struct CompleteLineSpawnerMarker;
 pub(crate) struct CompleteSpawnerBundle {
 	transform: TransformBundle,
 	visibility: VisibilityBundle,
-	
+
 	#[default(Name::new("Complete Line Spawner Parent"))]
 	name: Name,
 	marker: CompleteLineSpawnerMarker,
 
 	#[default(Pickable::IGNORE)]
 	picking_ignore: Pickable,
+
+	#[cfg(feature = "bevy_replicon_parent_sync")]
+	parent_sync: bevy_replicon::parent_sync::ParentSync,
+
+	#[cfg(feature = "bevy_replicon_replicated")]
+	replicate: bevy_replicon::prelude::Replicated,
 }
 
 impl<'s> PadData<'s> {

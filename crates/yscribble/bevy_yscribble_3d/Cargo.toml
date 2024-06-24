@@ -9,6 +9,7 @@ publish = false
 [dependencies]
 bevy.workspace = true
 bevy_mod_picking = "0.19.0"
+bevy_replicon = { version = "0.26.3", optional = true }
 extension-traits = "1.0.1"
 smart-default = "0.7.1"
 static_assertions = "1.1.0"
@@ -20,6 +21,13 @@ path = ".."
 
 [dependencies.yutils]
 workspace = true
+
+[features]
+bevy_replicon = ["dep:bevy_replicon", "bevy_replicon_replicated", "bevy_replicon_parent_sync"]
+## Whether to add `ParentSync` components to entities
+bevy_replicon_parent_sync = ["dep:bevy_replicon"]
+## Whether to add `Replicated` components to entities
+bevy_replicon_replicated = ["dep:bevy_replicon"]
 
 [lints]
 workspace = true

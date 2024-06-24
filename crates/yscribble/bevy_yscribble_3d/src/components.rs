@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 /// Primary [Bundle] for [bevy_yscribble_3d](crate)
-/// 
+///
 /// By default, spawns along the X, -Z plane, so that -Z is upwards and +X is rightwards
 #[derive(Bundle, Debug)]
 pub struct PadBundle {
@@ -13,6 +13,12 @@ pub struct PadBundle {
 
 	// data
 	pub committed_data: ScribbleDataComponent,
+
+	#[cfg(feature = "bevy_replicon_parent_sync")]
+	pub parent_sync: bevy_replicon::parent_sync::ParentSync,
+
+	#[cfg(feature = "bevy_replicon_replicated")]
+	pub replicate: bevy_replicon::prelude::Replicated,
 }
 
 /// Marking entities that receive the touch events in the pad
@@ -27,6 +33,12 @@ impl Default for PadBundle {
 			transform: Default::default(),
 			visibility: Default::default(),
 			committed_data: Default::default(),
+			
+			#[cfg(feature = "bevy_replicon_parent_sync")]
+			parent_sync: Default::default(),
+
+			#[cfg(feature = "bevy_replicon_replicated")]
+			replicate: Default::default(),
 		}
 	}
 }

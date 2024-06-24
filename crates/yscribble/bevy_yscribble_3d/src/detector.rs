@@ -21,6 +21,12 @@ pub(crate) struct DetectorBundle {
 	drag: On<Pointer<Move>>,
 	drag_end: On<Pointer<Up>>,
 	out: On<Pointer<Out>>,
+
+	#[cfg(feature = "bevy_replicon_parent_sync")]
+	parent_sync: bevy_replicon::parent_sync::ParentSync,
+
+	#[cfg(feature = "bevy_replicon_replicated")]
+	replicate: bevy_replicon::prelude::Replicated,
 }
 
 impl DetectorBundle {
@@ -48,6 +54,12 @@ impl DetectorBundle {
 			pickable: PickableBundle::default(),
 			name: Name::new("Pickable surface"),
 			marker: crate::DetectorMarker,
+
+			#[cfg(feature = "bevy_replicon_parent_sync")]
+			parent_sync: Default::default(),
+
+			#[cfg(feature = "bevy_replicon_replicated")]
+			replicate: Default::default(),
 		}
 	}
 }

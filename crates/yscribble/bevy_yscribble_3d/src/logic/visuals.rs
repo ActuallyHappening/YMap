@@ -25,6 +25,12 @@ pub(super) struct SpawnerBundle {
 
 	#[default(Pickable::IGNORE)]
 	picking_ignore: Pickable,
+
+	#[cfg(feature = "bevy_replicon_parent_sync")]
+	parent_sync: bevy_replicon::parent_sync::ParentSync,
+
+	#[cfg(feature = "bevy_replicon_replicated")]
+	replicate: bevy_replicon::prelude::Replicated,
 }
 
 /// Renders [ScribblePoint]s

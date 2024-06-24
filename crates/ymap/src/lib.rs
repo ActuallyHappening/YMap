@@ -10,6 +10,7 @@ mod prelude {
 	pub use crate::consts::pos;
 	pub use bevy::prelude::*;
 	pub use color_eyre::eyre::Context as _;
+	pub use serde::{Serialize, Deserialize};
 }
 mod camera;
 mod consts;
@@ -70,9 +71,11 @@ pub fn main() {
 			..default()
 		})
 		.set(LogPlugin {
-			level: Level::ERROR,
+			level: Level::INFO,
+			// level: Level::ERROR,
 			// filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
-			filter: r#"ymap=trace,[{message="processing non `RedrawRequested` event after the main event loop: AboutToWait"}]=error,[{message="processing `RedrawRequested` during the main event loop"}]=error"#.into(),
+			// filter: r#"ymap=trace,[{message="processing non `RedrawRequested` event after the main event loop: AboutToWait"}]=error,[{message="processing `RedrawRequested` during the main event loop"}]=error"#.into(),
+			filter: "ymap=trace".into(),
 			..default()
 		});
 
