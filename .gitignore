@@ -12,13 +12,4 @@
 !.cargo
 !.rustfmt.toml
 !crates
-
-# scripts
-!bundle.nu
-
-# todo: move xcode into nested project
-!ymap.xcodeproj
-# Makefile
-!build_rust_deps.sh
-!ios-src
-!Assets.xcassets
+!YMap.code-workspace
