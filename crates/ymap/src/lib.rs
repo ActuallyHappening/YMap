@@ -11,6 +11,7 @@ mod prelude {
 	pub use bevy::prelude::*;
 	pub use color_eyre::eyre::Context as _;
 	pub use serde::{Serialize, Deserialize};
+	pub use extension_traits::extension;
 }
 mod camera;
 mod consts;

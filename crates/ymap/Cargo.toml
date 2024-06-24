@@ -35,6 +35,7 @@ bevy_replicon_renet = "0.3.0"
 clap = { version = "4.5.7", features = ["derive"] }
 color-eyre = "0.6.3"
 serde = { version = "1.0.203", features = ["derive"] }
+extension-traits = "1.0.1"
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"

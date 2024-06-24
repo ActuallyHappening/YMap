@@ -36,7 +36,6 @@ impl Plugin for NetworkDebuggingPlugin {
 				unfocused_mode: bevy::winit::UpdateMode::Continuous,
 			})
 			.add_plugins((RepliconPlugins, RepliconRenetPlugins))
-			.replicate::<Transform>()
 			.replicate::<Name>();
 		if !app.is_plugin_added::<EguiPlugin>() {
 			info!("Adding EGui plugin");
@@ -57,16 +56,26 @@ impl Plugin for NetworkDebuggingPlugin {
 		app.add_systems(Startup, NetcodeConfig::add_netcode.map(bevy::utils::error));
 
 		// control server
-		app
-			.add_mapped_client_event::<ComponentChanged<Transform>>(ChannelKind::Ordered)
+		app.debug_control::<Transform>();
+	}
+}
+
+#[extension(trait AppExt)]
+impl App {
+	fn debug_control<T: Component + std::fmt::Debug + Clone + Serialize + DeserializeOwned>(
+		&mut self,
+	) -> &mut Self {
+		self
+			.replicate::<T>()
+			.add_mapped_client_event::<ComponentChanged<T>>(ChannelKind::Ordered)
 			.add_systems(
 				Update,
-				sync_transforms_ios::<Transform>.run_if(|| cfg!(feature = "ios")),
+				sync_transforms_ios::<T>.run_if(|| cfg!(feature = "ios")),
 			)
 			.add_systems(
 				Update,
-				sync_transforms_non_ios::<Transform>.run_if(|| !cfg!(feature = "ios")),
-			);
+				sync_transforms_non_ios::<T>.run_if(|| !cfg!(feature = "ios")),
+			)
 	}
 }
 
@@ -143,7 +152,16 @@ fn editor_controls() -> bevy_editor_pls::controls::EditorControls {
 	editor_controls
 }
 
-fn touch_system(touches: Res<Touches>) {
+fn touch_system(
+	touches: Res<Touches>,
+	window: Query<&Window>,
+	time: Res<Time>,
+	mut window_timer: Local<Timer>,
+) {
+	once!({
+		*window_timer = Timer::from_seconds(10.0, TimerMode::Repeating);
+		debug!("Touch System Running");
+	});
 	// for touch in touches.iter_just_pressed() {
 	// 	debug!(
 	// 		"just pressed touch with id: {:?}, at: {:?}",
@@ -164,16 +182,31 @@ fn touch_system(touches: Res<Touches>) {
 	// 	debug!("canceled touch with id: {:?}", touch.id());
 	// }
 
-	// you can also iterate all current touches and retrieve their state like this:
-	for touch in touches.iter() {
-		// debug!("active touch: {:?}", touch);
-		// debug!("  just_pressed: {}", touches.just_pressed(touch.id()));
-		let pos = touch.position();
-		debug!(message = "Touch", ?pos);
+	if let Ok(window) = window.get_single() {
+		let window_resolution = &window.resolution;
+		if window_timer.tick(time.delta()).just_finished() {
+			debug!(message = "Window Resolution", ?window_resolution);
+			// WindowResolution { physical_width: 2778, physical_height: 1940, scale_factor_override: None, scale_factor: 1.7195877 }
+		}
+
+		// you can also iterate all current touches and retrieve their state like this:
+		for touch in touches.iter() {
+			// debug!("active touch: {:?}", touch);
+			// debug!("  just_pressed: {}", touches.just_pressed(touch.id()));
+			let pos = touch.position();
+			let normalized_pos_window = Vec2::new(
+				pos.x / window_resolution.width(),
+				pos.y / window_resolution.height(),
+			);
+			debug!(message = "Touch", ?pos, ?normalized_pos_window);
+		}
+	} else {
+		warn!("No window found");
 	}
 }
 
 use netcode::NetcodeConfig;
+use serde::de::DeserializeOwned;
 mod netcode {
 	use crate::prelude::*;
 	use bevy_replicon::prelude::*;
