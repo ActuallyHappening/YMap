@@ -3,6 +3,7 @@ name = "yutils"
 version = "0.1.0"
 edition = "2021"
 description = "Internal utils"
+publish = false
 
 [dependencies]
 bevy.workspace = true

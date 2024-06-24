@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/ActuallyHappening/YMap"
 homepage = "https://github.com/ActuallyHappening/YMap/tree/master/crates/xcode_build_rs"
 include = ["src", "Cargo.toml", "Cargo.lock", "README.md", "docs"]
+publish = true
 
 [dependencies]
 bossy = "0.2.1"
