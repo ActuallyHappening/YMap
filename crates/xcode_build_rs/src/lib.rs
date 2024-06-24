@@ -67,6 +67,7 @@ impl Config {
 							.clone()
 							.try_into()
 							.wrap_err("Cannot deserialize `xcode-build-rs` section of Cargo.toml")?;
+						info!(message = "Deserialized Config from Cargo.toml", ?config);
 						Ok(config)
 					}
 				}
@@ -80,14 +81,14 @@ impl Config {
 }
 
 impl Flags {
-	pub fn into_args(self) -> Vec<String> {
+	pub fn into_args(&self) -> Vec<String> {
 		let mut args = vec![];
 		if !self.default_features {
 			args.push("--no-default-features".into());
 		}
-		for feature in self.features {
+		for feature in self.features.iter() {
 			args.push("--features".into());
-			args.push(feature);
+			args.push(feature.clone());
 		}
 		args
 	}
@@ -159,7 +160,7 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 	}
 }
 
-pub fn rustc(target: &'static str, release: bool, feature_flags: Flags) -> Result<(), Report> {
+pub fn rustc(target: &'static str, release: bool, flags: Flags) -> Result<(), Report> {
 	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
 	// don't change this to pure. just don't.
 	let mut rustc = bossy::Command::impure(&rustc_path).with_args([
@@ -170,13 +171,13 @@ pub fn rustc(target: &'static str, release: bool, feature_flags: Flags) -> Resul
 		"--target",
 		target,
 	]);
-	for flag in feature_flags.into_args() {
+	for flag in flags.into_args() {
 		rustc.add_arg(flag);
 	}
 	if release {
 		rustc.add_arg("--release");
 	}
-	info!(message = "About to run rustc", cwd = ?cwd(), ?rustc_path);
+	info!(message = "About to run rustc", cwd = ?cwd(), ?rustc_path, ?flags);
 	rustc
 		.run_and_wait()
 		.wrap_err("rustc invocation failed, likely a Rust-side build error")?;
