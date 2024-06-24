@@ -1,13 +1,11 @@
-# DEPRECIATED use [cargo-xcode-build-rs](https://crates.io/crates/cargo-xcode-build-rs) instead
-This name can be reused if desired
-<!-- # XCode Build RS
+# Cargo xcode-build-rs
 A 100% Rust wrapper around the iOS XCode build script found in the `bevy` examples.
 
-Benefits of using a Rust script over a `sh` (or `nu`):
+Benefits of using a Rust script over a `sh`ell script (or `nu`shell):
 - Can be updated since the binary is distributed using `crates.io`
 - Allows for global collaboration, e.g. I find a case where I need to `sudo xcode-select --install` and that suggestion can be added to the error message for everyone to benefit from
 - Can handle more complex logic and using libraries easier, e.g. checks that the `cc` compiler is on `$PATH`
-- Logs everything using human-understandable languages (rather than `set -exu`)
+- Logs everything using human-understandable logs (rather than `set -exu`)
 
 ## Installation
 ```nu
@@ -36,7 +34,20 @@ features = ["ios"]
 
 ### Help message `cargo xcode-build-rs --help`
 ```
+Build script for XCode when compiling rust for iOS
 
+Usage: cargo xcode-build-rs [OPTIONS] --manifest-dir <MANIFEST_DIR> <COMMAND>
+
+Commands:
+  xcode  Run in XCode
+  test   Run a test build for an iOS simulator
+  help   Print this message or the help of the given subcommand(s)
+
+Options:
+      --colour                       By default, doesn't display colour because this can be annoying in the XCode terminal
+      --manifest-dir <MANIFEST_DIR>  The --manifest-path option to pass to `cargo rustc builds`. Often you can pass `.`
+  -h, --help                         Print help
+  -V, --version                      Print version
 ```
 
 ## Acknowledgements
@@ -45,6 +56,6 @@ That script is also based on the mozilla script [here](https://github.com/mozill
 
 ## Developing
 `git clone https://github.com/ActuallyHappening/YMap.git`
-`cd crates/ymap`
+`cd crates/xcode_build_rs`
 `cargo is` to install this locally on your system.
-`cargo rt` to run the CLI in test mode locally on your system. -->
+`cargo rt` to run the CLI in test mode locally on your system.
