@@ -6166,6 +6166,8 @@ dependencies = [
  "bevy_replicon",
  "bevy_replicon_renet",
  "bevy_yscribble_3d",
+ "clap",
+ "color-eyre",
  "derive_more",
  "tracing",
  "tracing-subscriber",

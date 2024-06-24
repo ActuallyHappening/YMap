@@ -9,8 +9,8 @@ use tracing::Level;
 mod prelude {
 	pub use crate::consts::pos;
 	pub use bevy::prelude::*;
+	pub use color_eyre::eyre::Context as _;
 }
-
 mod camera;
 mod consts;
 mod debug;
@@ -44,6 +44,7 @@ impl PluginGroup for YMapPlugins {
 pub fn main() {
 	let mut app = App::new();
 
+	#[cfg(feature = "ios")]
 	std::env::set_var("NO_COLOR", "1");
 
 	#[cfg_attr(not(feature = "ios"), allow(unused_mut))]
