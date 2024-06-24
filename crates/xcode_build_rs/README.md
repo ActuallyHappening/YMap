@@ -1,4 +1,4 @@
-# XCode Build
+# XCode Build RS
 A 100% Rust wrapper around the iOS XCode build script found in the `bevy` examples.
 
 Benefits of using a Rust script over a `sh` (or `nu`):
@@ -13,11 +13,10 @@ cargo install xcode-build-rs
 ```
 
 This is how I used it in my XCode project, which was copied from the `bevy` mobile example:
-![XCode usage example](docs/xcode-usage.png)
 
 ## Usage
-Use `xcode-build-rs xcode` in the actual xcode script.
-Use `xcode-build-rs --colour test` to begin a test iOS simulator build, which shouldn't be necessary normally.
+Use `cargo xcode-build-rs xcode` in the actual xcode script.
+Use `cargo xcode-build-rs --colour test` to begin a test iOS simulator build, which shouldn't be necessary normally.
 
 ## Configuration
 To compiles projects for iOS with special Cargo features enabled, add a `package.metadata.xcode-build-rs` section to your `Cargo.toml` file. For example:
@@ -32,21 +31,9 @@ default-features = true
 features = ["ios"]
 ```
 
-### Help message `xcode-build-rs --help`
+### Help message `cargo xcode-build-rs --help`
 ```
-Build script for XCode when compiling rust for iOS
 
-Usage: xcode-build-rs [OPTIONS] <COMMAND>
-
-Commands:
-  xcode  
-  test   
-  help   Print this message or the help of the given subcommand(s)
-
-Options:
-      --colour   By default, doesn't display colour because this can be annoying in the XCode terminal
-  -h, --help     Print help
-  -V, --version  Print version
 ```
 
 ## Acknowledgements
@@ -54,5 +41,7 @@ Based on the bevy mobile example script `build_rust_deps.sh` [here](https://gith
 That script is also based on the mozilla script [here](https://github.com/mozilla/glean/blob/main/build-scripts/xc-universal-binary.sh)
 
 ## Developing
+`git clone https://github.com/ActuallyHappening/YMap.git`
+`cd crates/ymap`
 `cargo is` to install this locally on your system.
 `cargo rt` to run the CLI in test mode locally on your system.

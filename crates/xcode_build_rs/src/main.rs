@@ -1,5 +1,5 @@
 use camino::Utf8PathBuf;
-use clap::{Args, Parser, Subcommand};
+use clap::Parser;
 use color_eyre::{
 	eyre::{eyre, Context, ContextCompat, Report},
 	Section, SectionExt,
@@ -8,54 +8,29 @@ use std::env;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
-use xcode_build_rs::*;
-
-#[derive(Parser, Debug)]
-#[command(version, about)]
-pub struct Cli {
-	#[clap(subcommand)]
-	pub mode: Mode,
-
-	#[clap(flatten)]
-	pub options: Options,
-}
-
-#[derive(Subcommand, Clone, Debug)]
-pub enum Mode {
-	/// Run in XCode
-	Xcode,
-	/// Run a test build for an iOS simulator
-	Test,
-}
-
-#[derive(Args, Debug)]
-pub struct Options {
-	/// By default, doesn't display colour because this can be annoying in the XCode terminal
-	#[arg(long, alias = "colour")]
-	pub colour: bool,
-}
+use cargo_xcode_build_rs::*;
 
 fn main() -> Result<(), color_eyre::Report> {
-	let args = Cli::parse();
+		// log all environment variables
+	{
+		let vars = env::vars().collect::<std::collections::HashMap<_, _>>();
+		println!("Environment variables: {:?}", vars);
+	}
+
+	let args = TopLevel::parse();
 
 	// init error handling and tracing
 	{
-		install_tracing(args.options.colour);
+		install_tracing(args.options().colour);
 		color_eyre::install().expect("Error reporting couldn't be installed (lol)");
 	}
 
-	let config = Config::retrieve_from_toml_config()?;
+	let config = Config::retrieve_from_toml_config(&args.options().manifest_dir())?;
 
 	run_script(args, config)
 }
 
-fn run_script(args: Cli, config: Config) -> Result<(), Report> {
-	// log all environment variables
-	{
-		let vars = env::vars().collect::<std::collections::HashMap<_, _>>();
-		info!(?vars);
-	}
-
+fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 	// release profile
 	let is_release_build = release_profile()?;
 
@@ -65,13 +40,14 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 
 	let is_simulator = is_simulator()?;
 
-	if let Mode::Test = args.mode {
+	if let Mode::Test = args.mode() {
 		info!("Skipping actual compilation, running a test rustc build for M1 iOS simulator");
 
 		rustc(
 			"aarch64-apple-ios-sim",
 			is_release_build,
 			config.ios_feature_flags(),
+			&args.options().manifest_dir(),
 		)?;
 
 		return Ok(());
@@ -95,6 +71,7 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 				"x86_64-apple-ios",
 				is_release_build,
 				config.ios_feature_flags(),
+				&args.options().manifest_dir(),
 			)?;
 		}
 		Archs::Arm64 => {
@@ -104,6 +81,7 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 					"aarch64-apple-ios-sim",
 					is_release_build,
 					config.ios_feature_flags(),
+					&args.options().manifest_dir(),
 				)?;
 			} else {
 				// Hardware iOS
@@ -111,6 +89,7 @@ fn run_script(args: Cli, config: Config) -> Result<(), Report> {
 					"aarch64-apple-ios",
 					is_release_build,
 					config.ios_feature_flags(),
+					&args.options().manifest_dir(),
 				)?;
 			}
 		}

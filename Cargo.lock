@@ -1704,6 +1704,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e0ec6b951b160caa93cc0c7b209e5a3bff7aae9062213451ac99493cd844c239"
 
 [[package]]
+name = "cargo-xcode-build-rs"
+version = "0.2.0"
+dependencies = [
+ "bossy",
+ "camino",
+ "clap",
+ "color-eyre",
+ "dirs",
+ "serde",
+ "toml",
+ "tracing",
+ "tracing-error",
+ "tracing-subscriber",
+ "which",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5817,23 +5834,6 @@ name = "x11rb-protocol"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec107c4503ea0b4a98ef47356329af139c0a4f7750e621cf2973cd3385ebcb3d"
-
-[[package]]
-name = "xcode-build-rs"
-version = "0.1.2"
-dependencies = [
- "bossy",
- "camino",
- "clap",
- "color-eyre",
- "dirs",
- "serde",
- "toml",
- "tracing",
- "tracing-error",
- "tracing-subscriber",
- "which",
-]
 
 [[package]]
 name = "xcursor"

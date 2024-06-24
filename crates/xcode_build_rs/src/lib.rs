@@ -2,13 +2,75 @@
 
 use std::env;
 
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
+use clap::{Args, Parser, Subcommand};
 use color_eyre::{
 	eyre::{eyre, Context as _, Report},
 	Section as _,
 };
 use serde::Deserialize;
 use tracing::info;
+
+#[derive(Parser, Debug)]
+#[command(version, about)]
+#[command(name = "cargo", bin_name = "cargo")]
+pub enum TopLevel {
+	#[clap(name = "xcode-build-rs")]
+	XCodeBuild(XcodeBuild),
+}
+
+impl TopLevel {
+	fn inner(&self) -> &XcodeBuild {
+		match self {
+			TopLevel::XCodeBuild(inner) => inner,
+		}
+	}
+}
+
+#[derive(clap::Args, Debug)]
+#[command(version, about)]
+pub struct XcodeBuild {
+	#[clap(subcommand)]
+	mode: Mode,
+
+	#[clap(flatten)]
+	options: Options,
+}
+
+impl TopLevel {
+	pub fn options(&self) -> &Options {
+		&self.inner().options
+	}
+
+	pub fn mode(&self) -> &Mode {
+		&self.inner().mode
+	}
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum Mode {
+	/// Run in XCode
+	Xcode,
+	/// Run a test build for an iOS simulator
+	Test,
+}
+
+#[derive(Args, Debug)]
+pub struct Options {
+	/// By default, doesn't display colour because this can be annoying in the XCode terminal
+	#[arg(long, alias = "colour")]
+	pub colour: bool,
+
+	/// The --manifest-path option to pass to `cargo rustc builds`
+	#[arg(long, alias = "manifest-dir", env = "CARGO_MANIFEST_DIR")]
+	manifest_dir: Utf8PathBuf,
+}
+
+impl Options {
+	pub fn manifest_dir(&self) -> Utf8PathBuf {
+		self.manifest_dir.to_owned()
+	}
+}
 
 #[derive(Deserialize, Debug, Default)]
 pub struct Config {
@@ -26,6 +88,7 @@ pub struct Flags {
 	#[serde(default = "Flags::default_default_features")]
 	default_features: bool,
 }
+
 impl Flags {
 	/// Default for [Self::default_features]
 	fn default_default_features() -> bool {
@@ -43,11 +106,15 @@ impl Default for Flags {
 }
 
 impl Config {
-	pub fn retrieve_from_toml_config() -> Result<Config, Report> {
-		let config_path = Utf8PathBuf::from("Cargo.toml");
+	pub fn retrieve_from_toml_config(manifest_dir: &Utf8Path) -> Result<Config, Report> {
+		let config_path = manifest_dir.join("Cargo.toml");
 		match std::fs::read_to_string(&config_path) {
 			Err(err) => {
-				info!(message = "Cannot find `Cargo.toml` file in CWD, using default config", ?err, cwd = ?cwd());
+				info!(
+					message = "Cannot find `Cargo.toml` file in manifest_dir, using default config",
+					?err,
+					?manifest_dir
+				);
 				Ok(Config::default())
 			}
 			Ok(config) => {
@@ -160,7 +227,12 @@ pub fn parse_archs() -> color_eyre::Result<Archs> {
 	}
 }
 
-pub fn rustc(target: &'static str, release: bool, flags: Flags) -> Result<(), Report> {
+pub fn rustc(
+	target: &'static str,
+	release: bool,
+	flags: Flags,
+	manifest_dir: &Utf8Path,
+) -> Result<(), Report> {
 	let rustc_path = which::which("cargo").wrap_err("Cannot find cargo executable path")?;
 	// don't change this to pure. just don't.
 	let mut rustc = bossy::Command::impure(&rustc_path).with_args([
@@ -170,6 +242,8 @@ pub fn rustc(target: &'static str, release: bool, flags: Flags) -> Result<(), Re
 		"--lib",
 		"--target",
 		target,
+		"--manifest-dir",
+		manifest_dir.as_str(),
 	]);
 	for flag in flags.into_args() {
 		rustc.add_arg(flag);
@@ -177,7 +251,7 @@ pub fn rustc(target: &'static str, release: bool, flags: Flags) -> Result<(), Re
 	if release {
 		rustc.add_arg("--release");
 	}
-	info!(message = "About to run rustc", cwd = ?cwd(), ?rustc_path, ?flags);
+	info!(message = "About to run rustc", cwd = ?cwd(), ?rustc_path, ?flags, ?manifest_dir);
 	rustc
 		.run_and_wait()
 		.wrap_err("rustc invocation failed, likely a Rust-side build error")?;
