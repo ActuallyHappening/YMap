@@ -115,8 +115,11 @@ mod netcode {
 	use crate::prelude::*;
 	use bevy_replicon::prelude::*;
 	use bevy_replicon_renet::renet::{
-		transport::{NetcodeServerTransport, ServerAuthentication, ServerConfig},
-		ConnectionConfig, RenetServer,
+		transport::{
+			ClientAuthentication, NetcodeClientTransport, NetcodeServerTransport, ServerAuthentication,
+			ServerConfig,
+		},
+		ConnectionConfig, RenetClient, RenetServer,
 	};
 	use std::{net::*, time::SystemTime};
 
@@ -149,9 +152,10 @@ mod netcode {
 			channels: Res<RepliconChannels>,
 			mut commands: Commands,
 		) -> Result<(), color_eyre::Report> {
+			use bevy_replicon_renet::RenetChannelsExt;
 			match config.into_inner() {
 				NetcodeConfig::Server { ip, port } => {
-					use bevy_replicon_renet::RenetChannelsExt;
+					info!(message = "Setting up as server, hosting", ?ip, ?port);
 					let server_channels_config = channels.get_server_configs();
 					let client_channels_config = channels.get_client_configs();
 
@@ -163,8 +167,7 @@ mod netcode {
 
 					let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
 					let public_addr = SocketAddr::new(*ip, *port);
-					let socket = UdpSocket::bind(public_addr)
-						.wrap_err("Could not construct UdpSocket")?;
+					let socket = UdpSocket::bind(public_addr).wrap_err("Could not construct UdpSocket")?;
 					let server_config = ServerConfig {
 						current_time,
 						max_clients: 10,
@@ -180,7 +183,34 @@ mod netcode {
 					Ok(())
 				}
 				NetcodeConfig::Client { ip, port } => {
-					todo!();
+					info!(message = "Setting up as client, connecting", ?ip, ?port);
+					let server_channels_config = channels.get_server_configs();
+					let client_channels_config = channels.get_client_configs();
+
+					let client = RenetClient::new(ConnectionConfig {
+						server_channels_config,
+						client_channels_config,
+						..Default::default()
+					});
+
+					let current_time = SystemTime::now()
+						.duration_since(SystemTime::UNIX_EPOCH)
+						.unwrap();
+					let client_id = current_time.as_millis() as u64;
+					let server_addr = SocketAddr::new(*ip, *port);
+					let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))
+						.expect("Couldn't bind to (unspecified) socket");
+					let authentication = ClientAuthentication::Unsecure {
+						client_id,
+						protocol_id: PROTOCOL_ID,
+						server_addr,
+						user_data: None,
+					};
+					let transport = NetcodeClientTransport::new(current_time, authentication, socket)
+						.wrap_err("Couldn't join to server")?;
+
+					commands.insert_resource(client);
+					commands.insert_resource(transport);
 
 					Ok(())
 				}
