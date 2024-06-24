@@ -44,36 +44,10 @@ impl PluginGroup for YMapPlugins {
 pub fn main() {
 	let mut app = App::new();
 
-	// /// These are annoying on iOS
-	// const IGNORED_EVENTS: &[&str] = &[
-	// 	"processing non `RedrawRequested` event after the main event loop: AboutToWait",
-	// 	"processing `RedrawRequested` during the main event loop",
-	// ];
-	// let ignored_directives = IGNORED_EVENTS
-	// 	.iter()
-	// 	.map(|s| format!("[{{message}}=\"{}\"]=trace", s))
-	// 	.collect::<Vec<_>>()
-	// 	.join(",");
-
-	// // let tracing_callback = |s: BoxedSubscriber| -> BoxedSubscriber {
-	// // 	use tracing_subscriber::prelude::*;
-	// // 	Box::new(s.with(tracing_subscriber::filter::FilterFn::new(|meta| {
-	// // 		if meta.fields().field("message")
-	// // 			== Some(
-	// // 				"processing non `RedrawRequested` event after the main event loop: AboutToWait".into(),
-	// // 			) {
-	// // 			return true;
-	// // 		}
-	// // 		false
-	// // 	})))
-	// // };
-	// // let fmt_layer = fmt_layer.with_filter(tracing_subscriber::filter::FilterFn::new(|meta| {
-	// // 	meta.fields().field("tracy.frame_mark").is_none()
-	// // }));
-
 	std::env::set_var("NO_COLOR", "1");
 
-	let default_plugins = DefaultPlugins
+	#[cfg_attr(not(feature = "ios"), allow(unused_mut))]
+	let mut default_plugins = DefaultPlugins
 		.set(WindowPlugin {
 			primary_window: Some(Window {
 				title: "YMap Application".into(),
@@ -95,12 +69,14 @@ pub fn main() {
 			..default()
 		})
 		.set(LogPlugin {
-			level: Level::INFO,
+			level: Level::ERROR,
 			// filter: "ymap=trace,cosmic_text=trace,bevy_cosmic_edit=trace".into(),
 			filter: r#"ymap=trace,[{message="processing non `RedrawRequested` event after the main event loop: AboutToWait"}]=error,[{message="processing `RedrawRequested` during the main event loop"}]=error"#.into(),
-			// update_subscriber: Some(tracing_callback),
 			..default()
 		});
+
+	#[cfg(feature = "ios")]
+	let default_plugins = default_plugins.disable::<bevy::audio::AudioPlugin>();
 
 	App::new()
 		.add_plugins(default_plugins)

@@ -5718,7 +5718,8 @@ checksum = "bec47e5bfd1bff0eeaf6d8b485cc1074891a197ab4225d504cb7a1ab88b02bf0"
 [[package]]
 name = "winit"
 version = "0.29.15"
-source = "git+https://github.com/ActuallyHappening/winit.git?branch=remove-noisy-logs#fd9c2087b01272e3ac4a70199bee0fae977dc489"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d59ad965a635657faf09c8f062badd885748428933dad8e8bdd64064d92e5ca"
 dependencies = [
  "ahash",
  "android-activity",
