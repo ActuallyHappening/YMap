@@ -11,3 +11,5 @@ Change name to `cargo-xcode-build-rs`
 Updated docs.
 Annoying versions and `cargo publish` mistakes
 
+## 0.2.2
+Added `extra-flags` options to config

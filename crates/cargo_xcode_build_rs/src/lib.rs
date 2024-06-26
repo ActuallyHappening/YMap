@@ -90,8 +90,15 @@ pub struct Flags {
 	features: Vec<String>,
 	/// Whether or not to pass the flag `--no-default-features` to `cargo rustc`
 	/// See https://doc.rust-lang.org/cargo/reference/features.html#command-line-feature-options
-	#[serde(default = "Flags::default_default_features")]
+	#[serde(default = "Flags::default_default_features", rename = "default-features")]
 	default_features: bool,
+	/// Passed to `cargo rustc`
+	/// E.g.
+	/// ```toml
+	/// extra_flags = ["--cfg", "winit_ignore_noise_logs_unstable"]
+	/// ```
+	#[serde(default, rename = "extra-flags")]
+	extra_flags: Vec<String>,
 }
 
 impl Flags {
@@ -105,7 +112,8 @@ impl Default for Flags {
 	fn default() -> Self {
 		Flags {
 			default_features: Flags::default_default_features(),
-			features: vec![],
+			features: Default::default(),
+			extra_flags: Default::default(),
 		}
 	}
 }
@@ -160,6 +168,9 @@ impl Flags {
 		for feature in self.features.iter() {
 			args.push("--features".into());
 			args.push(feature.clone());
+		}
+		for extra_flags in self.extra_flags.iter() {
+			args.push(extra_flags.clone());
 		}
 		args
 	}

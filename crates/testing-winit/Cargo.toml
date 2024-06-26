@@ -17,3 +17,7 @@ winit = "0.30.3"
 [patch.crates-io.winit]
 path = "../../../winit"
 version = "0.30.3"
+
+[package.metadata.xcode-build-rs]
+## Ignores noisy logs, see https://github.com/rust-windowing/winit/pull/3762
+extra-flags = ["--cfg", "winit_ignore_noise_logs_unstable"]

@@ -31,6 +31,8 @@ To compiles projects for iOS with special Cargo features enabled, add a `package
 default-features = true
 ## What features to enable
 features = ["ios"]
+## Extra flags to pass to `cargo rustc`
+extra_flags = ["--cfg", "winit_ignore_noise_logs_unstable"]
 ```
 
 ### Help message `cargo xcode-build-rs --help`
