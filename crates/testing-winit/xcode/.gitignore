@@ -1,0 +1,10 @@
+/*
+!.gitignore
+
+!assets
+!Assets.xcassets
+!ios-src
+!YMap.xcodeproj
+
+# Useful for xcode-build-rs
+!Cargo.toml

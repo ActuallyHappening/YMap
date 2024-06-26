@@ -4,3 +4,5 @@
 !src
 !Cargo.toml
 !Cargo.lock
+!xcode
+!assets

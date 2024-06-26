@@ -3,6 +3,9 @@ name = "testing-winit"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.scripts]
+open-xcode = "open xcode/*.xcodeproj"
+
 [dependencies.bevy]
 version = "0.14.0-dev"
 path = "../../../bevy"

@@ -1,14 +1,13 @@
-pub fn add(left: usize, right: usize) -> usize {
-	left + right
-}
+use bevy::prelude::*;
 
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn it_works() {
-		let result = add(2, 2);
-		assert_eq!(result, 4);
-	}
+fn main() {
+	App::new()
+		.add_plugins(DefaultPlugins.set(WindowPlugin {
+			primary_window: Some(bevy::window::Window {
+				mode: bevy::window::WindowMode::Fullscreen,
+				..default()
+			}),
+			..default()
+		}))
+		.run();
 }
