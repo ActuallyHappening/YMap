@@ -56,23 +56,34 @@ fn run_script(args: TopLevel, config: Config) -> Result<(), Report> {
 	match parse_archs()? {
 		Archs::X86_64 => {
 			if is_simulator {
-				return Err(eyre!(
-					"Building for x86_64 but not on a simulator. This is not yet supported"
-				));
+				// return Err(eyre!(
+				// 	"Building for x86_64 but not on a simulator. This is not yet supported"
+				// ));
+				warn!(
+					message = "Building for x86_64 simulators is not yet fully supported",
+					note = "IDK why",
+				);
+
+				rustc(
+					"x86_64-apple-ios-sim",
+					is_release_build,
+					config.ios_feature_flags(),
+					&args.options().manifest_path(),
+				)?;
+			} else {
+				// Intel iOS simulator
+				// this talks to the `cc` compiler rust library
+				// https://docs.rs/cc/latest/cc/#external-configuration-via-environment-variables
+				// these end up being passed to the underlying C compiler
+				env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
+
+				rustc(
+					"x86_64-apple-ios",
+					is_release_build,
+					config.ios_feature_flags(),
+					&args.options().manifest_path(),
+				)?;
 			}
-
-			// Intel iOS simulator
-			// this talks to the `cc` compiler rust library
-			// https://docs.rs/cc/latest/cc/#external-configuration-via-environment-variables
-			// these end up being passed to the underlying C compiler
-			env::set_var("CFLAGS_x86_64_apple_ios", "-targetx86_64-apple-ios");
-
-			rustc(
-				"x86_64-apple-ios",
-				is_release_build,
-				config.ios_feature_flags(),
-				&args.options().manifest_path(),
-			)?;
 		}
 		Archs::Arm64 => {
 			if is_simulator {

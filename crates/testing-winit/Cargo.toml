@@ -1,0 +1,15 @@
+[package]
+name = "testing-winit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.bevy]
+version = "0.14.0-dev"
+path = "../../../bevy"
+
+[dependencies]
+winit = "0.30.3"
+
+[patch.crates-io.winit]
+path = "../../../winit"
+version = "0.30.3"

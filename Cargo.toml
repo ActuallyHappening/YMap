@@ -1,5 +1,6 @@
 [workspace]
 members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
+exclude = ["crates/testing-winit"]
 resolver = "2"
 
 [workspace.dependencies.bevy]
@@ -22,8 +23,12 @@ features = ["bevy_replicon_replicated"]
 
 [patch.crates-io.winit]
 # version = "0.29"
-git = "https://github.com/ActuallyHappening/winit.git"
-branch = "remove-noisy-logs"
+
+# git = "https://github.com/ActuallyHappening/winit.git"
+# branch = "remove-noisy-logs"
+
+path = "../winit"
+# branch = "testing-pen-taps"
 
 ## For `Debug` impl on `ParentSync`
 [patch.crates-io.bevy_replicon]
