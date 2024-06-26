@@ -29,7 +29,7 @@
 
 /* Begin PBXFileReference section */
 		160DB77300A3F1806F024D47 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
-		55EAC02897847195D2F44C15 /* YMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		55EAC02897847195D2F44C15 /* WinitTesting.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WinitTesting.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CD6305253C7A940098CD4A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		57CD630A253C7F5F0098CD4A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = SOURCE_ROOT; };
 		8EE7F1E3B0303533925D7E33 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -60,7 +60,7 @@
 		321F7D6A765B38E746C35105 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				55EAC02897847195D2F44C15 /* YMap.app */,
+				55EAC02897847195D2F44C15 /* WinitTesting.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,9 +119,9 @@
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
-		3BDB8152E4962373181B4FE5 /* YMap */ = {
+		3BDB8152E4962373181B4FE5 /* WinitTesting */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E714A1AEAAE517C348B5BD27 /* Build configuration list for PBXNativeTarget "YMap" */;
+			buildConfigurationList = E714A1AEAAE517C348B5BD27 /* Build configuration list for PBXNativeTarget "WinitTesting" */;
 			buildPhases = (
 				9F13800790AD9DBC2BC0F116 /* Sources */,
 				D5A822CB2D6847BA8800BE4C /* Frameworks */,
@@ -132,9 +132,9 @@
 			dependencies = (
 				19D4B9C22ADC6705B5132B4C /* PBXTargetDependency */,
 			);
-			name = YMap;
+			name = WinitTesting;
 			productName = bevy_mobile_example;
-			productReference = 55EAC02897847195D2F44C15 /* YMap.app */;
+			productReference = 55EAC02897847195D2F44C15 /* WinitTesting.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -145,7 +145,7 @@
 			attributes = {
 				LastUpgradeCheck = 1240;
 			};
-			buildConfigurationList = 9D43D41707A5C30B227B83F9 /* Build configuration list for PBXProject "YMap" */;
+			buildConfigurationList = 9D43D41707A5C30B227B83F9 /* Build configuration list for PBXProject "WinitTesting" */;
 			compatibilityVersion = "Xcode 15.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -156,7 +156,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3BDB8152E4962373181B4FE5 /* YMap */,
+				3BDB8152E4962373181B4FE5 /* WinitTesting */,
 				D08AEBE0B1A9C9A7B8C7B33F /* cargo_ios */,
 			);
 		};
@@ -301,7 +301,7 @@
 					"-lc++abi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.test-app69";
-				PRODUCT_NAME = YMap;
+				PRODUCT_NAME = WinitTesting;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -412,7 +412,7 @@
 					"-lc++abi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.test-app69";
-				PRODUCT_NAME = YMap;
+				PRODUCT_NAME = WinitTesting;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -435,7 +435,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9D43D41707A5C30B227B83F9 /* Build configuration list for PBXProject "YMap" */ = {
+		9D43D41707A5C30B227B83F9 /* Build configuration list for PBXProject "WinitTesting" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4AD7BC6FDD56FF18FA6DA7D7 /* Debug */,
@@ -453,7 +453,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		E714A1AEAAE517C348B5BD27 /* Build configuration list for PBXNativeTarget "YMap" */ = {
+		E714A1AEAAE517C348B5BD27 /* Build configuration list for PBXNativeTarget "WinitTesting" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A2D5B73DD30D562B6F366526 /* Debug */,

@@ -4,7 +4,7 @@
 !assets
 !Assets.xcassets
 !ios-src
-!YMap.xcodeproj
+!WinitTesting.xcodeproj
 
 # Useful for xcode-build-rs
 !Cargo.toml

@@ -2,6 +2,7 @@
 name = "testing-winit"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [package.metadata.scripts]
 open-xcode = "open xcode/*.xcodeproj"

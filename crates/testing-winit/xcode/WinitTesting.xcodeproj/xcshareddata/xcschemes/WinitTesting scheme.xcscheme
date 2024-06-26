@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
                BuildableName = "YMap.app"
-               BlueprintName = "YMap"
-               ReferencedContainer = "container:YMap.xcodeproj">
+               BlueprintName = "WinitTesting"
+               ReferencedContainer = "container:WinitTesting.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,8 +46,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
             BuildableName = "YMap.app"
-            BlueprintName = "YMap"
-            ReferencedContainer = "container:YMap.xcodeproj">
+            BlueprintName = "WinitTesting"
+            ReferencedContainer = "container:WinitTesting.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,8 +63,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
             BuildableName = "YMap.app"
-            BlueprintName = "YMap"
-            ReferencedContainer = "container:YMap.xcodeproj">
+            BlueprintName = "WinitTesting"
+            ReferencedContainer = "container:WinitTesting.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
