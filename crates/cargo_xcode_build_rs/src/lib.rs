@@ -130,7 +130,7 @@ impl Config {
 					.and_then(|metadata| metadata.get("xcode-build-rs"));
 				match config {
 					None => {
-						info!("Using default config since `package.metadata.xcode_build_rs` section is missing from Cargo.toml");
+						info!(?manifest_path, "Using default config since `package.metadata.xcode_build_rs` section is missing from Cargo.toml");
 						Ok(Config::default())
 					}
 					Some(config) => {
@@ -138,7 +138,7 @@ impl Config {
 							.clone()
 							.try_into()
 							.wrap_err("Cannot deserialize `xcode-build-rs` section of Cargo.toml")?;
-						info!(message = "Deserialized Config from Cargo.toml", ?config);
+						info!(message = "Deserialized Config from Cargo.toml", ?config, ?manifest_path);
 						Ok(config)
 					}
 				}
