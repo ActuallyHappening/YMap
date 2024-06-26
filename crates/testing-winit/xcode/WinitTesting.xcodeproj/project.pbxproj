@@ -297,10 +297,10 @@
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-lymap",
+					"-ltesting_winit",
 					"-lc++abi",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.test-app69";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.testing-winit";
 				PRODUCT_NAME = WinitTesting;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -408,10 +408,10 @@
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-lymap",
+					"-ltesting_winit",
 					"-lc++abi",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.test-app69";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ymap.testing-winit";
 				PRODUCT_NAME = WinitTesting;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
