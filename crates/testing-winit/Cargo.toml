@@ -18,6 +18,6 @@ winit = "0.30.3"
 path = "../../../winit"
 version = "0.30.3"
 
-[package.metadata.xcode-build-rs]
+[package.metadata.xcode-build-rs.ios]
 ## Ignores noisy logs, see https://github.com/rust-windowing/winit/pull/3762
 extra-flags = ["--cfg", "winit_ignore_noise_logs_unstable"]

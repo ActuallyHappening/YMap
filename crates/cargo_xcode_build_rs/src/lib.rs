@@ -12,6 +12,7 @@ pub mod prelude {
 		Section as _,
 	};
 	pub(crate) use serde::Deserialize;
+	#[allow(unused_imports)]
 	pub(crate) use tracing::{debug, error, info, trace, warn};
 
 	pub use crate::cli::*;
@@ -90,47 +91,82 @@ mod config {
 	use crate::prelude::*;
 
 	#[derive(Deserialize, Debug, Default)]
+	#[serde(deny_unknown_fields)]
 	pub struct Config {
 		/// What features to enable for iOS builds
 		#[serde(default)]
 		ios: Flags,
 	}
 
-	#[derive(Debug, Deserialize, Clone)]
-	pub struct Flags {
-		#[serde(default)]
-		features: Vec<String>,
-		/// Whether or not to pass the flag `--no-default-features` to `cargo rustc`
-		/// See https://doc.rust-lang.org/cargo/reference/features.html#command-line-feature-options
-		#[serde(
-			default = "Flags::default_default_features",
-			rename = "default-features"
-		)]
-		default_features: bool,
-		/// Passed to `cargo rustc`
-		/// E.g.
-		/// ```toml
-		/// extra_flags = ["--cfg", "winit_ignore_noise_logs_unstable"]
-		/// ```
-		#[serde(default, rename = "extra-flags")]
-		extra_flags: Vec<String>,
-	}
+	pub use flags::*;
+	mod flags {
+		use crate::prelude::*;
 
-	impl Flags {
-		/// Default for [Self::default_features]
-		fn default_default_features() -> bool {
-			true
+		#[derive(Debug, Deserialize, Clone)]
+		pub struct Flags {
+			#[serde(default)]
+			features: Vec<String>,
+			/// Whether or not to pass the flag `--no-default-features` to `cargo rustc`
+			/// See https://doc.rust-lang.org/cargo/reference/features.html#command-line-feature-options
+			#[serde(
+				default = "Flags::default_default_features",
+				rename = "default-features"
+			)]
+			default_features: bool,
+			/// Passed to `cargo rustc`
+			/// E.g.
+			/// ```toml
+			/// extra_flags = ["--cfg", "winit_ignore_noise_logs_unstable"]
+			/// ```
+			#[serde(default, rename = "extra-flags")]
+			extra_flags: Vec<String>,
 		}
-	}
 
-	impl Default for Flags {
-		fn default() -> Self {
-			Flags {
-				default_features: Flags::default_default_features(),
-				features: Default::default(),
-				extra_flags: Default::default(),
+		impl Flags {
+			/// Default for [Self::default_features]
+			fn default_default_features() -> bool {
+				true
 			}
 		}
+
+		impl Flags {
+			pub fn into_args(&self) -> Vec<String> {
+				let mut args = vec![];
+				if !self.default_features {
+					args.push("--no-default-features".into());
+				}
+				for feature in self.features.iter() {
+					args.push("--features".into());
+					args.push(feature.clone());
+				}
+				for extra_flags in self.extra_flags.iter() {
+					args.push(extra_flags.clone());
+				}
+				args
+			}
+		}
+
+		impl Default for Flags {
+			fn default() -> Self {
+				Flags {
+					default_features: Flags::default_default_features(),
+					features: Default::default(),
+					extra_flags: Default::default(),
+				}
+			}
+		}
+
+		// #[cfg(test)]
+		// mod tests {
+		// 	use super::*;
+
+		// 	fn test_basic_toml() {
+		// 		let raw_toml: r##"
+		// 		[package.metadata.xcode-build-rs.ios]
+
+		// 		"##
+		// 	}
+		// }
 	}
 
 	impl Config {
@@ -171,23 +207,6 @@ mod config {
 
 		pub fn ios_feature_flags(&self) -> Flags {
 			self.ios.clone()
-		}
-	}
-
-	impl Flags {
-		pub fn into_args(&self) -> Vec<String> {
-			let mut args = vec![];
-			if !self.default_features {
-				args.push("--no-default-features".into());
-			}
-			for feature in self.features.iter() {
-				args.push("--features".into());
-				args.push(feature.clone());
-			}
-			for extra_flags in self.extra_flags.iter() {
-				args.push(extra_flags.clone());
-			}
-			args
 		}
 	}
 }
