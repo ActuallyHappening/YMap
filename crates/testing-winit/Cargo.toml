@@ -12,6 +12,8 @@ version = "0.14.0-dev"
 path = "../../../bevy"
 
 [dependencies]
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
 winit = "0.30.3"
 
 [patch.crates-io.winit]
@@ -20,4 +22,4 @@ version = "0.30.3"
 
 [package.metadata.xcode-build-rs.ios]
 ## Ignores noisy logs, see https://github.com/rust-windowing/winit/pull/3762
-extra-flags = ["--cfg", "winit_ignore_noise_logs_unstable"]
+# extra-flags = ["--", "--cfg", "winit_ignore_noise_logs_unstable"]
