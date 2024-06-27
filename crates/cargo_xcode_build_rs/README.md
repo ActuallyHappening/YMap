@@ -62,3 +62,5 @@ That script is also based on the mozilla script [here](https://github.com/mozill
 `cd crates/xcode_build_rs`
 `cargo is` to install this locally on your system.
 `cargo rt` to run the CLI in test mode locally on your system.
+
+`cargo release -p cargo-xcode-build-rs --execute` to publish, remember to update [CHANGELOG.md](./CHANGELOG.md)
