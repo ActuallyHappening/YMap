@@ -13,3 +13,6 @@ Annoying versions and `cargo publish` mistakes
 
 ## 0.2.2
 Added `extra-flags` options to config
+
+## 0.2.3
+Internal refactors, and config parsing is more restrictive to avoid mistakes

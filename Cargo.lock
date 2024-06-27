@@ -1766,7 +1766,7 @@ checksum = "e0ec6b951b160caa93cc0c7b209e5a3bff7aae9062213451ac99493cd844c239"
 
 [[package]]
 name = "cargo-xcode-build-rs"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bossy",
  "camino",

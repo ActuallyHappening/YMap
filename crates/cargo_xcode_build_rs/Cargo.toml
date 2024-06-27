@@ -1,6 +1,6 @@
 [package]
 name = "cargo-xcode-build-rs"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "Build script for XCode when compiling rust for iOS"
 license = "MIT OR Apache-2.0"
