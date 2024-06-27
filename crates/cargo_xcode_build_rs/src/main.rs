@@ -8,7 +8,7 @@ use std::env;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
-use cargo_xcode_build_rs::*;
+use cargo_xcode_build_rs::prelude::*;
 
 fn main() -> Result<(), color_eyre::Report> {
 	let args = TopLevel::parse();
