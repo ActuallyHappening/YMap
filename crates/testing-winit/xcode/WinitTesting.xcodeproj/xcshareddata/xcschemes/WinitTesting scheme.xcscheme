@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-               BuildableName = "YMap.app"
+               BuildableName = "WinitTesting.app"
                BlueprintName = "WinitTesting"
                ReferencedContainer = "container:WinitTesting.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-            BuildableName = "YMap.app"
+            BuildableName = "WinitTesting.app"
             BlueprintName = "WinitTesting"
             ReferencedContainer = "container:WinitTesting.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB8152E4962373181B4FE5"
-            BuildableName = "YMap.app"
+            BuildableName = "WinitTesting.app"
             BlueprintName = "WinitTesting"
             ReferencedContainer = "container:WinitTesting.xcodeproj">
          </BuildableReference>
