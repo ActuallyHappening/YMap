@@ -3,17 +3,6 @@ members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
 exclude = ["crates/testing-winit"]
 resolver = "2"
 
-[workspace.dependencies.bevy]
-version = "0.13.2"
-features = ["serialize"]
-# git = "https://github.com/ActuallyHappening/bevy.git"
-# branch = "add-ansi-log-option"
-
-[workspace.dependencies.bevy_editor_pls]
-# version = "0.8.1"
-git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
-branch = "update-gizmos"
-
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 
@@ -21,14 +10,39 @@ path = "crates/yutils"
 path = "crates/yscribble/bevy_yscribble_3d"
 features = ["bevy_replicon_replicated"]
 
-[patch.crates-io.winit]
-# version = "0.29"
+[workspace.lints.clippy]
+type_complexity = "allow"
 
-# git = "https://github.com/ActuallyHappening/winit.git"
-# branch = "remove-noisy-logs"
+[workspace.metadata.scripts]
+dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
 
-path = "../winit"
-# branch = "testing-pen-taps"
+## For correct egui version
+[workspace.dependencies.bevy_editor_pls]
+# version = "0.8.1"
+git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
+branch = "update-gizmos"
+
+# ## For Apple pencil double tap support
+# [patch.crates-io.winit]
+# # version = "0.29"
+
+# # git = "https://github.com/ActuallyHappening/winit.git"
+# # branch = "remove-noisy-logs"
+
+# path = "../winit"
+# # branch = "testing-pen-taps"
+
+# [workspace.dependencies.bevy]
+# version = "0.13.2"
+# features = ["serialize"]
+# # git = "https://github.com/ActuallyHappening/bevy.git"
+# # branch = "add-ansi-log-option"
+
+## When not using apple pencil double tap support
+[workspace.dependencies.bevy]
+version = "0.13.2"
+features = ["serialize"]
+
 
 ## For `Debug` impl on `ParentSync`
 [patch.crates-io.bevy_replicon]
@@ -37,9 +51,3 @@ path = "../winit"
 # branch = "debug-parent-sync"
 git = "https://github.com/projectharmonia/bevy_replicon.git"
 branch = "master"
-
-[workspace.lints.clippy]
-type_complexity = "allow"
-
-[workspace.metadata.scripts]
-dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
