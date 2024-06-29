@@ -10,5 +10,8 @@
 !Trunk.toml
 !.cargo
 
+# surreal db
+!start-db.nu
+
 # xcode
 !xcode

@@ -1,0 +1,1 @@
+surreal start file:test.db --user root --pass root-test --auth

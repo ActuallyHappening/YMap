@@ -18,6 +18,7 @@ mod consts;
 mod debug;
 mod scribble_pad;
 mod utils;
+mod auth;
 
 pub struct YMapPlugins;
 
@@ -83,8 +84,8 @@ pub fn main() {
 				// mode: bevy::window::WindowMode::Fullscreen,
 				mode: bevy::window::WindowMode::BorderlessFullscreen,
 
-				#[cfg(feature = "ios")]
-				resolution: bevy::window::WindowResolution::default().with_scale_factor_override(1.0),
+				// #[cfg(feature = "ios")]
+				// resolution: bevy::window::WindowResolution::default().with_scale_factor_override(1.0),
 
 				..default()
 			}),

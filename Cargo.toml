@@ -3,6 +3,9 @@ members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
 exclude = ["crates/testing-winit"]
 resolver = "2"
 
+[workspace.dependencies]
+surrealdb = "1.5.3"
+
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 
