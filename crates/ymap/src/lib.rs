@@ -103,6 +103,7 @@ pub fn main() {
 			update_subscriber: Some(update_subscriber),
 		});
 
+	// means that I can continue to listen to music uninterrupted while testing
 	#[cfg(feature = "ios")]
 	let default_plugins = default_plugins.disable::<bevy::audio::AudioPlugin>();
 
