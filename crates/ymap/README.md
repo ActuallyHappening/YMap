@@ -10,3 +10,5 @@
 Binds the server's port 8000 to the internal local port 42069
 
 See `nu db.nu port-forward`
+
+See https://stackoverflow.com/questions/1821968/how-do-i-kill-a-backgrounded-detached-ssh-session/26470428#26470428 for advanced management

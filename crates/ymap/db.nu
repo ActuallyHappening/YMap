@@ -10,11 +10,11 @@ def main [command: string] {
 	} else if $command == "connect" {
 		surreal sql --pretty --endpoint ws://actually-happening.foundation:8000 
 	} else if $command == "port-forward" {
-		if (ls ~/Desktop | length) < 5 {
+		if (ls ~/Desktop | length) > 5 {
 			echo "You may have executed this from your main computer by accident"
-			return
+			# return
 		}
-		
-		ssh -R -f -N -T 0.0.0.0:8000:localhost:42069 digitalocean1
+
+		ssh -f -N -T -R 0.0.0.0:8000:localhost:42069 digitalocean1
 	}
 }
