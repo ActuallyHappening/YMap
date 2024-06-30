@@ -4,10 +4,10 @@
 # including SURREAL_PASS which is the root production password for thd db
 source ./env.nu
 
-echo "This is the db controller script"
+print "This is the db controller script"
 
 def main [] {
-	echo "See subcommands"
+	print "See subcommands"
 }
 
 def "main start" [] {
@@ -19,20 +19,20 @@ def "main connect" [] {
 }
 
 def "main forwarding" [] {
-	echo "See db forwarding [start|check]"
+	print "See db forwarding [start|check]"
 }
 
 def "main forwarding start" [] {
 	if (ls ~/Desktop | length) > 5 {
-			echo "You may have executed this from your main computer by accident";
+			print "You may have executed this from your main computer by accident";
 			# return
 		}
 
-		echo "Starting ssh client in the background, see `ps | find ssh`";
+		print "Starting ssh client in the background, see `ps | find ssh`";
 
 		ssh -f -N -T -R 0.0.0.0:8000:localhost:42069 digitalocean-forwarding
 
-		echo "Now the local port 42069 is open to requests sent to the server on port 8000";
+		print "Now the local port 42069 is open to requests sent to the server on port 8000";
 }
 
 def "main forwarding check" [] {
