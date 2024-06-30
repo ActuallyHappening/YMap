@@ -10,30 +10,30 @@ source ./env.nu
 
 print "This is the db controller script"
 
-def warn_if_main_computer [] {
+def should_be_desktop [] {
 	if (ls ~/Desktop | length) > 5 {
 		print "You may have executed this from your main computer by accident";
 		# return
 	}
 }
 
-def warn_if_server [] {
+# Warns if on digitalocean server or desktop
+def should_be_main_computer [] {
 	if (ls ~/Desktop | length) < 5 {
 		print "You may have executed this from the server by accident";
 		# return
 	}
 }
 
+# no commands should be run on the actual digitalocean server, its just for ssh reverse tunneling
+
 def main [] {
 	print "See subcommands"
 }
 
-def "main server" [] {
-	print "See [start]"
-}
-
-def "main server start" [] {
-	warn_if_main_computer
+# Runs the local db on desktop
+def "main start" [] {
+	should_be_desktop
 
 	git pull
 
@@ -54,7 +54,7 @@ def "main forwarding" [] {
 }
 
 def "main forwarding start" [] {
-	warn_if_server
+	should_be_desktop
 
 	print "Starting ssh client in the background, see `ps | find ssh`";
 

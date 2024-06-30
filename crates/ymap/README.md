@@ -28,3 +28,7 @@ dbf check
 # to start db
 db start
 ```
+
+<!-- ## On the server
+Run `tmux attach` to reattach to the main session, which is supposed to host the surreal db database.
+Press `Control + B; D` to detach from the tmux session. -->
