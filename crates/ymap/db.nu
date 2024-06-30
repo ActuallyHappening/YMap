@@ -31,6 +31,14 @@ def main [] {
 	print "See subcommands"
 }
 
+# requires password to sync annoyingly
+def "main sync" [] {
+	ssh desktop "cd ~/Desktop/YMap/crates/ymap; git pull"
+	scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
+
+	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git pull"
+}
+
 # Runs the local db on desktop
 def "main start" [] {
 	should_be_desktop
