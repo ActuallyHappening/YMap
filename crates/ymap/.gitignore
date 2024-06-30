@@ -11,7 +11,7 @@
 !.cargo
 
 # surreal db
-!start-db.nu
+!db.nu
 
 # xcode
 !xcode
