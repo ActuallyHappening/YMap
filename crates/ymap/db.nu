@@ -31,8 +31,14 @@ def "main forwarding start" [] {
 		echo "Starting ssh client in the background, see `ps | find ssh`";
 
 		ssh -f -N -T -R 0.0.0.0:8000:localhost:42069 digitalocean-forwarding
+
+		echo "Now the local port 42069 is open to requests sent to the server on port 8000";
 }
 
 def "main forwarding check" [] {
 	ssh -O check digitalocean-forwarding
+}
+
+def "main forwarding exit" [] {
+	ssh -O exit digitalocean-forwarding
 }
