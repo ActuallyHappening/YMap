@@ -35,7 +35,7 @@ def main [] {
 }
 
 def sshserver [cmd: string] {
-	ssh -f -N -T digitalocean1 cmd
+	ssh -f -N -T digitalocean1 $cmd
 }
 
 # requires password to sync annoyingly
@@ -55,6 +55,9 @@ def "main sync" [] {
 # Runs the actual db
 def "main start" [] {
 	should_be_server
+
+	print "Starting surreal db server"
+
 	# by default from env.nu, --bind s to 0.0.0.0:42069
 	# let log_path = $"logs/(now):surreal.log";
 	/usr/local/bin/surreal start file:surreal.db
@@ -63,6 +66,14 @@ def "main start" [] {
 
 def "main server" [] {
 	print "See subcommands [start]"
+}
+
+# just starts server, see `db server restart` for proper initialization
+def "main server start" [] {
+	should_be_main_computer
+
+	print "Starting server"
+	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start"
 }
 
 # imports the db.surql file which defines schemas
@@ -79,6 +90,7 @@ def "main server import" [] {
 def "main server clean" [] {
 	should_be_main_computer
 
+	print "Cleaning files on server"
 	sshserver "ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db";"
 }
 
@@ -86,8 +98,8 @@ def "main server reset" [] {
 	should_be_main_computer
 	main sync
 
-	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu clean"
-	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start"
+	main server clean
+	main server start
 	main server import
 
 	print "Restarted server"
