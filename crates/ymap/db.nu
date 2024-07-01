@@ -46,10 +46,10 @@ def "main sync" [] {
 }
 
 
-# Runs the db on server of main computer
+# Runs the db on server or main computer
 def "main start" [] {
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	/usr/local/bin/surreal start file:surreal.db
+	/usr/local/bin/surreal start file:surreal.db out+err> surreal.log
 }
 
 def "main server" [] {
@@ -59,7 +59,7 @@ def "main server" [] {
 def "main server start" [] {
 	should_be_main_computer
 
-	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start out+err> surreal.log"
+	ssh -f digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
 }
 
 # imports the db.surql file which defines schemas
@@ -76,7 +76,7 @@ def "main server reset" [] {
 	should_be_main_computer
 	main sync
 
-	ssh -f -N -T digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start out+err> nu.log"
+	ssh -f digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
 	main server import
 }
 
