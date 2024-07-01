@@ -1,6 +1,6 @@
 use crate::prelude::*;
+use crate::types::{Email, Password, UserRecord, Username};
 use surrealdb::opt::auth::Scope;
-use crate::types::{Username, Password, Email, UserRecord};
 
 /// User facing signup data request
 #[derive(Debug, garde::Validate, Serialize)]
@@ -28,6 +28,17 @@ impl Signup {
 impl<'db, C: Connection> AuthConnection<'db, C> {
 	#[instrument(skip_all)]
 	pub async fn signup(&self, signup: Signup) -> Result<UserRecord, AuthError> {
+		info!(
+			message = "Signing up new user",
+			username = ?signup.username,
+			email = ?signup.email,
+			users_table = ?self.users_table,
+			scope = ?self.scope,
+			database = ?self.database,
+			namespace = ?self.namespace,
+			note = "Errors are not reported on the same verbosity as this log"
+		);
+
 		let jwt = self
 			.db
 			.signup(Scope {

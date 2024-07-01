@@ -3,7 +3,11 @@ use std::str::FromStr as _;
 use clap::{Parser, Subcommand};
 use surrealdb::{engine::remote::ws::Ws, Surreal};
 use tracing::*;
-use yauth::{prelude::*, types::{Email, Password, Username}};
+use tracing_subscriber::EnvFilter;
+use yauth::{
+	prelude::*,
+	types::{Email, Password, Username},
+};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -43,7 +47,14 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	tracing_subscriber::fmt::init();
+	tracing_subscriber::fmt()
+		.with_env_filter(
+			EnvFilter::builder()
+				.try_from_env()
+				.or_else(|_| EnvFilter::try_new("info,yauth=trace"))
+				.unwrap(),
+		)
+		.init();
 
 	info!("Starting debug yauth CLI");
 

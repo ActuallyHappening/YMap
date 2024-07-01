@@ -19,7 +19,7 @@ DEFINE SCOPE user
 	)
 	SIGNUP (
 		CREATE user CONTENT {
-			name: $name,
+			username: $username,
 			email: $email,
 			password: crypto::argon2::generate($password)
 		}

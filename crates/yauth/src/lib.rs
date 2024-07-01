@@ -1,20 +1,20 @@
 pub mod prelude {
 	// deps re-exports
+	pub(crate) use garde::Validate;
+	pub(crate) use serde::{Deserialize, Serialize};
 	pub(crate) use surrealdb::{Connection, Surreal};
 	pub(crate) use tracing::*;
-	pub(crate) use serde::{Deserialize, Serialize};
-	pub(crate) use garde::Validate;
 
 	// internal re-exports
 	pub(crate) use crate::types::{ValidatedType, ValidationError};
 
 	// public exports
-	pub use crate::{AuthError, AuthConnection};
+	pub use crate::{AuthConnection, AuthError};
 }
 use crate::prelude::*;
 
-pub mod types;
 pub mod signup;
+pub mod types;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AuthError {
