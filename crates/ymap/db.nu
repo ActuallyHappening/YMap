@@ -27,7 +27,7 @@ def should_be_main_computer [] {
 }
 
 def now [] {
-	date now | date to-record | get month day hour minute second | $"($in.1)/($in.0)-($in.2):($in.3):($in.4)"
+	date now | date to-record | get month day hour minute second | $"($in.1) of ($in.0)-($in.2):($in.3):($in.4)"
 }
 
 def main [] {
@@ -56,9 +56,8 @@ def "main sync" [] {
 def "main start" [] {
 	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	let file_name = $"(now):surreal.log";
-	echo $"Logging to ($file_name)" | save -f $file_name;
-	(/usr/local/bin/surreal start file:surreal.db) o+e>| save --append $file_name;
+	let log_path = $"logs/(now):surreal.log";
+	(/usr/local/bin/surreal start file:surreal.db) o+e>| save $log_path --stderr $log_path;
 }
 
 def "main server" [] {
