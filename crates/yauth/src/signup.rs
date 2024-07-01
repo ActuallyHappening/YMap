@@ -59,6 +59,7 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 
 		trace!(message = "New user signed up", ?jwt);
 
+		// why does this not work?
 		let new_user: Option<UserRecord> = self
 			.db
 			.query("SELECT * FROM type::table($table) WHERE email = $email")

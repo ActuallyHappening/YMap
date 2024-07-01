@@ -13,6 +13,9 @@ path = "crates/yutils"
 path = "crates/yscribble/bevy_yscribble_3d"
 features = ["bevy_replicon_replicated"]
 
+[workspace.dependencies.ysurreal]
+path = "crates/ysurreal"
+
 [workspace.lints.clippy]
 type_complexity = "allow"
 

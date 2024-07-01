@@ -1,3 +1,5 @@
+#![warn(missing_debug_implementations, rust_2018_idioms)]
+
 pub mod prelude {
 	// deps re-exports
 	pub(crate) use garde::Validate;

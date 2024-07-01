@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 use crate::prelude::*;
-use surrealdb::sql::{Id, Thing};
+use surrealdb::sql::Id;
 
 /// A type directly wrapping an inner, validatable type.
 ///
@@ -123,6 +123,26 @@ impl Display for Password {
 	}
 }
 
+/// Implements [`Debug`](std::fmt::Debug) without exposing the password
+#[derive(Deserialize, Clone)]
+#[serde(transparent)]
+#[repr(transparent)]
+pub struct HashedPassword(String);
+
+impl std::fmt::Debug for HashedPassword {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_tuple("HashedPassword")
+			.field(&"hash<********>")
+			.finish()
+	}
+}
+
+impl Display for HashedPassword {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "hash<********>")
+	}
+}
+
 #[derive(garde::Validate, Serialize, Debug, Clone, PartialEq)]
 #[serde(transparent)]
 #[garde(transparent)]
@@ -136,14 +156,16 @@ impl Display for Email {
 }
 
 /// The ID of a user
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UserID(Id);
 
+/// What is stored in the [AuthConnection::users_table] table
 #[derive(Debug, Deserialize)]
 pub struct UserRecord {
 	username: Username,
 	email: Email,
-	thing: Thing,
+	password: HashedPassword,
+	id: UserID,
 }
 
 impl UserRecord {
@@ -151,12 +173,16 @@ impl UserRecord {
 		&self.username
 	}
 
+	pub fn password(&self) -> &HashedPassword {
+		&self.password
+	}
+
 	pub fn email(&self) -> &Email {
 		&self.email
 	}
 
 	pub fn id(&self) -> UserID {
-		UserID(self.thing.id.clone())
+		self.id.clone()
 	}
 }
 
@@ -172,7 +198,7 @@ mod tests {
 		assert!(Password::from_str("").is_err());
 		assert!(Email::from_str("").is_err());
 	}
-	
+
 	#[test]
 	fn rejects_one_character() {
 		assert!(Username::from_str("a").is_err());

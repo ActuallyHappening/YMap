@@ -12,14 +12,7 @@ use yauth::{
 #[derive(Parser, Debug)]
 #[command(version, about)]
 pub struct Cli {
-	#[arg(long, env = "_SURREAL_CONN")]
-	connection: String,
-
-	#[arg(long, env = "SURREAL_DATABASE")]
-	database: String,
-
-	#[arg(long, env = "SURREAL_NAMESPACE")]
-	namespace: String,
+	connection_options: ysurreal::args::SurrealConnectionOptions,
 
 	#[command(subcommand)]
 	command: Commands,
@@ -76,9 +69,9 @@ async fn run() -> Result<(), yauth::AuthError> {
 
 	let cli = Cli::parse();
 
-	let db_con = Surreal::new::<Ws>(cli.connection).await?;
+	let db_con = Surreal::new::<Ws>(cli.connection_options.connection).await?;
 
-	db_con.use_ns(cli.namespace).use_db(cli.database).await?;
+	db_con.use_ns(cli.connection_options.namespace).use_db(cli.connection_options.database).await?;
 
 	info!("Waiting for DB to connect ...");
 	db_con.wait_for(surrealdb::opt::WaitFor::Database).await;

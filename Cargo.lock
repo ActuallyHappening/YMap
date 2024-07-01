@@ -8534,6 +8534,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "ysurreal",
 ]
 
 [[package]]
@@ -8569,6 +8570,15 @@ dependencies = [
  "bevy",
  "glam 0.28.0",
  "serde",
+ "tracing",
+]
+
+[[package]]
+name = "ysurreal"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "surrealdb",
  "tracing",
 ]
 
