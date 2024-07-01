@@ -34,7 +34,7 @@ enum Commands {
 		#[arg(long, default_value_t = { Email::from_str("ah@example.com").unwrap() })]
 		email: Email,
 
-		#[arg(long, default_value_t = { Password::from_str("123password").unwrap() } )]
+		#[arg(long, default_value_t = { Password::from_str("long enough").unwrap() } )]
 		password: Password,
 
 		#[arg(long, default_value_t = String::from("user"))]

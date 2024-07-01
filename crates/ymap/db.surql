@@ -4,7 +4,8 @@ USE NS production;
 DEFINE DATABASE production;
 USE DB production;
 
-DEFINE TABLE user SCHEMAFULL PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
+-- DEFINE TABLE user SCHEMAFULL PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
+DEFINE TABLE user SCHEMAFULL;
 
 DEFINE FIELD username ON user TYPE string ASSERT string::len($value) >= 2 AND string::len($value) <= 25;
 DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value) AND string::len($value) <= 50;
@@ -12,15 +13,17 @@ DEFINE FIELD password ON user TYPE string ASSERT string::len($value) >= 7 AND st
 
 DEFINE INDEX email on user FIELDS email UNIQUE;
 
-DEFINE SCOPE user
+DEFINE SCOPE user_scope
 	SESSION 1d
 	SIGNIN (
-		SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password)
+		-- SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password)
+		SELECT * FROM user
 	)
 	SIGNUP (
-		CREATE user CONTENT {
-			username: $username,
-			email: $email,
-			password: crypto::argon2::generate($password)
-		}
+		-- CREATE user CONTENT {
+		-- 	username: $username,
+		-- 	email: $email,
+		-- 	password: crypto::argon2::generate($password)
+		-- }
+		CREATE user CONTENT { username: "example", email: "ah@example.com", password: "password123 example" }
 	);
