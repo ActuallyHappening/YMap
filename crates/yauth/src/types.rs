@@ -1,7 +1,9 @@
 //! Useful types
 
-use surrealdb::sql::{Id, Thing};
+use std::fmt::Display;
+
 use crate::prelude::*;
+use surrealdb::sql::{Id, Thing};
 
 /// A type directly wrapping an inner, validatable type.
 ///
@@ -74,6 +76,14 @@ macro_rules! impl_validation_only {
 				<Self as ValidatedType>::deref(self)
 			}
 		}
+
+		impl std::str::FromStr for $ty {
+			type Err = ValidationError;
+
+			fn from_str(s: &str) -> Result<Self, Self::Err> {
+				<$ty as ValidatedType>::try_new(s.to_string())
+			}
+		}
 	};
 	(many: $($ty:ty),*) => {
 		$(impl_validation_only! { $ty })*
@@ -82,12 +92,18 @@ macro_rules! impl_validation_only {
 
 impl_validation_only!(many: Username, Password, Email);
 
-#[derive(Debug, garde::Validate, Serialize)]
+#[derive(garde::Validate, Serialize, Debug, Clone)]
 #[garde(transparent)]
 pub struct Username(#[garde(length(min = 2, max = 25))] String);
 
+impl Display for Username {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		self.0.fmt(f)
+	}
+}
+
 /// Implements [`Debug`](std::fmt::Debug) without exposing the password
-#[derive(garde::Validate, Serialize)]
+#[derive(garde::Validate, Serialize, Clone)]
 #[garde(transparent)]
 pub struct Password(#[garde(length(min = 7, max = 50))] String);
 
@@ -97,9 +113,21 @@ impl std::fmt::Debug for Password {
 	}
 }
 
-#[derive(Debug, garde::Validate, Serialize)]
+impl Display for Password {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "********")
+	}
+}
+
+#[derive(garde::Validate, Serialize, Debug, Clone)]
 #[garde(transparent)]
 pub struct Email(#[garde(email)] String);
+
+impl Display for Email {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		self.0.fmt(f)
+	}
+}
 
 /// The ID of a user
 #[derive(Debug, Deserialize)]
@@ -107,12 +135,20 @@ pub struct UserID(Id);
 
 #[derive(Debug, Deserialize)]
 pub struct UserRecord {
-	pub name: Username,
-	pub email: Email,
+	username: Username,
+	email: Email,
 	thing: Thing,
 }
 
 impl UserRecord {
+	pub fn username(&self) -> &Username {
+		&self.username
+	}
+
+	pub fn email(&self) -> &Email {
+		&self.email
+	}
+
 	pub fn id(&self) -> UserID {
 		UserID(self.thing.id.clone())
 	}

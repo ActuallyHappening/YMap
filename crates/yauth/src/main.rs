@@ -1,7 +1,9 @@
+use std::str::FromStr as _;
+
 use clap::{Parser, Subcommand};
 use surrealdb::{engine::remote::ws::Ws, Surreal};
 use tracing::*;
-use yauth::prelude::*;
+use yauth::{prelude::*, types::{Email, Password, Username}};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -17,22 +19,25 @@ pub struct Cli {
 enum Commands {
 	Signup {
 		#[arg(long)]
-		username: String,
+		username: Username,
 
-		#[arg(long, default_value_t = String::from("ah@example.com"))]
-		email: String,
+		#[arg(long, default_value_t = { Email::from_str("ah@example.com").unwrap() })]
+		email: Email,
 
-		#[arg(long, default_value_t = String::from("123password"))]
-		password: String,
+		#[arg(long, default_value_t = { Password::from_str("123password").unwrap() } )]
+		password: Password,
+
+		#[arg(long, default_value_t = String::from("user"))]
+		scope: String,
 
 		#[arg(long, default_value_t = String::from("user"))]
 		users_table: String,
 
 		#[arg(long, default_value_t = String::from("production"))]
-		namespace: String,
+		database: String,
 
 		#[arg(long, default_value_t = String::from("production"))]
-		database: String,
+		namespace: String,
 	},
 }
 
@@ -54,8 +59,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			users_table,
 			namespace,
 			database,
+			scope,
 		} => {
-			
+			let auth_con = AuthConnection {
+				db: &db_con,
+				namespace,
+				database,
+				users_table,
+				scope,
+			};
+			auth_con
+				.signup(yauth::signup::Signup {
+					username,
+					password,
+					email,
+				})
+				.await?;
 		}
 	}
 
