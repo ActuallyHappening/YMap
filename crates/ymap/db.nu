@@ -58,11 +58,13 @@ def "main server start" [] {
 	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
 }
 
+# imports the db.surql file which defines schemas
 def "main server import" [] {
 	should_be_main_computer
 
 	# connect to server through env vars
 	# only supports http/s not ws
+	# see https://github.com/surrealdb/surrealdb/issues/3548
 	surreal import ./db.surql --endpoint $"http://($env._SURREAL_CONN)"
 }
 
