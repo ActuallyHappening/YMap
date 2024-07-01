@@ -13,6 +13,7 @@
 
 # surreal db
 !db.nu
+!db.surql
 
 # xcode
 !xcode
