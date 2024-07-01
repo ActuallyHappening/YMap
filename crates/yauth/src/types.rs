@@ -93,7 +93,9 @@ macro_rules! impl_validation_only {
 impl_validation_only!(many: Username, Password, Email);
 
 #[derive(garde::Validate, Serialize, Debug, Clone)]
+#[serde(transparent)]
 #[garde(transparent)]
+#[repr(transparent)]
 pub struct Username(#[garde(length(min = 2, max = 25))] String);
 
 impl Display for Username {
@@ -104,7 +106,9 @@ impl Display for Username {
 
 /// Implements [`Debug`](std::fmt::Debug) without exposing the password
 #[derive(garde::Validate, Serialize, Clone)]
+#[serde(transparent)]
 #[garde(transparent)]
+#[repr(transparent)]
 pub struct Password(#[garde(length(min = 7, max = 50))] String);
 
 impl std::fmt::Debug for Password {
@@ -120,7 +124,9 @@ impl Display for Password {
 }
 
 #[derive(garde::Validate, Serialize, Debug, Clone)]
+#[serde(transparent)]
 #[garde(transparent)]
+#[repr(transparent)]
 pub struct Email(#[garde(email)] String);
 
 impl Display for Email {
