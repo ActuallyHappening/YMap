@@ -1,18 +1,18 @@
 #!/usr/bin/env nu
 
+# this alias may help for typing a lot
+# alias db = nu db.nu
+
+print "This is the db controller script"
+
+let is_desktop = (ls ~/Desktop | length) > 5
+
 # This provides a bunch of environment variables
 # including SURREAL_PASS which is the root production password for the db
 source ./env.nu
 
-# this alias may help for typing a lot
-# alias db = nu db.nu
-# alias dbf = db forwarding
-
-print "This is the db controller script"
-
-
 def should_be_server [] {
-	if (ls ~/Desktop | length) > 5 {
+	if $is_desktop {
 		print "You may have executed this from your main computer by accident";
 		return
 	}
@@ -20,7 +20,7 @@ def should_be_server [] {
 
 # Warns if on digitalocean server or desktop
 def should_be_main_computer [] {
-	if (ls ~/Desktop | length) < 5 {
+	if not $is_desktop {
 		print "You may have executed this from the server by accident";
 		return
 	}
@@ -48,9 +48,9 @@ def "main sync" [] {
 
 	# git stash in case uncommitted changes were uploaded in env.nu, db.nu, or db.surql
 	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git stash; git pull"
-	scp ./env.nu digitalocean1:/root/home/YMap/crates/ymap/env.nu
-	scp ./db.nu digitalocean1:/root/home/YMap/crates/ymap/db.nu
-	scp ./db.surql digitalocean1:/root/home/YMap/crates/ymap/db.surql
+	scp ~/Desktop/YMap/crates/ymap/env.nu digitalocean1:/root/home/YMap/crates/ymap/env.nu
+	scp ~/Desktop/YMap/crates/ymap/db.nu digitalocean1:/root/home/YMap/crates/ymap/db.nu
+	scp ~/Desktop/YMap/crates/ymap/db.surql digitalocean1:/root/home/YMap/crates/ymap/db.surql
 }
 
 
@@ -58,7 +58,7 @@ def "main sync" [] {
 def "main start" [] {
 	should_be_server
 
-	print "Starting surreal db server"
+	print $"Starting surreal db server (now)"
 
 	# by default from env.nu, --bind s to 0.0.0.0:42069
 	# let log_path = $"logs/(now):surreal.log";
@@ -74,7 +74,8 @@ def "main server" [] {
 def "main server start" [] {
 	should_be_main_computer
 
-	print "Starting server"
+	print $"Starting server (now)"
+	# MARK: CHANGE ME if it is not working as expected
 	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start" o+e> nu.log
 }
 
@@ -86,7 +87,7 @@ def "main server import" [] {
 	# connect to server through env vars
 	# only supports http/s not ws
 	# see https://github.com/surrealdb/surrealdb/issues/3548
-	surreal import ./db.surql --endpoint $"http://($env._SURREAL_CONN)"
+	surreal import ~/Desktop/YMap/crates/ymap/db.surql --endpoint $"http://($env._SURREAL_CONN)"
 }
 
 def "main server clean" [] {
