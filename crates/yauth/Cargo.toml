@@ -4,11 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.5.8", features = ["derive"] }
 garde = { version = "0.19.2", features = ["derive", "email"] }
 serde = { version = "1.0.203", features = ["derive"] }
 surrealdb.workspace = true
 thiserror = "1.0.61"
+tokio = { version = "1.38.0", features = ["full"] }
 tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 
 [lints]
 workspace = true

@@ -1,8 +1,42 @@
-use garde::Validate;
-use surrealdb::sql::{Id, Thing};
+//! Useful types
 
-use super::ValidatedType;
+use surrealdb::sql::{Id, Thing};
 use crate::prelude::*;
+
+/// A type directly wrapping an inner, validatable type.
+///
+/// This type must never safely be instantiated without validating the inner type.
+/// Builds upon [garde].
+pub(crate) trait ValidatedType: Sized + Validate {
+	type Inner: Serialize + serde::de::DeserializeOwned;
+
+	/// See [ValidatedType::try_new] for a safe alternative.
+	///
+	/// # SAFETY
+	/// Type must not be read or used without first validating it.
+	unsafe fn new_unchecked(inner: Self::Inner) -> Self;
+
+	/// This is safe because type type must be valid if it exists at all.
+	///
+	/// See [ValidatedType::new_unchecked] the only way to construct this type without validation.
+	fn deref(&self) -> &Self::Inner;
+
+	/// Safe constructor that validates the inner type before returning.
+	fn try_new(inner: Self::Inner) -> Result<Self, ValidationError>
+	where
+		<Self as Validate>::Context: std::default::Default,
+	{
+		// SAFETY: This is going to be validated before returned
+		let this = unsafe { Self::new_unchecked(inner) };
+		this.validate()?;
+		Ok(this)
+	}
+}
+
+/// Wraps validation errors, so as to not expose internals of [garde]
+#[derive(Debug, thiserror::Error)]
+#[error("Error validating: {0}")]
+pub struct ValidationError(#[from] garde::Report);
 
 macro_rules! impl_validation_only {
 	($ty:ty) => {
