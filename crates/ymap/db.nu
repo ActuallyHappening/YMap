@@ -56,8 +56,9 @@ def "main sync" [] {
 def "main start" [] {
 	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	let log_path = $"logs/(now):surreal.log";
-	(/usr/local/bin/surreal start file:surreal.db) o+e>| save $log_path --stderr $log_path;
+	# let log_path = $"logs/(now):surreal.log";
+	/usr/local/bin/surreal start file:surreal.db
+	# /usr/local/bin/surreal start file:surreal.db o+e>| $log_path
 }
 
 def "main server" [] {
@@ -68,6 +69,7 @@ def "main server" [] {
 def "main server import" [] {
 	should_be_main_computer
 
+	print "Importing db.surql"
 	# connect to server through env vars
 	# only supports http/s not ws
 	# see https://github.com/surrealdb/surrealdb/issues/3548

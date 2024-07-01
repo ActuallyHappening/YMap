@@ -7,7 +7,7 @@ edition = "2021"
 clap = { version = "4.5.8", features = ["derive", "env"] }
 garde = { version = "0.19.2", features = ["derive", "email"] }
 serde = { version = "1.0.203", features = ["derive"] }
-surrealdb.workspace = true
+surrealdb = { workspace = true, features = ["protocol-http"] }
 thiserror = "1.0.61"
 tokio = { version = "1.38.0", features = ["full"] }
 tracing = "0.1.40"
