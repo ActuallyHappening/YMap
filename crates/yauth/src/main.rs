@@ -12,6 +12,7 @@ use yauth::{
 #[derive(Parser, Debug)]
 #[command(version, about)]
 pub struct Cli {
+	#[clap(flatten)]
 	connection_options: ysurreal::args::SurrealConnectionOptions,
 
 	#[command(subcommand)]

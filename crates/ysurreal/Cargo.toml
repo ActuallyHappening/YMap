@@ -5,8 +5,11 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.8", features = ["derive", "env"] }
+openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
 surrealdb = { workspace = true, features = ["protocol-http"] }
+tokio = { version = "1.38.0", features = ["full"] }
 tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 
 [lints]
 workspace = true
