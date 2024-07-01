@@ -10,7 +10,8 @@ source ./env.nu
 
 print "This is the db controller script"
 
-def should_be_desktop [] {
+
+def should_be_server [] {
 	if (ls ~/Desktop | length) > 5 {
 		print "You may have executed this from your main computer by accident";
 		# return
@@ -33,48 +34,57 @@ def main [] {
 
 # requires password to sync annoyingly
 def "main sync" [] {
-	ssh desktop "cd ~/Desktop/YMap/crates/ymap; git pull"
-	scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
+	should_be_main_computer
+	# ssh desktop "cd ~/Desktop/YMap/crates/ymap; git pull"
+	# scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
 
 	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git pull"
 }
 
-# Runs the local db on desktop
+# Runs the db on server of main computer
 def "main start" [] {
-	should_be_desktop
-
-	git pull
-
 	# by default from env.nu, --bind s to 0.0.0.0:42069
 	surreal start file:surreal.db
 }
 
-def "main server restart" [] {
+def "main server" [] {
+	print "See subcommands [start]"
+}
 
+def "main server start" [] {
+	should_be_main_computer
+
+	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; nu db.nu start"
+}
+
+def "main server reset" [] {
+	should_be_main_computer
+
+	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; rm -rf "surreal.db"; nu db.nu start"
 }
 
 def "main connect" [] {
-	surreal sql --pretty --endpoint ws://actually-happening.foundation:8000
+	surreal sql --pretty --endpoint ws://actually-happening.foundation:42069
 }
 
-def "main forwarding" [] {
-	print "See db forwarding [start|check]"
-}
+# def "main forwarding" [] {
+# 	print "See db forwarding [start|check]"
+# }
 
-def "main forwarding start" [] {
-	should_be_desktop
+# def "main forwarding start" [] {
+# 	should_be_desktop
 
-	print "Starting ssh client in the background, see `ps | find ssh`";
+# 	print "Starting ssh client in the background, see `ps | find ssh`";
 
-	ssh -f -N -T -R 0.0.0.0:8000:localhost:42069 digitalocean-forwarding
+# 	ssh -f -N -T -R 0.0.0.0:8000:localhost:42069 digitalocean-forwarding
 
-	print "Now the local port 42069 is open to requests sent to the server on port 8000";
-}
+# 	print "Now the local port 42069 is open to requests sent to the server on port 8000";
+# }
 
-def "main forwarding check" [] {
-	ssh -O check digitalocean-forwarding
-}
+# def "main forwarding check" [] {
+# 	ssh -O check digitalocean-forwarding
+# }
 
-def "main forwarding exit" [] {
-	ssh -O exit digitalocean-forwarding
-}
+# def "main forwarding exit" [] {
+# 	ssh -O exit digitalocean-forwarding
+# }
