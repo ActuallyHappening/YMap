@@ -57,8 +57,8 @@ def "main start" [] {
 	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
 	let file_name = $"(now):surreal.log";
-	touch $file_name
-	/usr/local/bin/surreal start file:surreal.db out+err> $file_name
+	echo $"Logging to ($file_name)" | save -f $file_name;
+	(/usr/local/bin/surreal start file:surreal.db) o+e>| save --append $file_name;
 }
 
 def "main server" [] {
@@ -88,6 +88,8 @@ def "main server reset" [] {
 	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu clean"
 	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start"
 	main server import
+
+	print "Restarted server"
 }
 
 def "main connect" [] {
