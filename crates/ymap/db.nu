@@ -35,7 +35,9 @@ def main [] {
 }
 
 def sshserver [cmd: string] {
-	ssh -f -N -T digitalocean1 $cmd
+	# Add -N at your own ristk
+	# It will disable the random extra logs you get, but also doesn't work?
+	ssh -f -T digitalocean1 $cmd
 }
 
 # requires password to sync annoyingly
@@ -73,7 +75,7 @@ def "main server start" [] {
 	should_be_main_computer
 
 	print "Starting server"
-	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start"
+	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start" o+e> nu.log
 }
 
 # imports the db.surql file which defines schemas
@@ -91,7 +93,7 @@ def "main server clean" [] {
 	should_be_main_computer
 
 	print "Cleaning files on server"
-	sshserver "ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db";"
+	sshserver "ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf surreal.db;"
 }
 
 def "main server reset" [] {
@@ -100,6 +102,11 @@ def "main server reset" [] {
 
 	main server clean
 	main server start
+
+	print "Sleeping for to wait for server"
+	sleep 1sec
+	print "Finished sleeping"
+
 	main server import
 
 	print "Restarted server"
@@ -109,9 +116,9 @@ def "main connect" [] {
 	surreal sql --pretty --endpoint $env._SURREAL_CONNECTION
 }
 
-# def "main forwarding" [] {
-# 	print "See db forwarding [start|check]"
-# }
+def "main forwarding" [] {
+	print "See db forwarding [start|check]"
+}
 
 # def "main forwarding start" [] {
 # 	should_be_desktop
@@ -123,10 +130,10 @@ def "main connect" [] {
 # 	print "Now the local port 42069 is open to requests sent to the server on port 8000";
 # }
 
-# def "main forwarding check" [] {
-# 	ssh -O check digitalocean-forwarding
-# }
+def "main forwarding check" [] {
+	ssh -O check digitalocean-forwarding
+}
 
-# def "main forwarding exit" [] {
-# 	ssh -O exit digitalocean-forwarding
-# }
+def "main forwarding exit" [] {
+	ssh -O exit digitalocean-forwarding
+}
