@@ -38,11 +38,13 @@ def "main sync" [] {
 	# ssh desktop "cd ~/Desktop/YMap/crates/ymap; git pull"
 	# scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
 
+	# git stash in case uncommitted changes were uploaded in env.nu, db.nu, or db.surql
+	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git stash; git pull"
 	scp ./env.nu digitalocean1:/root/home/YMap/crates/ymap/env.nu
 	scp ./db.nu digitalocean1:/root/home/YMap/crates/ymap/db.nu
 	scp ./db.surql digitalocean1:/root/home/YMap/crates/ymap/db.surql
-	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git pull"
 }
+
 
 # Runs the db on server of main computer
 def "main start" [] {

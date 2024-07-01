@@ -80,6 +80,9 @@ async fn run() -> Result<(), yauth::AuthError> {
 
 	db_con.use_ns(cli.namespace).use_db(cli.database).await?;
 
+	info!("Waiting for DB to connect ...");
+	db_con.wait_for(surrealdb::opt::WaitFor::Database).await;
+
 	match cli.command {
 		Commands::Signup {
 			username,

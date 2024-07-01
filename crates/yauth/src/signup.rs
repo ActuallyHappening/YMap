@@ -26,6 +26,11 @@ impl Signup {
 }
 
 impl<'db, C: Connection> AuthConnection<'db, C> {
+	/// Primary method of signing a new user up
+	/// 
+	/// Waits for the database to connect before continuing.
+	/// See <https://docs.rs/surrealdb/latest/surrealdb/opt/enum.WaitFor.html#variant.Database>
+	/// and <https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#method.wait_for>
 	#[instrument(skip_all)]
 	pub async fn signup(&self, signup: Signup) -> Result<UserRecord, AuthError> {
 		debug!(
@@ -36,8 +41,11 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 			scope = ?self.scope,
 			database = ?self.database,
 			namespace = ?self.namespace,
-			note = "Errors are not reported on the same verbosity as this log"
+			note = "Errors are not reported on the same verbosity as this log",
+			note = "Also, waiting for Database to connect, see <https://docs.rs/surrealdb/latest/surrealdb/opt/enum.WaitFor.html#variant.Database>"
 		);
+
+		self.db.wait_for(surrealdb::opt::WaitFor::Database).await;
 
 		let jwt = self
 			.db
