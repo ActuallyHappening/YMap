@@ -16,18 +16,12 @@ DEFINE INDEX email on user FIELDS email UNIQUE;
 DEFINE SCOPE user
 	SESSION 1d
 	SIGNIN (
-		-- SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password)
-		SELECT * FROM user
+		SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password)
 	)
 	SIGNUP (
-		-- CREATE user CONTENT {
-		-- 	username: $username,
-		-- 	email: $email,
-		-- 	password: crypto::argon2::generate($password)
-		-- }
 		CREATE user CONTENT {
 			username: $username,
 			email: $email,
 			password: crypto::argon2::generate($password)
-			}
+		}
 	);
