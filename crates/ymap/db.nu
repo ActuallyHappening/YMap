@@ -14,7 +14,7 @@ print "This is the db controller script"
 def should_be_server [] {
 	if (ls ~/Desktop | length) > 5 {
 		print "You may have executed this from your main computer by accident";
-		# return
+		return
 	}
 }
 
@@ -22,7 +22,7 @@ def should_be_server [] {
 def should_be_main_computer [] {
 	if (ls ~/Desktop | length) < 5 {
 		print "You may have executed this from the server by accident";
-		# return
+		return
 	}
 }
 
@@ -30,6 +30,10 @@ def should_be_main_computer [] {
 
 def main [] {
 	print "See subcommands"
+}
+
+def sshserver [cmd: string] {
+	ssh -f -N -T digitalocean1 cmd
 }
 
 # requires password to sync annoyingly
@@ -46,20 +50,15 @@ def "main sync" [] {
 }
 
 
-# Runs the db on server or main computer
+# Runs the actual db
 def "main start" [] {
+	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
 	/usr/local/bin/surreal start file:surreal.db out+err> surreal.log
 }
 
 def "main server" [] {
 	print "See subcommands [start]"
-}
-
-def "main server start" [] {
-	should_be_main_computer
-
-	ssh -f digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
 }
 
 # imports the db.surql file which defines schemas
@@ -72,11 +71,18 @@ def "main server import" [] {
 	surreal import ./db.surql --endpoint $"http://($env._SURREAL_CONN)"
 }
 
+def "main server clean" [] {
+	should_be_main_computer
+
+	sshserver "ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db";"
+}
+
 def "main server reset" [] {
 	should_be_main_computer
 	main sync
 
-	ssh -f digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
+	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu clean"
+	sshserver "/root/.cargo/bin/nu /root/home/YMap/crates/ymap/db.nu start"
 	main server import
 }
 
