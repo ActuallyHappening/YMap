@@ -15,6 +15,12 @@ pub struct Cli {
 	#[arg(long, env = "_SURREAL_CONNECTION")]
 	connection: String,
 
+	#[arg(long, env = "SURREAL_DATABASE")]
+	database: String,
+
+	#[arg(long, env = "SURREAL_NAMESPACE")]
+	namespace: String,
+
 	#[command(subcommand)]
 	command: Commands,
 }
@@ -37,10 +43,10 @@ enum Commands {
 		#[arg(long, default_value_t = String::from("user"))]
 		users_table: String,
 
-		#[arg(long, default_value_t = String::from("production"))]
+		#[arg(long, env = "SURREAL_DATABASE")]
 		database: String,
 
-		#[arg(long, default_value_t = String::from("production"))]
+		#[arg(long, env = "SURREAL_NAMESPACE")]
 		namespace: String,
 	},
 }
@@ -61,6 +67,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let cli = Cli::parse();
 
 	let db_con = Surreal::new::<Ws>(cli.connection).await?;
+
+	db_con.use_ns(cli.namespace).use_db(cli.database).await?;
 
 	match cli.command {
 		Commands::Signup {

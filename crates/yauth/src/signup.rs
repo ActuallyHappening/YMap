@@ -28,7 +28,7 @@ impl Signup {
 impl<'db, C: Connection> AuthConnection<'db, C> {
 	#[instrument(skip_all)]
 	pub async fn signup(&self, signup: Signup) -> Result<UserRecord, AuthError> {
-		info!(
+		debug!(
 			message = "Signing up new user",
 			username = ?signup.username,
 			email = ?signup.email,

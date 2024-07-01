@@ -45,7 +45,7 @@ def "main sync" [] {
 # Runs the db on server of main computer
 def "main start" [] {
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	surreal start file:surreal.db
+	/usr/local/bin/surreal start file:surreal.db
 }
 
 def "main server" [] {
@@ -58,15 +58,24 @@ def "main server start" [] {
 	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
 }
 
+def "main server import" [] {
+	should_be_main_computer
+
+	# connect to server through env vars
+	# only supports http/s not ws
+	surreal import ./db.surql --endpoint $"http://($env._SURREAL_CONN)"
+}
+
 def "main server reset" [] {
 	should_be_main_computer
 	main sync
 
 	ssh -f -N -T digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
+	main server import
 }
 
 def "main connect" [] {
-	surreal sql --pretty --endpoint ws://actually-happening.foundation:42069
+	surreal sql --pretty --endpoint $env._SURREAL_CONNECTION
 }
 
 # def "main forwarding" [] {
