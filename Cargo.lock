@@ -8513,7 +8513,7 @@ name = "yauth"
 version = "0.1.0"
 dependencies = [
  "garde",
- "smart-default",
+ "serde",
  "surrealdb",
  "thiserror",
  "tracing",
