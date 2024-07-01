@@ -1,7 +1,9 @@
 DEFINE TABLE user SCHEMAFULL PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
 
+# name must be at least 2 characters long
 DEFINE FIELD name ON user TYPE string ASSERT string::len($value) >= 2;
 DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value);
+# password must be at least 7 characters long
 DEFINE FIELD password ON user TYPE string ASSERT string::len($value) >= 7;
 
 DEFINE INDEX email on user FIELDS email UNIQUE;

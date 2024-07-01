@@ -55,14 +55,14 @@ def "main server" [] {
 def "main server start" [] {
 	should_be_main_computer
 
-	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
+	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
 }
 
 def "main server reset" [] {
 	should_be_main_computer
 	main sync
 
-	ssh digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
+	ssh -f -N -T digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
 }
 
 def "main connect" [] {
