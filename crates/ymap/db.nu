@@ -39,6 +39,8 @@ def "main sync" [] {
 	# scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
 
 	scp ./env.nu digitalocean1:/root/home/YMap/crates/ymap/env.nu
+	scp ./db.nu digitalocean1:/root/home/YMap/crates/ymap/db.nu
+	scp ./db.surql digitalocean1:/root/home/YMap/crates/ymap/db.surql
 	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git pull"
 }
 

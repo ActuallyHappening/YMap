@@ -52,7 +52,17 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
+	let main = run().await;
+	match main {
+		Ok(_) => info!("yauth CLI completed successfully"),
+		Err(err) => {
+			eprintln!("{}", err);
+		}
+	}
+}
+
+async fn run() -> Result<(), yauth::AuthError> {
 	tracing_subscriber::fmt()
 		.with_env_filter(
 			EnvFilter::builder()
