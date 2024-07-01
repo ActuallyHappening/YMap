@@ -26,7 +26,9 @@ def should_be_main_computer [] {
 	}
 }
 
-# no commands should be run on the actual digitalocean server, its just for ssh reverse tunneling
+def now [] {
+	date now | date to-record | get month day hour minute second | $"($in.1)/($in.0)-($in.2):($in.3):($in.4)"
+}
 
 def main [] {
 	print "See subcommands"
@@ -54,7 +56,7 @@ def "main sync" [] {
 def "main start" [] {
 	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	/usr/local/bin/surreal start file:surreal.db out+err> surreal.log
+	/usr/local/bin/surreal start file:surreal.db out+err> $"(now):surreal.log"
 }
 
 def "main server" [] {
