@@ -92,7 +92,7 @@ macro_rules! impl_validation_only {
 
 impl_validation_only!(many: Username, Password, Email);
 
-#[derive(garde::Validate, Serialize, Debug, Clone)]
+#[derive(garde::Validate, Serialize, Debug, Clone, PartialEq)]
 #[serde(transparent)]
 #[garde(transparent)]
 #[repr(transparent)]
@@ -123,11 +123,11 @@ impl Display for Password {
 	}
 }
 
-#[derive(garde::Validate, Serialize, Debug, Clone)]
+#[derive(garde::Validate, Serialize, Debug, Clone, PartialEq)]
 #[serde(transparent)]
 #[garde(transparent)]
 #[repr(transparent)]
-pub struct Email(#[garde(email)] String);
+pub struct Email(#[garde(email, length(min = 5))] String);
 
 impl Display for Email {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -157,5 +157,48 @@ impl UserRecord {
 
 	pub fn id(&self) -> UserID {
 		UserID(self.thing.id.clone())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use std::str::FromStr;
+
+	use super::*;
+
+	#[test]
+	fn rejects_empty() {
+		assert!(Username::from_str("").is_err());
+		assert!(Password::from_str("").is_err());
+		assert!(Email::from_str("").is_err());
+	}
+	
+	#[test]
+	fn rejects_one_character() {
+		assert!(Username::from_str("a").is_err());
+		assert!(Password::from_str("b").is_err());
+		assert!(Email::from_str("c").is_err());
+	}
+
+	#[test]
+	fn usernames_validate() {
+		let a_good_username = String::from("My username");
+		assert_eq!(
+			serde_json::from_str::<Username>(&serde_json::to_string(&a_good_username).unwrap()).unwrap(),
+			Username(a_good_username)
+		);
+		let a_bad_username = r#""a""#;
+		assert!(serde_json::from_str::<Username>(a_bad_username).is_err());
+	}
+
+	#[test]
+	fn emails_validate() {
+		let a_good_email = String::from("ah@example.com");
+		assert_eq!(
+			serde_json::from_str::<Email>(&serde_json::to_string(&a_good_email).unwrap()).unwrap(),
+			Email(a_good_email)
+		);
+		let a_bad_email = r#""a23587490""#;
+		assert!(serde_json::from_str::<Email>(a_bad_email).is_err());
 	}
 }
