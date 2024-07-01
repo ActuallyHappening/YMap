@@ -38,6 +38,7 @@ def "main sync" [] {
 	# ssh desktop "cd ~/Desktop/YMap/crates/ymap; git pull"
 	# scp ./env.nu desktop:~/Desktop/YMap/crates/ymap/env.nu
 
+	scp ./env.nu digitalocean1:/root/home/YMap/crates/ymap/env.nu
 	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; git pull"
 }
 
@@ -59,8 +60,9 @@ def "main server start" [] {
 
 def "main server reset" [] {
 	should_be_main_computer
+	main sync
 
-	ssh digitalocean1 "cd /root/home/YMap/crates/ymap; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
+	ssh digitalocean1 "source $nu.env-path; source $nu.config-path; cd /root/home/YMap/crates/ymap; ps | find surreal | get pid | each {|pid| kill $pid }; rm -rf "surreal.db"; /root/.cargo/bin/nu db.nu start"
 }
 
 def "main connect" [] {
