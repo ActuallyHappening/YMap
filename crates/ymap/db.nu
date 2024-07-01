@@ -56,7 +56,9 @@ def "main sync" [] {
 def "main start" [] {
 	should_be_server
 	# by default from env.nu, --bind s to 0.0.0.0:42069
-	/usr/local/bin/surreal start file:surreal.db out+err> $"(now):surreal.log"
+	let file_name = $"(now):surreal.log";
+	touch $file_name
+	/usr/local/bin/surreal start file:surreal.db out+err> $file_name
 }
 
 def "main server" [] {
