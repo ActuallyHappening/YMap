@@ -42,7 +42,7 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 			database = ?self.database,
 			namespace = ?self.namespace,
 			note = "Errors are not reported on the same verbosity as this log",
-			note = "Also, waiting for Database to connect, see <https://docs.rs/surrealdb/latest/surrealdb/opt/enum.WaitFor.html#variant.Database>"
+			note = "Also, waiting for Database to connect"
 		);
 
 		self.db.wait_for(surrealdb::opt::WaitFor::Database).await;

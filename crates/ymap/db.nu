@@ -59,7 +59,7 @@ def "main server" [] {
 def "main server start" [] {
 	should_be_main_computer
 
-	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start"
+	ssh -f -N -T digitalocean1 "cd /root/home/YMap/crates/ymap; /root/.cargo/bin/nu db.nu start out+err> surreal.log"
 }
 
 # imports the db.surql file which defines schemas
