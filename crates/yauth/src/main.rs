@@ -12,7 +12,7 @@ use yauth::{
 #[derive(Parser, Debug)]
 #[command(version, about)]
 pub struct Cli {
-	#[arg(long, env = "_SURREAL_CONNECTION")]
+	#[arg(long, env = "_SURREAL_CONN")]
 	connection: String,
 
 	#[arg(long, env = "SURREAL_DATABASE")]
