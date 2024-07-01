@@ -1,0 +1,14 @@
+[package]
+name = "yauth"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+garde = { version = "0.19.2", features = ["derive", "email"] }
+smart-default = "0.7.1"
+surrealdb.workspace = true
+thiserror = "1.0.61"
+tracing = "0.1.40"
+
+[lints]
+workspace = true
