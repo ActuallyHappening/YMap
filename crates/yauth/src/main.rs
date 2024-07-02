@@ -13,7 +13,7 @@ use yauth::{
 #[command(version, about)]
 pub struct Cli {
 	#[clap(flatten)]
-	connection_options: ysurreal::args::SurrealConnectionOptions,
+	connection_options: ysurreal::args::ProductionDBConnection,
 
 	#[command(subcommand)]
 	command: Commands,

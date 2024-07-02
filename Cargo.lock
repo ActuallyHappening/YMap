@@ -8716,9 +8716,11 @@ dependencies = [
 name = "ysurreal"
 version = "0.1.0"
 dependencies = [
+ "camino",
  "clap",
  "openssh",
  "surrealdb",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",
