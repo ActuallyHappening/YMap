@@ -1,5 +1,5 @@
 ## Y Surreal
-Personal control scripts for a surrealdb instance running on a server somewhere
+Useful utilities for implementing control scripts for controlling surrealdb instances.
 
 ```sh
 # adds necessary environment variables

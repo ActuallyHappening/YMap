@@ -1,70 +1,78 @@
-#![cfg_attr(test, allow(unused_imports))]
-
 pub mod prelude {
-	#![allow(unused_imports)]
-
-	pub(crate) use camino::Utf8PathBuf;
-	pub(crate) use clap::Args;
-	pub(crate) use clap::Subcommand;
-	pub(crate) use color_eyre::eyre::WrapErr;
 	pub(crate) use tracing::*;
-	pub(crate) use tracing::*;
-	pub(crate) use which::which;
-
-	pub(crate) use crate::impl_from_env;
-	
-	// public exports
-	pub use crate::FromEnv;
 }
 
-pub mod production;
+pub mod config {
+	use camino::Utf8PathBuf;
 
-pub mod testing;
+use crate::prelude::*;
 
-pub trait FromEnv {
-	fn try_from_env() -> Result<Self, color_eyre::Report>
-	where
-		Self: Sized;
+	pub enum DBType {
+		File {
+			data_path: Utf8PathBuf,
+		},
+		Mem
+	}
 
-	/// Constructs a new instance from the environment variables only.
-	///
-	/// Usually requires that the `env.nu` file has already been `source`d.
-	fn from_env() -> Self
-	where
-		Self: Sized,
-	{
-		match Self::try_from_env() {
-			Ok(val) => val,
-			Err(err) => {
-				eprintln!(
-					"Couldn't fully retrieve {} from env: {}",
-					std::any::type_name::<Self>(),
-					err
-				);
-				std::process::exit(1);
+	/// All config to start a new database instance,
+	/// for testing or for production.
+	pub trait StartDBConfig {
+		fn root_username(&self) -> String {
+			"root".into()
+		}
+
+		fn root_password(&self) -> String;
+
+		fn primary_namespace(&self) -> String;
+
+		fn primary_database(&self) -> String;
+
+		fn strict(&self) -> bool {
+			true
+		}
+
+		fn auth(&self) -> bool {
+			true
+		}
+
+		fn bind_port(&self) -> u16;
+
+		fn bind_host(&self) -> String {
+			format!("0.0.0.0:{}", self.bind_port())
+		}
+
+		/// Whether its a [DBType::Mem] or [DBType::File]
+		fn db_type(&self) -> DBType;
+
+		/// Arguments to pass to `surreal start`, e.g. `--password`
+		fn get_cli_args(&self) -> Vec<String> {
+			let mut args = vec![
+				"--username".into(),
+				self.root_username(),
+				"--password".into(),
+				self.root_password(),
+				"--bind".into(),
+				self.bind_host(),
+			];
+			if self.auth() {
+				args.push("--auth".into());
 			}
+			if self.strict() {
+				args.push("--strict".into())
+			}
+			match self.db_type() {
+				DBType::File { data_path } => {
+					args.push(format!("file://{}", data_path));
+				}
+				DBType::Mem => {
+					args.push("memory".into());
+				}
+			}
+			args
 		}
 	}
 }
 
-#[macro_export]
-macro_rules! impl_from_env {
-	($ty:ty) => {
-		impl $crate::FromEnv for $ty {
-			fn try_from_env() -> Result<Self, color_eyre::Report> {
-				use clap::Parser;
-
-				#[derive(Parser)]
-				struct ParseMe {
-					#[clap(flatten)]
-					data: $ty,
-				}
-
-				let data = ParseMe::try_parse_from([&""]).wrap_err(
-					"Couldn't parse from env variables, have you imported the `env.nu` file before running?",
-				)?;
-				Ok(data.data)
-			}
-		}
-	};
+pub mod local {
+	use crate::prelude::*;
 }
