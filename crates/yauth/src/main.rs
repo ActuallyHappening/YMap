@@ -11,7 +11,7 @@ use yauth::{
 #[command(version, about)]
 pub struct Cli {
 	#[clap(flatten)]
-	connection_options: ysurreal::args::TestingDBConnection,
+	connection_options: ysurreal::testing::TestingDBConnection,
 
 	#[command(subcommand)]
 	command: Commands,

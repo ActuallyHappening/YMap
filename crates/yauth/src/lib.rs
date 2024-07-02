@@ -12,7 +12,11 @@ pub mod prelude {
 
 	// public exports
 	pub use crate::{AuthConnection, AuthError};
+	pub use ysurreal::prelude::*;
 }
+use color_eyre::eyre::{Context, Error};
+use ysurreal::testing::TestingDBConnection;
+
 use crate::prelude::*;
 
 pub mod signup;
@@ -30,11 +34,16 @@ pub enum AuthError {
 	SurrealError(#[from] surrealdb::Error),
 }
 
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct AuthConnection<'db, C: Connection> {
-	#[garde(skip)]
 	pub db: &'db Surreal<C>,
 
+	pub auth_instance: AuthInstance,
+}
+
+/// Options for what auth should be used.
+#[derive(Validate, Debug)]
+pub struct AuthInstance {
 	#[garde(length(min = 1))]
 	pub namespace: String,
 
@@ -46,4 +55,23 @@ pub struct AuthConnection<'db, C: Connection> {
 
 	#[garde(length(min = 1))]
 	pub scope: String,
+}
+
+impl AuthInstance {
+	/// For testing purposes, loads from the environment variables
+	/// `YAUTH_USERS_TABLE` and `YAUTH_USERS_SCOPE`.
+	pub fn from_env_testing() -> Self {
+		use std::env::var;
+		let conn = TestingDBConnection::from_env();
+		AuthInstance {
+			namespace: conn.namespace,
+			database: conn.database,
+			users_table: var("YAUTH_USERS_TABLE")
+				.wrap_err("Couldn't load YAUTH_USERS_TABLE")
+				.unwrap(),
+			scope: var("YAUTH_USERS_SCOPE")
+				.wrap_err("Couldn't load YAUTH_USERS_SCOPE")
+				.unwrap(),
+		}
+	}
 }

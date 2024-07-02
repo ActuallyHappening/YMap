@@ -27,32 +27,37 @@ impl Signup {
 
 impl<'db, C: Connection> AuthConnection<'db, C> {
 	/// Primary method of signing a new user up
-	/// 
+	///
 	/// Waits for the database to connect before continuing.
 	/// See <https://docs.rs/surrealdb/latest/surrealdb/opt/enum.WaitFor.html#variant.Database>
 	/// and <https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#method.wait_for>
 	#[instrument(skip_all)]
 	pub async fn signup(&self, signup: Signup) -> Result<UserRecord, AuthError> {
+		let username = signup.username.as_str();
+		let email = signup.email.as_str();
+		// let password = signup.password.as_str();
+		let users_table = self.auth_instance.users_table.as_str();
+		let database = self.auth_instance.database.as_str();
+		let namespace = self.auth_instance.namespace.as_str();
+		let scope = self.auth_instance.scope.as_str();
 		debug!(
 			message = "Signing up new user",
-			username = ?signup.username,
-			email = ?signup.email,
-			users_table = ?self.users_table,
-			scope = ?self.scope,
-			database = ?self.database,
-			namespace = ?self.namespace,
+			?username,
+			?email,
+			?users_table,
+			?scope,
+			?database,
+			?namespace,
 			note = "Errors are not reported on the same verbosity as this log",
 			note = "Also, waiting for Database to connect"
 		);
 
-		self.db.wait_for(surrealdb::opt::WaitFor::Database).await;
-
 		let jwt = self
 			.db
 			.signup(Scope {
-				namespace: &self.namespace,
-				database: &self.database,
-				scope: &self.scope,
+				namespace,
+				database,
+				scope,
 				params: &signup,
 			})
 			.await?;
@@ -63,8 +68,8 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 		let new_user: Option<UserRecord> = self
 			.db
 			.query("SELECT * FROM type::table($table) WHERE email = $email")
-			.bind(("email", &signup.email))
-			.bind(("table", &self.users_table))
+			.bind(("email", email))
+			.bind(("table", users_table))
 			.await?
 			.take(0)?;
 
@@ -84,10 +89,16 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 
 #[cfg(test)]
 mod tests {
-    use ysurreal::testing::TestingDBConnection;
+	use ysurreal::testing::TestingDBConnection;
 
-	#[test]
-	fn testing_blank_signup_works() {
-		let conn_options = TestingDBConnection::try_from_env().unwrap();
+	use crate::prelude::*;
+
+	#[tokio::test]
+	async fn testing_blank_signup_works() {
+		let conn_options = TestingDBConnection::from_env();
+		let db = conn_options.connect_ws().await.unwrap();
+		let auth_con = AuthConnection {
+			db: &db,
+		};
 	}
 }

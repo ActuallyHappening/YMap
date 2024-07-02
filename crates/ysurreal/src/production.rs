@@ -97,20 +97,9 @@ pub struct SSHServerConnection {
 	// pub ssh_port: String,
 }
 
+impl_from_env!(SSHServerConnection);
+
 impl SSHServerConnection {
-	/// Constructs a new instance from the environment variables only.
-	pub fn from_env() -> Result<Self, Report> {
-		use clap::Parser;
-		#[derive(Parser)]
-		struct ParseMe {
-			#[clap(flatten)]
-			data: SSHServerConnection,
-		}
-
-		let data = ParseMe::try_parse_from([&""]).wrap_err("Couldn't parse from env")?;
-		Ok(data.data)
-	}
-
 	pub async fn connect(&self) -> Result<Session, openssh::Error> {
 		let ssh_name = self.ssh_name.as_str();
 		info!(message = "Connecting to server host", ?ssh_name);
@@ -425,25 +414,25 @@ mod tests {
 
 	#[test]
 	fn production_db_connection_from_env() {
-		let _ = ProductionDBConnection::from_env().unwrap();
+		ProductionDBConnection::from_env();
 	}
 
 	#[test]
 	fn production_ssh_connection_from_env() {
-		SSHServerConnection::from_env().unwrap();
+		SSHServerConnection::from_env();
 	}
 
 	#[ignore = "IDK please fix this, just doesn't work??"]
 	#[tokio::test]
 	async fn production_can_connect_http() {
-		let conn_options = ProductionDBConnection::from_env().unwrap();
+		let conn_options = ProductionDBConnection::from_env();
 
 		conn_options.connect_http().await.unwrap();
 	}
 
 	#[tokio::test]
 	async fn production_can_connect_ws() {
-		let conn_options = ProductionDBConnection::from_env().unwrap();
+		let conn_options = ProductionDBConnection::from_env();
 
 		conn_options.connect_ws().await.unwrap();
 	}

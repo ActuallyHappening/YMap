@@ -77,6 +77,12 @@ macro_rules! impl_validation_only {
 			}
 		}
 
+		impl $ty {
+			pub fn as_str(&self) -> &str {
+				self.deref()
+			}
+		}
+
 		impl std::str::FromStr for $ty {
 			type Err = ValidationError;
 

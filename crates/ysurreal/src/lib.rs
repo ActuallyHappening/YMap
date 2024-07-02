@@ -12,6 +12,9 @@ pub mod prelude {
 	pub(crate) use which::which;
 
 	pub(crate) use crate::impl_from_env;
+	
+	// public exports
+	pub use crate::FromEnv;
 }
 
 pub mod production;
