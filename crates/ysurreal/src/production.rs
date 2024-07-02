@@ -37,20 +37,9 @@ pub struct ProductionDBConnection {
 	pub namespace: String,
 }
 
+impl_from_env!(ProductionDBConnection);
+
 impl ProductionDBConnection {
-	/// Constructs a new instance from the environment variables only.
-	pub fn from_env() -> Result<Self, Report> {
-		use clap::Parser;
-		#[derive(Parser)]
-		struct ParseMe {
-			#[clap(flatten)]
-			data: ProductionDBConnection,
-		}
-
-		let data = ParseMe::try_parse_from([&""]).wrap_err("Couldn't parse from env")?;
-		Ok(data.data)
-	}
-
 	pub async fn connect_http(&self) -> Result<Surreal<http::Client>, surrealdb::Error> {
 		let address = self.address.as_str();
 		let namespace = self.namespace.as_str();

@@ -81,3 +81,13 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 		}
 	}
 }
+
+#[cfg(test)]
+mod tests {
+    use ysurreal::testing::TestingDBConnection;
+
+	#[test]
+	fn testing_blank_signup_works() {
+		let conn_options = TestingDBConnection::try_from_env().unwrap();
+	}
+}

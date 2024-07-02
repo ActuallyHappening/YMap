@@ -43,19 +43,9 @@ pub struct TestingDBConnection {
 	pub namespace: String,
 }
 
+impl_from_env!(TestingDBConnection);
+
 impl TestingDBConnection {
-	/// Constructs a new instance from the environment variables only.
-	pub fn from_env() -> Result<Self, Report> {
-		#[derive(Parser)]
-		struct ParseMe {
-			#[clap(flatten)]
-			data: TestingDBConnection,
-		}
-
-		let data = ParseMe::try_parse_from([&""]).wrap_err("Couldn't parse from env")?;
-		Ok(data.data)
-	}
-
 	pub async fn connect_http(&self) -> Result<Surreal<http::Client>, surrealdb::Error> {
 		let address = self.address.as_str();
 		let namespace = self.namespace.as_str();
@@ -216,7 +206,7 @@ mod test {
 	/// Requires env vars to be sourced from env.nu first
 	#[test]
 	fn testing_db_connection_from_env() {
-		match TestingDBConnection::from_env() {
+		match TestingDBConnection::try_from_env() {
 			Ok(_) => {}
 			Err(err) => {
 				eprintln!(
