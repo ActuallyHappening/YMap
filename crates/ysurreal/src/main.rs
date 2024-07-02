@@ -36,8 +36,28 @@ pub enum ProductionCommand {
 
 	/// Starts running the database.
 	///
-	/// Assumes already [ProductionCommand::Reset], or at least [ProductionCommand::Kill]ed.
-	Start,
+	/// Should have already [ProductionCommand::Kill]ed, and maybe [ProductionCommand::Clean]ed
+	Start {
+		/// Path to the `env.nu` file to source before running `surreal start file:surreal.db`
+		#[arg(long, env = "_ENV_LOCAL_PATH")]
+		env_local_path: camino::Utf8PathBuf,
+
+		/// Path to the `env.nu` file to copy and source on the server
+		#[arg(long, env = "_ENV_SERVER_PATH")]
+		env_server_path: camino::Utf8PathBuf,
+
+		/// Path on server to where the `surreal` binary is located
+		#[arg(long, env = "_ENV_SURREAL_BINARY_PATH")]
+		surreal_binary_path: camino::Utf8PathBuf,
+
+		/// Path on server to where the `nu` binary is located
+		#[arg(long, env = "_ENV_NU_BINARY_PATH")]
+		nu_binary_path: camino::Utf8PathBuf,
+
+		/// Path to folder holding actual surreal data
+		#[arg(long, env = "_SURREAL_DATA_PATH")]
+		surreal_data_path: camino::Utf8PathBuf,
+	},
 
 	/// Imports the `db.surql` file into the database.
 	///
@@ -45,6 +65,9 @@ pub enum ProductionCommand {
 	Import {
 		#[clap(flatten)]
 		db_connection: ProductionDBConnection,
+
+		#[arg(long, env = "_SURREAL_INIT_PATH_LOCAL")]
+		init_file: camino::Utf8PathBuf,
 	},
 }
 
@@ -126,6 +149,38 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					);
 					sshserver(&session, "rm", ["-rf", surreal_path.as_str()]).await?;
 					info!("Cleaned database folder");
+				}
+				ProductionCommand::Start {
+					env_local_path,
+					env_server_path,
+					surreal_binary_path,
+					nu_binary_path,
+					surreal_data_path,
+				} => {
+					info!(
+						message = "Syncing the `env.nu` file",
+						?env_local_path,
+						?env_server_path
+					);
+					sshserver(
+						&session,
+						"scp",
+						[
+							env_local_path.as_str(),
+							&format!("{}:{}", ssh_server.ssh_name, env_server_path),
+						],
+					)
+					.await?;
+					info!("Securely copied `env.nu` file to server");
+
+					info!("Starting the database server");
+					sshserver(
+						&session,
+						nu_binary_path.as_str(),
+						["-c", &format!("source {env_server_path}; print 'Sourced the env file'; {surreal_binary_path} start file://{surreal_data_path}")]
+					)
+					.await?;
+					info!("Started database server");
 				}
 				_ => todo!(),
 			}
