@@ -49,15 +49,15 @@ pub enum ProductionCommand {
 		env_server_path: camino::Utf8PathBuf,
 
 		/// Path on server to where the `surreal` binary is located
-		#[arg(long, env = "_ENV_SURREAL_BINARY_PATH")]
+		#[arg(long, env = "_ENV_SERVER_SURREAL_BINARY_PATH")]
 		surreal_binary_path: camino::Utf8PathBuf,
 
 		/// Path on server to where the `nu` binary is located
-		#[arg(long, env = "_ENV_NU_BINARY_PATH")]
+		#[arg(long, env = "_ENV_SERVER_NU_BINARY_PATH")]
 		nu_binary_path: camino::Utf8PathBuf,
 
 		/// Path to folder holding actual surreal data
-		#[arg(long, env = "_SURREAL_DATA_PATH")]
+		#[arg(long, env = "_SURREAL_SERVER_DATA_PATH")]
 		surreal_data_path: camino::Utf8PathBuf,
 	},
 
