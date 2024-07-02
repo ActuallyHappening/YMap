@@ -13,6 +13,7 @@
 !.rustfmt.toml
 !crates
 !YMap.code-workspace
+!_typos.toml
 
 ## YMap
 !Trunk.toml

@@ -10,6 +10,12 @@ I will publish is on `crates.io`:
 ## Crates ready for general use
 - [`cargo-xcode-build-rs`](./crates/cargo_xcode_build_rs/) - Published on crates.io
 
+## Collection of Rust projects in use
+- SurrealBD
+- Nushell
+- [Typos](https://crates.io/crates/typos)
+
+
 <!-- Infinite mind mapping software
 
 https://dev.to/wadecodez/exploring-rust-for-native-ios-game-development-2bna
