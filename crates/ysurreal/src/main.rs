@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use clap::{Parser, Subcommand};
 use openssh::Session;
 use tracing::*;
@@ -177,14 +179,29 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 						false => return Err(Box::new(LocalError)),
 					}
 
-					info!("Starting the database server");
-					sshserver(
-						&session,
-						nu_binary_path.as_str(),
-						["-c", &format!("source {env_server_path}; print 'Sourced the env file'; {surreal_binary_path} start file://{surreal_data_path}")]
-					)
-					.await?;
-					info!("Started database server");
+					let sleep_duration = Duration::from_secs(2);
+					info!(message = "Starting the database server", note = "Sleeping to allow time for DB to start before disconnecting", ?sleep_duration, note = "You should see logs from surreal db in the console");
+					// sshserver(
+					// 	&session,
+					// 	nu_binary_path.as_str(),
+					// 	["-c", &format!("source {env_server_path}; print \"Sourced the env file\"; {surreal_binary_path} start file://{surreal_data_path}")]
+					// )
+					// .await?;
+					let mut start_cmd = session.command(nu_binary_path.as_str());
+					start_cmd.args([
+						"-c",
+						&format!(
+							"source {env_server_path}; print \"Sourced the env file\"; {surreal_binary_path} start file://{surreal_data_path}",
+						),
+					]);
+					let start_cmd: openssh::Child<&Session> = start_cmd.spawn().await?;
+					std::thread::sleep(sleep_duration);
+					// This will keep the remote process running according to the docs of [Child]
+					// https://docs.rs/openssh/latest/openssh/struct.Child.html
+					start_cmd.disconnect().await?;
+					// start_cmd.wait().await?;
+
+					info!(message = "Started database server", note = "The local handle has been disconnected so no *more* logs will appear in the console", note = "Logs should have appeared however, if they haven't something has gone wrong");
 				}
 				_ => todo!(),
 			}
