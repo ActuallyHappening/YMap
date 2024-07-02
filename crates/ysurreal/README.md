@@ -5,9 +5,9 @@ Personal control scripts for a surrealdb instance running on a server somewhere
 # adds necessary environment variables
 source ../ymap/env.nu
 
-cargo db kill
-cargo db clean
-cargo db start
-cargo db import
-cargo db connect
+cargo db production|testing kill
+cargo db production clean
+cargo db production|testing start
+cargo db production import
+cargo db production connect
 ```
