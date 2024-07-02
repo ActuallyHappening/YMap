@@ -32,7 +32,7 @@ pub enum ProductionCommand {
 
 	/// [ProductionCommand::Kill]s, and deletes database data
 	Clean {
-		#[arg(long, env = "_SURREAL_PATH")]
+		#[arg(long, env = "_SURREAL_DATA_PATH")]
 		surreal_path: camino::Utf8PathBuf,
 	},
 
