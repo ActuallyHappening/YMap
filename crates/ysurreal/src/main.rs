@@ -167,8 +167,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					let session = ssh_server.connect().await?;
 					info!(
 						message = "Syncing the `env.nu` file",
-						?env_local_path,
-						?env_server_path
+						%env_local_path,
+						%env_server_path
 					);
 					let mut cmd = std::process::Command::new("/usr/bin/scp");
 					cmd.args([
@@ -214,6 +214,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 							"The local handle has been disconnected so no *more* logs will appear in the console",
 						note = "Logs should have appeared however, if they haven't something has gone wrong"
 					);
+
+					info!("Running debug check");
+					sshserver(&session, nu_binary_path.as_str(), ["-c", "lsof -i -P -n | find surreal"]).await?;
 				}
 				ProductionCommand::Import {
 					db_connection,
