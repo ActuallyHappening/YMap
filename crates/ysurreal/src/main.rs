@@ -68,7 +68,7 @@ pub enum ProductionCommand {
 		#[clap(flatten)]
 		db_connection: ProductionDBConnection,
 
-		#[arg(long, env = "_SURREAL_INIT_PATH_LOCAL")]
+		#[arg(long, env = "_SURREAL_INIT_LOCAL_PATH")]
 		init_file: camino::Utf8PathBuf,
 	},
 }
@@ -130,9 +130,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 			ssh_server,
 			production_command,
 		} => {
-			let session = ssh_server.connect().await?;
 			match production_command {
 				ProductionCommand::Kill => {
+					let session = ssh_server.connect().await?;
 					info!(
 						message = "Killing all currently running surrealdb processes on the server",
 						note = "The list returned will contain the PIDs of the killed processes"
@@ -149,6 +149,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					info!("Killed surrealdb processes");
 				}
 				ProductionCommand::Clean { surreal_path } => {
+					let session = ssh_server.connect().await?;
 					info!(
 						message = "Cleaning the database folder on the server",
 						?surreal_path
@@ -163,12 +164,13 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					nu_binary_path,
 					surreal_data_path,
 				} => {
+					let session = ssh_server.connect().await?;
 					info!(
 						message = "Syncing the `env.nu` file",
 						?env_local_path,
 						?env_server_path
 					);
-					let mut cmd = std::process::Command::new("scp");
+					let mut cmd = std::process::Command::new("/usr/bin/scp");
 					cmd.args([
 						env_local_path.as_str(),
 						&format!("{}:{}", ssh_server.ssh_name, env_server_path),
@@ -180,7 +182,12 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					}
 
 					let sleep_duration = Duration::from_secs(2);
-					info!(message = "Starting the database server", note = "Sleeping to allow time for DB to start before disconnecting", ?sleep_duration, note = "You should see logs from surreal db in the console");
+					info!(
+						message = "Starting the database server",
+						note = "Sleeping to allow time for DB to start before disconnecting",
+						?sleep_duration,
+						note = "You should see logs from surreal db in the console"
+					);
 					// sshserver(
 					// 	&session,
 					// 	nu_binary_path.as_str(),
@@ -201,9 +208,24 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					start_cmd.disconnect().await?;
 					// start_cmd.wait().await?;
 
-					info!(message = "Started database server", note = "The local handle has been disconnected so no *more* logs will appear in the console", note = "Logs should have appeared however, if they haven't something has gone wrong");
+					info!(
+						message = "Started database server",
+						note =
+							"The local handle has been disconnected so no *more* logs will appear in the console",
+						note = "Logs should have appeared however, if they haven't something has gone wrong"
+					);
 				}
-				_ => todo!(),
+				ProductionCommand::Import {
+					db_connection,
+					init_file,
+				} => {
+					// has to use http so connect,
+					// see https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#support-1
+					let db = db_connection.connect_http().await?;
+					info!(message = "Importing file into production DB", ?init_file);
+					db.import(&init_file).await?;
+					info!("Finished import");
+				}
 			}
 		}
 	}

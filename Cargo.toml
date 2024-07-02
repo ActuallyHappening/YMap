@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "crates/yscribble/bevy_*", "xtask"]
+members = ["crates/*", "crates/yscribble/bevy_*"]
 exclude = ["crates/testing-winit"]
 resolver = "2"
 

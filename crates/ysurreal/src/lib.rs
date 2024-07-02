@@ -6,37 +6,58 @@ pub mod prelude {
 }
 
 pub mod args {
-	use clap::ValueEnum;
 	use surrealdb::{
-		engine::remote::ws::{Client, Ws},
+		engine::remote::{
+			http::{self, Http},
+			ws::{self, Ws},
+		},
 		Surreal,
 	};
 
 	use crate::prelude::*;
 
-	/// Options for connecting to local or remote surrealdb.
+	/// Options for connecting to the server DB with root credentials.
 	///
 	/// Primary usecase is to turn into [surrealdb::Surreal] instance.
 	#[derive(Args, Debug, Clone)]
 	pub struct ProductionDBConnection {
 		/// Must pass this flag to indicate operating on production db.
 		#[arg(long)]
-		production: bool,
+		production_db: bool,
 
 		/// Without protocol specifier, e.g. localhost:8000
 		#[arg(long, env = "_SURREAL_HOST_PRODUCTION")]
-		connection: String,
+		address: String,
 
-		#[arg(long, env = "SURREAL_DATABASE_PRODUCTION")]
+		#[arg(long, env = "_SURREAL_DATABASE_PRODUCTION")]
 		database: String,
 
-		#[arg(long, env = "SURREAL_NAMESPACE_PRODUCTION")]
+		#[arg(long, env = "_SURREAL_NAMESPACE_PRODUCTION")]
 		namespace: String,
 	}
 
 	impl ProductionDBConnection {
-		pub async fn connect(&self) -> Result<Surreal<Client>, surrealdb::Error> {
-			let db = Surreal::new::<Ws>(&self.connection).await?;
+		pub async fn connect_http(&self) -> Result<Surreal<http::Client>, surrealdb::Error> {
+			let address = self.address.as_str();
+			let namespace = self.namespace.as_str();
+			let database = self.database.as_str();
+			info!(
+				message = "Connecting to production DB",
+				?address,
+				?namespace,
+				?database,
+				note = "Waiting for database connection before proceeding"
+			);
+
+			let db = Surreal::new::<Http>(address).await?;
+			db.use_ns(namespace).use_db(database).await?;
+			db.wait_for(surrealdb::opt::WaitFor::Database).await;
+
+			Ok(db)
+		}
+
+		pub async fn connect_ws(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
+			let db = Surreal::new::<Ws>(&self.address).await?;
 			db.use_ns(&self.namespace).use_db(&self.database).await?;
 
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
@@ -59,7 +80,7 @@ pub mod args {
 	}
 
 	impl TestingDBConnection {
-		pub async fn connect(&self) -> Result<Surreal<Client>, surrealdb::Error> {
+		pub async fn connect(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
 			let db = Surreal::new::<Ws>(&self.connection).await?;
 			db.use_ns(&self.namespace).use_db(&self.database).await?;
 
