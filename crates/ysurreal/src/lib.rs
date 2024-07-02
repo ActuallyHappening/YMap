@@ -21,10 +21,6 @@ pub mod args {
 	/// Primary usecase is to turn into [surrealdb::Surreal] instance.
 	#[derive(Args, Debug, Clone)]
 	pub struct ProductionDBConnection {
-		/// Must pass this flag to indicate operating on production db.
-		#[arg(long, required = true)]
-		production_db: bool,
-
 		#[arg(long, env = "SURREAL_USER")]
 		pub username: String,
 
