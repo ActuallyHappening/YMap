@@ -10,8 +10,7 @@ pub mod args {
 		engine::remote::{
 			http::{self, Http},
 			ws::{self, Ws},
-		},
-		Surreal,
+		}, opt::auth::Root, Connection, Surreal
 	};
 
 	use crate::prelude::*;
@@ -22,8 +21,14 @@ pub mod args {
 	#[derive(Args, Debug, Clone)]
 	pub struct ProductionDBConnection {
 		/// Must pass this flag to indicate operating on production db.
-		#[arg(long)]
+		#[arg(long, required = true)]
 		production_db: bool,
+
+		#[arg(long, env = "SURREAL_USER")]
+		username: String,
+
+		#[arg(long, env = "SURREAL_PASS")]
+		password: String,
 
 		/// Without protocol specifier, e.g. localhost:8000
 		#[arg(long, env = "_SURREAL_HOST_PRODUCTION")]
@@ -41,6 +46,8 @@ pub mod args {
 			let address = self.address.as_str();
 			let namespace = self.namespace.as_str();
 			let database = self.database.as_str();
+			let username = self.username.as_str();
+			let password = self.password.as_str();
 			info!(
 				message = "Connecting to production DB",
 				?address,
@@ -53,14 +60,36 @@ pub mod args {
 			db.use_ns(namespace).use_db(database).await?;
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
 
+			db.signin(Root {
+				username,
+				password,
+			}).await?;
+
 			Ok(db)
 		}
 
 		pub async fn connect_ws(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
-			let db = Surreal::new::<Ws>(&self.address).await?;
-			db.use_ns(&self.namespace).use_db(&self.database).await?;
+			let address = self.address.as_str();
+			let namespace = self.namespace.as_str();
+			let database = self.database.as_str();
+			let username = self.username.as_str();
+			let password = self.password.as_str();
+			info!(
+				message = "Connecting to production DB",
+				?address,
+				?namespace,
+				?database,
+				note = "Waiting for database connection before proceeding"
+			);
 
+			let db = Surreal::new::<Ws>(address).await?;
+			db.use_ns(namespace).use_db(database).await?;
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
+
+			db.signin(Root {
+				username,
+				password,
+			}).await?;
 
 			Ok(db)
 		}

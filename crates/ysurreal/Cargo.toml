@@ -4,14 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bossy = "0.2.1"
 camino = "1.1.7"
 clap = { version = "4.5.8", features = ["derive", "env"] }
+color-eyre = "0.6.3"
 openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
 surrealdb = { workspace = true, features = ["protocol-http"] }
 thiserror = "1.0.61"
 tokio = { version = "1.38.0", features = ["full"] }
 tracing = "0.1.40"
+tracing-error = "0.2.0"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
+which = "6.0.1"
 
 [lints]
 workspace = true

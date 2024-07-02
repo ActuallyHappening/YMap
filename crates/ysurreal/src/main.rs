@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
+use color_eyre::eyre::{eyre, Context};
 use openssh::Session;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
@@ -73,16 +74,28 @@ pub enum ProductionCommand {
 	},
 }
 
+fn install_tracing() {
+	use tracing_error::ErrorLayer;
+	use tracing_subscriber::prelude::*;
+	use tracing_subscriber::{fmt, EnvFilter};
+
+	let fmt_layer = fmt::layer().with_target(false);
+	let filter_layer = EnvFilter::try_from_default_env()
+		.or_else(|_| EnvFilter::try_new("info,ysurreal=trace"))
+		.unwrap();
+
+	tracing_subscriber::registry()
+		.with(filter_layer)
+		.with(fmt_layer)
+		.with(ErrorLayer::default())
+		.init();
+}
+
 #[tokio::main]
 async fn main() {
-	tracing_subscriber::fmt()
-		.with_env_filter(
-			EnvFilter::builder()
-				.try_from_env()
-				.or_else(|_| EnvFilter::try_new("info,ysurreal=trace"))
-				.unwrap(),
-		)
-		.init();
+	color_eyre::install().expect("Failed to install color_eyre");
+
+	install_tracing();
 
 	let cli = Cli::parse();
 
@@ -216,7 +229,12 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					);
 
 					info!("Running debug check");
-					sshserver(&session, nu_binary_path.as_str(), ["-c", "lsof -i -P -n | find surreal"]).await?;
+					sshserver(
+						&session,
+						nu_binary_path.as_str(),
+						["-c", "lsof -i -P -n | find surreal"],
+					)
+					.await?;
 				}
 				ProductionCommand::Import {
 					db_connection,
@@ -224,9 +242,11 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 				} => {
 					// has to use http so connect,
 					// see https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#support-1
-					let db = db_connection.connect_http().await?;
+					// let db = db_connection.connect_http().await?;
 					info!(message = "Importing file into production DB", ?init_file);
+
 					db.import(&init_file).await?;
+
 					info!("Finished import");
 				}
 			}

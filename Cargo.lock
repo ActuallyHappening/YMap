@@ -8700,14 +8700,18 @@ dependencies = [
 name = "ysurreal"
 version = "0.1.0"
 dependencies = [
+ "bossy",
  "camino",
  "clap",
+ "color-eyre",
  "openssh",
  "surrealdb",
  "thiserror",
  "tokio",
  "tracing",
+ "tracing-error",
  "tracing-subscriber",
+ "which",
 ]
 
 [[package]]
