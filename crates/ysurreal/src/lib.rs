@@ -11,8 +11,7 @@ pub mod args {
 			http::{self, Http},
 			ws::{self, Ws},
 		},
-		opt::auth::Root,
-		Connection, Surreal,
+		opt::auth::Root,Surreal,
 	};
 
 	use crate::prelude::*;
@@ -27,20 +26,20 @@ pub mod args {
 		production_db: bool,
 
 		#[arg(long, env = "SURREAL_USER")]
-		username: String,
+		pub username: String,
 
 		#[arg(long, env = "SURREAL_PASS")]
-		password: String,
+		pub password: String,
 
 		/// Without protocol specifier, e.g. localhost:8000
 		#[arg(long, env = "_SURREAL_HOST_PRODUCTION")]
-		address: String,
+		pub address: String,
 
 		#[arg(long, env = "_SURREAL_DATABASE_PRODUCTION")]
-		database: String,
+		pub database: String,
 
 		#[arg(long, env = "_SURREAL_NAMESPACE_PRODUCTION")]
-		namespace: String,
+		pub namespace: String,
 	}
 
 	impl ProductionDBConnection {

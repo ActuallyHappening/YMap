@@ -5,6 +5,7 @@ use color_eyre::eyre::{eyre, Context};
 use openssh::Session;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
+use which::which;
 use ysurreal::args::ProductionDBConnection;
 
 #[derive(Parser, Debug)]
@@ -71,6 +72,12 @@ pub enum ProductionCommand {
 
 		#[arg(long, env = "_SURREAL_INIT_LOCAL_PATH")]
 		init_file: camino::Utf8PathBuf,
+	},
+
+	/// Runs an interactive shell for entering queries using `surreal sql --endpoint`
+	Connect {
+		#[clap(flatten)]
+		db_connection: ProductionDBConnection,
 	},
 }
 
@@ -248,6 +255,35 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					db.import(&init_file).await?;
 
 					info!("Finished import");
+				}
+				ProductionCommand::Connect { db_connection } => {
+					info!(message = "Connected to production DB");
+					let endpoint = format!("ws://{}", db_connection.address);
+					let endpoint = endpoint.as_str();
+					let username = db_connection.username.as_str();
+					let password = db_connection.password.as_str();
+					let database = db_connection.database.as_str();
+					let namespace = db_connection.namespace.as_str();
+
+					let surreal_bin_path = which("surreal").wrap_err("Couldn't find surreal binary path")?;
+					let mut cmd = bossy::Command::pure(surreal_bin_path).with_args([
+						"sql",
+						"--endpoint",
+						endpoint,
+						"--username",
+						username,
+						"--password",
+						password,
+						"--auth-level",
+						"root",
+						"--namespace",
+						namespace,
+						"--database",
+						database,
+						"--pretty",
+					]);
+					cmd.run_and_wait().wrap_err("Failed to run `surreal sql`")?;
+					info!("Finished interactive session");
 				}
 			}
 		}
