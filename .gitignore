@@ -2,6 +2,7 @@
 
 !src
 !.gitignore
+!.cargo
 !Cargo.lock
 !Cargo.toml
 !index.html
@@ -9,7 +10,11 @@
 !Trunk.toml
 !assets
 !xtask
-!.cargo
 !.rustfmt.toml
 !crates
 !YMap.code-workspace
+
+## YMap
+!Trunk.toml
+!init.surql
+!xcode

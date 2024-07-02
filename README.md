@@ -27,3 +27,20 @@ cargo rs dev-install
 
 ### TODO:
 - use CLI to build and run the project through xcode and yap plugin -->
+
+<!-- ## Setup
+`ln -s ~/.env/ymap/env.nu env.nu`
+
+### SSH
+`-f` run in background
+`-N` don't execute any (remote) commands
+`-T` disables interactive shells
+
+```nu
+# will factor reset everything
+# and automatically import db.surql
+db server reset
+
+db connect
+> info for db
+``` -->

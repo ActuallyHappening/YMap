@@ -1,2 +1,0 @@
-[alias]
-xcb = "xcode-build-rs --colour --manifest-dir . test"
