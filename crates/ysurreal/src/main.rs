@@ -242,7 +242,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 				} => {
 					// has to use http so connect,
 					// see https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#support-1
-					// let db = db_connection.connect_http().await?;
+					let db = db_connection.connect_http().await?;
 					info!(message = "Importing file into production DB", ?init_file);
 
 					db.import(&init_file).await?;

@@ -10,7 +10,9 @@ pub mod args {
 		engine::remote::{
 			http::{self, Http},
 			ws::{self, Ws},
-		}, opt::auth::Root, Connection, Surreal
+		},
+		opt::auth::Root,
+		Connection, Surreal,
 	};
 
 	use crate::prelude::*;
@@ -58,12 +60,8 @@ pub mod args {
 
 			let db = Surreal::new::<Http>(address).await?;
 			db.use_ns(namespace).use_db(database).await?;
+			db.signin(Root { username, password }).await?;
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
-
-			db.signin(Root {
-				username,
-				password,
-			}).await?;
 
 			Ok(db)
 		}
@@ -84,12 +82,8 @@ pub mod args {
 
 			let db = Surreal::new::<Ws>(address).await?;
 			db.use_ns(namespace).use_db(database).await?;
+			db.signin(Root { username, password }).await?;
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
-
-			db.signin(Root {
-				username,
-				password,
-			}).await?;
 
 			Ok(db)
 		}
