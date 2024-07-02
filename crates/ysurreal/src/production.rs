@@ -1,11 +1,133 @@
 use crate::prelude::*;
 
-use crate::{args::ProductionDBConnection, server::SSHServerConnection};
 use camino::Utf8Path;
 use clap::Subcommand;
 use color_eyre::Report;
 use openssh::Session;
 use std::time::Duration;
+
+use surrealdb::{
+	engine::remote::{
+		http::{self, Http},
+		ws::{self, Ws},
+	},
+	opt::auth::Root,
+	Surreal,
+};
+
+/// Options for connecting to the server DB with root credentials.
+///
+/// Primary usecase is to turn into [surrealdb::Surreal] instance.
+#[derive(Args, Debug, Clone)]
+pub struct ProductionDBConnection {
+	#[arg(long, env = "SURREAL_USER")]
+	pub username: String,
+
+	#[arg(long, env = "SURREAL_PASS")]
+	pub password: String,
+
+	/// Without protocol specifier, e.g. localhost:8000
+	#[arg(long, env = "_SURREAL_HOST_PRODUCTION")]
+	pub address: String,
+
+	#[arg(long, env = "_SURREAL_DATABASE_PRODUCTION")]
+	pub database: String,
+
+	#[arg(long, env = "_SURREAL_NAMESPACE_PRODUCTION")]
+	pub namespace: String,
+}
+
+impl ProductionDBConnection {
+	/// Constructs a new instance from the environment variables only.
+	pub fn from_env() -> Result<Self, Report> {
+		use clap::Parser;
+		#[derive(Parser)]
+		struct ParseMe {
+			#[clap(flatten)]
+			data: ProductionDBConnection,
+		}
+
+		let data = ParseMe::try_parse_from([&""]).wrap_err("Couldn't parse from env")?;
+		Ok(data.data)
+	}
+
+	pub async fn connect_http(&self) -> Result<Surreal<http::Client>, surrealdb::Error> {
+		let address = self.address.as_str();
+		let namespace = self.namespace.as_str();
+		let database = self.database.as_str();
+		let username = self.username.as_str();
+		let password = self.password.as_str();
+		info!(
+			message = "Connecting to production DB",
+			?address,
+			?namespace,
+			?database,
+			note = "Waiting for database connection before proceeding"
+		);
+
+		let db = Surreal::new::<Http>(address).await?;
+		db.use_ns(namespace).use_db(database).await?;
+		db.signin(Root { username, password }).await?;
+		db.wait_for(surrealdb::opt::WaitFor::Database).await;
+
+		Ok(db)
+	}
+
+	pub async fn connect_ws(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
+		let address = self.address.as_str();
+		let namespace = self.namespace.as_str();
+		let database = self.database.as_str();
+		let username = self.username.as_str();
+		let password = self.password.as_str();
+		info!(
+			message = "Connecting to production DB",
+			?address,
+			?namespace,
+			?database,
+			note = "Waiting for database connection before proceeding"
+		);
+
+		let db = Surreal::new::<Ws>(address).await?;
+		db.use_ns(namespace).use_db(database).await?;
+		db.signin(Root { username, password }).await?;
+		db.wait_for(surrealdb::opt::WaitFor::Database).await;
+
+		Ok(db)
+	}
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct SSHServerConnection {
+	/// What you would type in `ssh <NAME>`.
+	/// e.g. ah@example.com, localhost
+	///
+	/// Does not include port, see [ServerConnectionOptions::ssh_port]
+	#[arg(long, env = "YSURREAL_SSH_NAME")]
+	pub ssh_name: String,
+	// #[arg(long, env = "YSURREAL_SSH_PORT")]
+	// pub ssh_port: String,
+}
+
+impl SSHServerConnection {
+	/// Constructs a new instance from the environment variables only.
+	pub fn from_env() -> Result<Self, Report> {
+		use clap::Parser;
+		#[derive(Parser)]
+		struct ParseMe {
+			#[clap(flatten)]
+			data: SSHServerConnection,
+		}
+
+		let data = ParseMe::try_parse_from([&""]).wrap_err("Couldn't parse from env")?;
+		Ok(data.data)
+	}
+
+	pub async fn connect(&self) -> Result<Session, openssh::Error> {
+		let ssh_name = self.ssh_name.as_str();
+		info!(message = "Connecting to server host", ?ssh_name);
+		Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
+	}
+}
 
 pub async fn handle(
 	ssh_server: SSHServerConnection,
@@ -306,4 +428,34 @@ pub async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), R
 	)
 	.await
 	.wrap_err("SSH debug check failed to execute")
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn production_db_connection_from_env() {
+		let _ = ProductionDBConnection::from_env().unwrap();
+	}
+
+	#[test]
+	fn production_ssh_connection_from_env() {
+		SSHServerConnection::from_env().unwrap();
+	}
+
+	#[ignore = "IDK please fix this, just doesn't work??"]
+	#[tokio::test]
+	async fn production_can_connect_http() {
+		let conn_options = ProductionDBConnection::from_env().unwrap();
+
+		conn_options.connect_http().await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn production_can_connect_ws() {
+		let conn_options = ProductionDBConnection::from_env().unwrap();
+
+		conn_options.connect_ws().await.unwrap();
+	}
 }

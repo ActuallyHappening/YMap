@@ -13,7 +13,7 @@ pub enum Commands {
 	/// Executes commands on the server, see [ProductionCommand]
 	Production {
 		#[clap(flatten)]
-		ssh_server: ysurreal::server::SSHServerConnection,
+		ssh_server: ysurreal::production::SSHServerConnection,
 
 		#[clap(subcommand)]
 		production_command: ysurreal::production::ProductionCommand,
