@@ -174,7 +174,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					let exit_status = cmd.spawn()?.wait()?;
 					match exit_status.success() {
 						true => info!("Securely copied `env.nu` file to server"),
-						false => return Err(Box::new(SSHError)),
+						false => return Err(Box::new(LocalError)),
 					}
 
 					info!("Starting the database server");
