@@ -11,7 +11,7 @@ pub fn handle(testing_command: TestingCommand) -> Result<(), Report> {
 		TestingCommand::Kill => {
 			info!("Stopping all local surreal db instances");
 			let exit_status = bossy::Command::pure(nu_bin_path()?.as_str()).with_args(
-					["-c", r##"ps | filter {|ps| $ps.name == "/opt/homebrew/bin/surreal" } | get pid | each {|pid| kill $pid; $pid }"##]
+					["-c", r##"ps | filter {|ps| $ps.name == "surreal" } | get pid | each {|pid| kill $pid; $pid }"##]
 				).run_and_wait()?;
 			info!(
 				message = "Finished stopping all local surreal db instances",
