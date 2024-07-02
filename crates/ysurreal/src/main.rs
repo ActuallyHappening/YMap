@@ -1,10 +1,9 @@
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use color_eyre::eyre::{eyre, Context};
+use color_eyre::eyre::Context;
 use openssh::Session;
 use tracing::*;
-use tracing_subscriber::EnvFilter;
 use which::which;
 use ysurreal::args::ProductionDBConnection;
 
@@ -247,14 +246,43 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					db_connection,
 					init_file,
 				} => {
-					// has to use http so connect,
-					// see https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#support-1
-					let db = db_connection.connect_http().await?;
-					info!(message = "Importing file into production DB", ?init_file);
+					// wish this would work
+					// // has to use http so connect,
+					// // see https://docs.rs/surrealdb/latest/surrealdb/struct.Surreal.html#support-1
+					// let db = db_connection.connect_http().await?;
+					// info!(message = "Importing file into production DB", ?init_file);
 
-					db.import(&init_file).await?;
+					// db.import(&init_file).await?;
 
-					info!("Finished import");
+					// info!("Finished import");
+
+					let endpoint = format!("http://{}", db_connection.address);
+					let endpoint = endpoint.as_str();
+					let username = db_connection.username.as_str();
+					let password = db_connection.password.as_str();
+					let database = db_connection.database.as_str();
+					let namespace = db_connection.namespace.as_str();
+					info!(message = "Importing into production DB", ?init_file, ?endpoint);
+
+					let surreal_bin_path = which("surreal").wrap_err("Couldn't find surreal binary path")?;
+					let mut cmd = bossy::Command::pure(surreal_bin_path).with_args([
+						"import",
+						"--endpoint",
+						endpoint,
+						"--username",
+						username,
+						"--password",
+						password,
+						"--auth-level",
+						"root",
+						"--namespace",
+						namespace,
+						"--database",
+						database,
+						init_file.as_str(),
+					]);
+					cmd.run_and_wait().wrap_err("Failed to run `surreal import`")?;
+					info!("Finished interactive session");
 				}
 				ProductionCommand::Connect { db_connection } => {
 					info!(message = "Connected to production DB");
