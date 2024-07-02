@@ -1,9 +1,7 @@
 use std::str::FromStr as _;
 
 use clap::{Parser, Subcommand};
-use surrealdb::{engine::remote::ws::Ws, Surreal};
 use tracing::*;
-use tracing_subscriber::EnvFilter;
 use yauth::{
 	prelude::*,
 	types::{Email, Password, Username},

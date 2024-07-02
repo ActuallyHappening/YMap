@@ -89,14 +89,19 @@ pub mod args {
 	/// Does *not automatically sign into anything*. See [yauth] for custom signin.
 	/// Primary usecase is to turn into [surrealdb::Surreal] instance.
 	/// 
+	/// Also has root credentials, but DOESN'T automatically sign into as root.
+	/// 
 	/// See also [ProductionDBConnection] for root signin.
 	#[derive(Args, Debug, Clone)]
 	pub struct TestingDBConnection {
-		// #[arg(long, env = "SURREAL_USER_TESTING")]
-		// pub username: String,
+		#[arg(long, env = "_SURREAL_USER_TESTING")]
+		pub username: String,
 
-		// #[arg(long, env = "SURREAL_PASS_TESTING")]
-		// pub password: String,
+		#[arg(long, env = "_SURREAL_PASS_TESTING")]
+		pub password: String,
+
+		#[arg(long, env = "_SURREAL_PORT_TESTING")]
+		pub port: String,
 
 		/// Without protocol specifier, e.g. localhost:8000
 		#[arg(long, env = "_SURREAL_HOST_TESTING")]
