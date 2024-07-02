@@ -58,11 +58,12 @@ pub fn handle(testing_command: TestingCommand) -> Result<(), Report> {
 				);
 			drop(handle);
 
-			info!("Running debug check");
-			let nu_binary_path = nu_bin_path()?;
-			bossy::Command::pure(nu_binary_path.as_str())
-				.with_args(["-c", "lsof -i -P -n | find surreal"])
-				.run_and_wait()?;
+			check()?;
+
+			Ok(())
+		}
+		TestingCommand::Check => {
+			check()?;
 
 			Ok(())
 		}
@@ -82,6 +83,10 @@ pub enum TestingCommand {
 		#[clap(flatten)]
 		connection_options: TestingDBConnection,
 	},
+
+	/// Runs debug check
+	Check,
+
 	/// Stops dev server
 	Kill,
 }
@@ -98,11 +103,12 @@ pub fn nu_bin_path() -> Result<Utf8PathBuf, Report> {
 	Utf8PathBuf::try_from(path).wrap_err("Couldn't convert path to Utf8PathBuf")
 }
 
-pub fn check() -> Result<(), Box<dyn std::error::Error>> {
+pub fn check() -> Result<(), Report> {
 	let nu_binary_path = nu_bin_path()?;
-	bossy::Command::pure(nu_binary_path.as_str())
-		.with_args(["-c", "lsof -i -P -n | find surreal"])
-		.run_and_wait()?;
+	bossy::Command::impure(nu_binary_path.as_str())
+		.with_args(["-c", "^lsof -i -P -n | find surreal"])
+		.run_and_wait()
+		.wrap_err("Didn't execute `lsof` successfully")?;
 
 	Ok(())
 }
