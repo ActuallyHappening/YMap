@@ -95,8 +95,12 @@ async fn main() {
 }
 
 #[derive(Debug, thiserror::Error)]
-#[error("Process didn't exit with a `.success()` exit status :(")]
+#[error("Remote server process didn't exit with a `.success()` exit status :(")]
 struct SSHError;
+
+#[derive(Debug, thiserror::Error)]
+#[error("Local process didn't exit with a `.success()` exit status :(")]
+struct LocalError;
 
 async fn sshserver(
 	session: &Session,
@@ -162,16 +166,16 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 						?env_local_path,
 						?env_server_path
 					);
-					sshserver(
-						&session,
-						"scp",
-						[
-							env_local_path.as_str(),
-							&format!("{}:{}", ssh_server.ssh_name, env_server_path),
-						],
-					)
-					.await?;
-					info!("Securely copied `env.nu` file to server");
+					let mut cmd = std::process::Command::new("scp");
+					cmd.args([
+						env_local_path.as_str(),
+						&format!("{}:{}", ssh_server.ssh_name, env_server_path),
+					]);
+					let exit_status = cmd.spawn()?.wait()?;
+					match exit_status.success() {
+						true => info!("Securely copied `env.nu` file to server"),
+						false => return Err(Box::new(SSHError)),
+					}
 
 					info!("Starting the database server");
 					sshserver(
