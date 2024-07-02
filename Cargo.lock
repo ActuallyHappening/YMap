@@ -8649,6 +8649,7 @@ name = "yauth"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "color-eyre",
  "garde",
  "serde",
  "serde_json",
@@ -8656,6 +8657,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+ "tracing-error",
  "tracing-subscriber",
  "ysurreal",
 ]

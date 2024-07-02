@@ -1,11 +1,12 @@
 use std::time::Duration;
 
+use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
-use color_eyre::eyre::Context;
+use color_eyre::eyre::{Context, Report};
 use openssh::Session;
 use tracing::*;
 use which::which;
-use ysurreal::args::ProductionDBConnection;
+use ysurreal::args::{ProductionDBConnection, TestingDBConnection};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -24,6 +25,22 @@ pub enum Commands {
 		#[clap(subcommand)]
 		production_command: ProductionCommand,
 	},
+
+	Testing {
+		#[clap(subcommand)]
+		testing_command: TestingCommand,
+	},
+}
+
+#[derive(Subcommand, Debug)]
+pub enum TestingCommand {
+	/// Starts dev server
+	Start {
+		#[clap(flatten)]
+		connection_options: TestingDBConnection,
+	},
+	/// Stops dev server
+	Kill,
 }
 
 #[derive(Subcommand, Debug)]
@@ -143,8 +160,46 @@ async fn sshserver(
 	}
 }
 
+/// Finds the path of the local surreal binary
+pub fn surreal_bin_path() -> Result<Utf8PathBuf, Report> {
+	let path = which("surreal").wrap_err("Couldn't find surreal bin path")?;
+	Utf8PathBuf::try_from(path).wrap_err("Couldn't convert path to Utf8PathBuf")
+}
+
+/// Finds the path of the local `nu` binary
+pub fn nu_bin_path() -> Result<Utf8PathBuf, Report> {
+	let path = which("nu").wrap_err("Couldn't find nu bin path")?;
+	Utf8PathBuf::try_from(path).wrap_err("Couldn't convert path to Utf8PathBuf")
+}
+
 async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 	match cli.command {
+		Commands::Testing { testing_command } => match testing_command {
+			TestingCommand::Kill => {
+				info!("Stopping all local surreal db instances");
+				let exit_status = bossy::Command::pure(nu_bin_path()?.as_str()).with_args(
+					["-c", r##"ps | filter {|ps| $ps.name == "/opt/homebrew/bin/surreal" } | get pid | each {|pid| kill $pid; $pid }"##]
+				).run_and_wait()?;
+				info!(message = "Finished stopping all local surreal db instances", ?exit_status);
+			}
+			TestingCommand::Start { connection_options } => {
+				let host = connection_options.address.as_str();
+				info!(message = "Starting local surreal db instance", ?host);
+
+				let surreal_bin_path = surreal_bin_path()?;
+				let mut cmd = bossy::Command::pure(surreal_bin_path.as_str()).with_args([
+					"start",
+					"--bind",
+					host,
+					"--strict",
+					"--auth",
+					// instead of file://foo.db
+					"memory"
+				]);
+				let exit_status = cmd.run_and_wait()?;
+				info!(message = "Finished starting local surreal db instance", ?exit_status);
+			}
+		},
 		Commands::Production {
 			ssh_server,
 			production_command,
@@ -213,6 +268,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					// 	["-c", &format!("source {env_server_path}; print \"Sourced the env file\"; {surreal_binary_path} start file://{surreal_data_path}")]
 					// )
 					// .await?;
+
+					// uses provided env vars from env.nu, e.g. SURREAL_PASS
 					let mut start_cmd = session.command(nu_binary_path.as_str());
 					start_cmd.args([
 						"-c",
@@ -262,7 +319,11 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 					let password = db_connection.password.as_str();
 					let database = db_connection.database.as_str();
 					let namespace = db_connection.namespace.as_str();
-					info!(message = "Importing into production DB", ?init_file, ?endpoint);
+					info!(
+						message = "Importing into production DB",
+						?init_file,
+						?endpoint
+					);
 
 					let surreal_bin_path = which("surreal").wrap_err("Couldn't find surreal binary path")?;
 					let mut cmd = bossy::Command::pure(surreal_bin_path).with_args([
@@ -281,7 +342,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 						database,
 						init_file.as_str(),
 					]);
-					cmd.run_and_wait().wrap_err("Failed to run `surreal import`")?;
+					cmd
+						.run_and_wait()
+						.wrap_err("Failed to run `surreal import`")?;
 					info!("Finished interactive session");
 				}
 				ProductionCommand::Connect { db_connection } => {

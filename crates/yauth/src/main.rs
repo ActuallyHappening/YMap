@@ -13,7 +13,7 @@ use yauth::{
 #[command(version, about)]
 pub struct Cli {
 	#[clap(flatten)]
-	connection_options: ysurreal::args::ProductionDBConnection,
+	connection_options: ysurreal::args::TestingDBConnection,
 
 	#[command(subcommand)]
 	command: Commands,
@@ -22,12 +22,17 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
 	Signup {
-		#[arg(long)]
-		username: Username,
-
+		/// Email to sign up with.
+		/// 
+		/// Must be unique
 		#[arg(long, default_value_t = { Email::from_str("ah@example.com").unwrap() })]
 		email: Email,
 
+		/// Arbitrary username
+		#[arg(long)]
+		username: Username,
+
+		/// Plaintext password
 		#[arg(long, default_value_t = { Password::from_str("long enough").unwrap() } )]
 		password: Password,
 
@@ -37,10 +42,10 @@ enum Commands {
 		#[arg(long, default_value_t = String::from("user"))]
 		users_table: String,
 
-		#[arg(long, env = "SURREAL_DATABASE")]
+		#[arg(long, env = "_SURREAL_DATABASE_TESTING")]
 		database: String,
 
-		#[arg(long, env = "SURREAL_NAMESPACE")]
+		#[arg(long, env = "_SURREAL_NAMESPACE_TESTING")]
 		namespace: String,
 	},
 }
@@ -56,26 +61,32 @@ async fn main() {
 	}
 }
 
-async fn run() -> Result<(), yauth::AuthError> {
-	tracing_subscriber::fmt()
-		.with_env_filter(
-			EnvFilter::builder()
-				.try_from_env()
-				.or_else(|_| EnvFilter::try_new("info,yauth=trace"))
-				.unwrap(),
-		)
+fn install_tracing() {
+	use tracing_error::ErrorLayer;
+	use tracing_subscriber::prelude::*;
+	use tracing_subscriber::{fmt, EnvFilter};
+
+	let fmt_layer = fmt::layer().with_target(false);
+	let filter_layer = EnvFilter::try_from_default_env()
+		.or_else(|_| EnvFilter::try_new("info,yauth=trace"))
+		.unwrap();
+
+	tracing_subscriber::registry()
+		.with(filter_layer)
+		.with(fmt_layer)
+		.with(ErrorLayer::default())
 		.init();
+}
+
+async fn run() -> Result<(), yauth::AuthError> {
+	color_eyre::install().expect("Failed to install color_eyre");
+	install_tracing();
 
 	info!("Starting debug yauth CLI");
 
 	let cli = Cli::parse();
 
-	let db_con = Surreal::new::<Ws>(cli.connection_options.connection).await?;
-
-	db_con.use_ns(cli.connection_options.namespace).use_db(cli.connection_options.database).await?;
-
-	info!("Waiting for DB to connect ...");
-	db_con.wait_for(surrealdb::opt::WaitFor::Database).await;
+	let db = cli.connection_options.connect_ws().await?;
 
 	match cli.command {
 		Commands::Signup {
@@ -88,7 +99,7 @@ async fn run() -> Result<(), yauth::AuthError> {
 			scope,
 		} => {
 			let auth_con = AuthConnection {
-				db: &db_con,
+				db: &db,
 				namespace,
 				database,
 				users_table,

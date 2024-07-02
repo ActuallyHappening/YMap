@@ -84,24 +84,69 @@ pub mod args {
 		}
 	}
 
+	/// Options for connecting to the server DB.
+	/// 
+	/// Does *not automatically sign into anything*. See [yauth] for custom signin.
+	/// Primary usecase is to turn into [surrealdb::Surreal] instance.
+	/// 
+	/// See also [ProductionDBConnection] for root signin.
 	#[derive(Args, Debug, Clone)]
 	pub struct TestingDBConnection {
+		// #[arg(long, env = "SURREAL_USER_TESTING")]
+		// pub username: String,
+
+		// #[arg(long, env = "SURREAL_PASS_TESTING")]
+		// pub password: String,
+
 		/// Without protocol specifier, e.g. localhost:8000
-		#[arg(long, env = "_SURREAL_HOST_TEST")]
-		connection: String,
+		#[arg(long, env = "_SURREAL_HOST_TESTING")]
+		pub address: String,
 
-		#[arg(long, env = "SURREAL_DATABASE_TEST")]
-		database: String,
+		#[arg(long, env = "_SURREAL_DATABASE_TESTING")]
+		pub database: String,
 
-		#[arg(long, env = "SURREAL_NAMESPACE_TEST")]
-		namespace: String,
+		#[arg(long, env = "_SURREAL_NAMESPACE_TESTING")]
+		pub namespace: String,
 	}
 
 	impl TestingDBConnection {
-		pub async fn connect(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
-			let db = Surreal::new::<Ws>(&self.connection).await?;
-			db.use_ns(&self.namespace).use_db(&self.database).await?;
+		pub async fn connect_http(&self) -> Result<Surreal<http::Client>, surrealdb::Error> {
+			let address = self.address.as_str();
+			let namespace = self.namespace.as_str();
+			let database = self.database.as_str();
+			// let username = self.username.as_str();
+			// let password = self.password.as_str();
+			info!(
+				message = "Connecting to testing DB",
+				?address,
+				?namespace,
+				?database,
+				note = "Waiting for database connection before proceeding"
+			);
 
+			let db = Surreal::new::<Http>(address).await?;
+			db.use_ns(namespace).use_db(database).await?;
+			db.wait_for(surrealdb::opt::WaitFor::Database).await;
+
+			Ok(db)
+		}
+
+		pub async fn connect_ws(&self) -> Result<Surreal<ws::Client>, surrealdb::Error> {
+			let address = self.address.as_str();
+			let namespace = self.namespace.as_str();
+			let database = self.database.as_str();
+			// let username = self.username.as_str();
+			// let password = self.password.as_str();
+			info!(
+				message = "Connecting to testing DB",
+				?address,
+				?namespace,
+				?database,
+				note = "Waiting for database connection before proceeding"
+			);
+
+			let db = Surreal::new::<Ws>(address).await?;
+			db.use_ns(namespace).use_db(database).await?;
 			db.wait_for(surrealdb::opt::WaitFor::Database).await;
 
 			Ok(db)
