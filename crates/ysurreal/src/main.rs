@@ -83,7 +83,7 @@ async fn sshserver(
 	let mut cmd = session.command(cmd);
 	cmd.args(args);
 	let exit_status = cmd.status().await?;
-	print!("\n");
+	println!();
 	info!(
 		message = "Executed command, with stdout and stderr printing to console (i.e. inherited)",
 		?exit_status
@@ -104,13 +104,16 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 			let session = ssh_server.connect().await?;
 			match production_command {
 				ProductionCommand::Kill => {
-					info!("Killing all currently running surrealdb processes on the server");
+					info!(
+						message = "Killing all currently running surrealdb processes on the server",
+						note = "The list returned will contain the PIDs of the killed processes"
+					);
 					sshserver(
 						&session,
 						"/root/.cargo/bin/nu",
 						[
 							"-c",
-							r##"ps | filter {|ps| $ps.name == "/usr/local/bin/surreal"} | get pid | each {|pid| kill $pid; $pid }"##,
+							r##"ps | find surreal | get pid | each {|pid| kill $pid; $pid }"##,
 						],
 					)
 					.await?;
