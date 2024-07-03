@@ -15,6 +15,23 @@ I will publish is on `crates.io`:
 - Nushell
 - [Typos](https://crates.io/crates/typos)
 
+## Compiling for WASM notes
+This project naturally needs to support wasm32 targets for all crates.
+This means by default tokio doesn't have multithreading, but this can be added back on a per-crate basis (can't use target dependencies in cargo workspaces which is annoying).
+
+Also, add this to the end of your `$nu.config-path`:
+```nu
+$env.path = ($env.path | prepend "/opt/homebrew/opt/llvm/bin")   
+```
+This ensures that `clang --version` returns this:
+```
+~/Desktop/YMap/crates/yauth> clang --version
+Homebrew clang version 18.1.8
+Target: arm64-apple-darwin23.5.0
+Thread model: posix
+InstalledDir: /opt/homebrew/opt/llvm/bin
+```
+Because that seems to fix the `error: failed to build archive: 'wasm32.o': section too large` error?
 
 <!-- Infinite mind mapping software
 

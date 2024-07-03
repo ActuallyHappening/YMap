@@ -10,18 +10,22 @@ clap = { version = "4.5.8", features = ["derive", "env"] }
 color-eyre = "0.6.3"
 rand = "0.8.5"
 thiserror = "1.0.61"
-tokio.workspace = true
 tracing = "0.1.40"
 tracing-error = "0.2.0"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
+
+## COPIED from main Cargo.toml
+# for non-wasm builds
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 which = "6.0.1"
+tokio = { version = "1.29.1", features = ["full"] }
+surrealdb = { workspace = true, features = ["kv-mem", "protocol-http"] }
 
-[target.'cfg(not(target_familyh = wasm))'.workspace.surrealdb]
-workspace = true
-features = ["kv-mem", "protocol-http"]
-
-[target.'cfg(target_familyh = wasm)'.workspace.surrealdb]
-workspace = true
+# for wasm builds
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { version = "1.29.1", features = ["sync", "macros", "rt"] }
+surrealdb = { workspace = true }
+getrandom = { version = "0.2.9", features = ["js"] }
 
 [lints]
 workspace = true

@@ -4,8 +4,10 @@ exclude = ["crates/testing-winit", "crates/wasm-test"]
 resolver = "2"
 
 [workspace.dependencies]
+# in workspace for global versioning
 surrealdb = "1.5.3"
 
+## Internal re-exports deps
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 
@@ -19,49 +21,7 @@ path = "crates/ysurreal"
 [workspace.dependencies.yauth]
 path = "crates/yauth"
 
-[workspace.lints.clippy]
-type_complexity = "allow"
-
-[workspace.metadata.scripts]
-dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
-
-# to keep in sync with bevy itself
-[workspace.dependencies.glam]
-version = "0.25.0"
-
-## to allow compiling for wasm32-unknown-unknown
-[workspace.dependencies.tokio]
-version = "1.38"
-features = ["sync", "macros", "rt"]
-# [workspace.dependencies.tokio]
-# version = "1.38"
-# features = ["full"]
-
-[workspace.dependencies.ring]
-version = "0.17.8" # check `cargo tree --target wasm32-unknown-unknown | bat / ring` to keep in sync
-features = ["wasm32_unknown_unknown_js"]
-
-# from previous project
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2.9", features = ["js"] }
-# tracing-web = "0.1.2"
-# console_error_panic_hook = "0.1.7"
-# # wasm_thread = {version = "0.2.0", features = ["es_modules"]}
-# # wasm-futures-executor = "0.2.0"
-
-# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# arboard = "3.2.0"
-# firebase-rs = "2.0.8"
-
-# # tokio
-# [target.'cfg(target_arch = "wasm32")'.dependencies.tokio]
-# version = "1.29.1"
-# features = ["macros", "rt", "sync"]
-
-# [target.'cfg(not(target_arch = "wasm32"))'.dependencies.tokio]
-# version = "1.29.1"
-# features = ["macros", "rt", "sync", "rt-multi-thread"]
-
+## Internal deps
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"
@@ -97,6 +57,23 @@ features = ["serialize"]
 # branch = "debug-parent-sync"
 git = "https://github.com/projectharmonia/bevy_replicon.git"
 branch = "master"
+
+## Workspace config
+[workspace.lints.clippy]
+type_complexity = "allow"
+
+[workspace.metadata.scripts]
+dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
+
+# to keep in sync with bevy itself
+[workspace.dependencies.glam]
+version = "0.25.0"
+
+## to allow compiling for wasm32-unknown-unknown
+
+[workspace.dependencies.ring]
+version = "0.17.8"                       # check `cargo tree --target wasm32-unknown-unknown | bat / ring` to keep in sync
+features = ["wasm32_unknown_unknown_js"]
 
 ########## YMAP ##########
 
@@ -152,15 +129,22 @@ openssh = { version = "0.10.4", features = [
 ], optional = true }
 camino = "1.1.7"
 bossy = "0.2.1"
-which = "6.0.1"
 surrealdb.workspace = true
 serde_json = "1.0.120"
 rand = "0.8.5"
 leptos = "0.6.12"
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies.tokio]
-version = "1.29.1"
-features = ["full"]
+# for non-wasm builds
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+which = "6.0.1"
+tokio = { version = "1.29.1", features = ["full"] }
+surrealdb = { workspace = true, features = ["kv-mem", "protocol-http"] }
+
+# for wasm builds
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { version = "1.29.1", features = ["sync", "macros", "rt"] }
+surrealdb = { workspace = true }
+getrandom = { version = "0.2.9", features = ["js"] }
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"
@@ -181,3 +165,24 @@ name = "db"
 
 [dev-dependencies]
 test-log = { version = "0.2.16", features = ["trace"] }
+
+# from previous project for wasm support
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
+# getrandom = { version = "0.2.9", features = ["js"] }
+# tracing-web = "0.1.2"
+# console_error_panic_hook = "0.1.7"
+# # wasm_thread = {version = "0.2.0", features = ["es_modules"]}
+# # wasm-futures-executor = "0.2.0"
+
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# arboard = "3.2.0"
+# firebase-rs = "2.0.8"
+
+# # tokio
+# [target.'cfg(target_arch = "wasm32")'.dependencies.tokio]
+# version = "1.29.1"
+# features = ["macros", "rt", "sync"]
+
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies.tokio]
+# version = "1.29.1"
+# features = ["macros", "rt", "sync", "rt-multi-thread"]
