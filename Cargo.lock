@@ -9520,6 +9520,7 @@ dependencies = [
  "color-eyre",
  "derive_more",
  "extension-traits",
+ "leptos",
  "openssh",
  "rand",
  "serde",
