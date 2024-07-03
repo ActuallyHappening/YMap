@@ -7,7 +7,7 @@ pub enum AuthCommand {
 	#[clap(alias = "signup")]
 	SignUp {
 		#[clap(flatten)]
-		signup_options: yauth::signup::Signup,
+		signup_options: yauth::signup::SignUp,
 	},
 	List,
 }

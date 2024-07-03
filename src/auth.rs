@@ -88,7 +88,7 @@ mod test {
 	use ysurreal::{config::start_in_memory, configs::TestingMem};
 
 	use super::INIT_SURQL;
-	use yauth::{prelude::*, signup::Signup};
+	use yauth::{prelude::*, signup::SignUp};
 
 	#[test_log::test(tokio::test)]
 	async fn sign_up_works() -> Result<(), Report> {
@@ -102,7 +102,7 @@ mod test {
 		auth_config
 			.sign_up(
 				&db,
-				&Signup {
+				&SignUp {
 					username: "my username 123".parse().unwrap(),
 					password: "my password 123".parse().unwrap(),
 					email: "me@mydomain.com".parse().unwrap(),

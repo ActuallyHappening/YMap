@@ -2,7 +2,6 @@
 
 pub mod prelude {
 	// deps re-exports
-	pub(crate) use color_eyre::eyre::{Context, Report};
 	pub(crate) use garde::Validate;
 	pub(crate) use serde::{Deserialize, Serialize};
 	pub(crate) use std::future::Future;
@@ -24,7 +23,6 @@ pub mod types;
 
 pub mod config {
 	use crate::{prelude::*, types::UserRecord};
-	use surrealdb::opt::auth::Jwt;
 	use ysurreal::config::DBConnectRemoteConfig;
 
 	pub trait DBAuthConfig: DBConnectRemoteConfig {
@@ -37,7 +35,7 @@ pub mod config {
 		fn sign_up<C: Connection>(
 			&self,
 			db: &Surreal<C>,
-			signup: &crate::signup::Signup,
+			signup: &crate::signup::SignUp,
 		) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
 		where
 			Self: Sized,

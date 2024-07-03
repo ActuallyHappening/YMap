@@ -1,29 +1,27 @@
-use std::str::FromStr;
-
 use crate::error::InternalInvariantBroken;
 use crate::prelude::*;
 use crate::types::{Email, Password, UserRecord, Username};
-use surrealdb::opt::auth::{Jwt, Scope};
+use surrealdb::opt::auth::Scope;
 
 /// User facing signup data request
 #[derive(garde::Validate, clap::Args, Serialize, Clone, Debug)]
-pub struct Signup {
-	#[arg(long, default_value_t = { Username::from_str("My username").unwrap()} )]
+pub struct SignUp {
+	#[arg(long)]
 	#[garde(dive)]
 	pub username: Username,
 
-	#[arg(long, default_value_t = { Password::from_str("My password").unwrap() })]
+	#[arg(long)]
 	#[garde(dive)]
 	pub password: Password,
 
-	#[arg(long, default_value_t = { Email::from_str("me@example.com").unwrap() })]
+	#[arg(long)]
 	#[garde(dive)]
 	pub email: Email,
 }
 
-impl Signup {
+impl SignUp {
 	pub fn new(username: String, password: String, email: String) -> Result<Self, ValidationError> {
-		Ok(Signup {
+		Ok(SignUp {
 			username: Username::try_new(username)?,
 			password: Password::try_new(password)?,
 			email: Email::try_new(email)?,
@@ -51,7 +49,7 @@ pub(crate) async fn list_users<Config: DBAuthConfig, C: Connection>(
 pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
-	signup: &Signup,
+	signup: &SignUp,
 ) -> Result<crate::types::UserRecord, AuthError> {
 	debug!("Signing user up");
 	let namespace = config.primary_namespace();
@@ -63,23 +61,15 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 
 	db.use_ns(namespace).use_db(database).await?;
 
-	let _jwt = db
-		.signup(Scope {
-			namespace,
-			database,
-			scope,
-			params: &signup,
-		})
-		.await?;
-	// db.authenticate(jwt.clone()).await?;
-
-	db.signin(Scope {
+	db.signup(Scope {
 		namespace,
 		database,
 		scope,
 		params: &signup,
 	})
 	.await?;
+
+	config.sign_in(db, &signup.into()).await?;
 
 	trace!("User signed up and signed in successfully");
 
@@ -89,8 +79,6 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 		.bind(("email", &signup.email))
 		.await?
 		.take(0)?;
-
-	trace!(?new_user, "User record identified successfully");
 
 	new_user
 		.into_iter()
@@ -103,12 +91,13 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 #[cfg(test)]
 mod test {
 	use serde_json::json;
+	use std::str::FromStr;
 
 	use super::*;
 
 	#[test]
 	fn signup_serializes() {
-		let signup = Signup {
+		let signup = SignUp {
 			username: Username::from_str("my username").unwrap(),
 			password: Password::from_str("my password").unwrap(),
 			email: Email::from_str("me@example.com").unwrap(),

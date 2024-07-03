@@ -3,13 +3,37 @@ use surrealdb::opt::auth::Scope;
 use crate::{
 	error::InternalInvariantBroken,
 	prelude::*,
-	types::{Password, UserRecord},
+	signup::SignUp,
+	types::{Email, Password, UserRecord},
 };
 
-#[derive(Serialize, Debug)]
+#[derive(clap::Args, Validate, Serialize, Debug)]
 pub struct SignIn {
-	email: String,
-	password: Password,
+	#[arg(long)]
+	#[garde(dive)]
+	pub email: Email,
+
+	#[arg(long)]
+	#[garde(dive)]
+	pub password: Password,
+}
+
+impl From<SignUp> for SignIn {
+	fn from(value: SignUp) -> Self {
+		SignIn {
+			email: value.email,
+			password: value.password,
+		}
+	}
+}
+
+impl From<&SignUp> for SignIn {
+	fn from(value: &SignUp) -> Self {
+		SignIn {
+			email: value.email.clone(),
+			password: value.password.clone(),
+		}
+	}
 }
 
 /// See [DBAuthConfig::sign_up] for documentation
