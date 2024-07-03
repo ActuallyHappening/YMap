@@ -15,9 +15,9 @@ pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<
 	match command {
 		AuthCommand::SignUp { signup_options } => {
 			let db = config.connect_ws().await?;
-			db.use_ns(config.primary_namespace())
-				.use_db(config.primary_database())
-				.await?;
+			// db.use_ns(config.primary_namespace())
+			// 	.use_db(config.primary_database())
+			// 	.await?;
 
 			config.sign_up(&db, signup_options).await?;
 

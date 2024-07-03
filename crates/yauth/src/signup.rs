@@ -42,8 +42,7 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 			namespace: config.primary_namespace().as_str(),
 			database: config.primary_database().as_str(),
 			scope: config.users_scope().as_str(),
-			// params: &signup,
-			params: &(),
+			params: &signup,
 		})
 		.await?;
 
@@ -67,4 +66,26 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	// 	.ok_or(AuthError::InternalInvariantBroken(
 	// 		InternalInvariantBroken::UserSignedUpButNoRecord,
 	// 	))
+}
+
+#[cfg(test)]
+mod test {
+	use serde_json::json;
+
+	use super::*;
+
+	#[test]
+	fn signup_serializes() {
+		let signup = Signup {
+			username: Username::from_str("my username").unwrap(),
+			password: Password::from_str("my password").unwrap(),
+			email: Email::from_str("me@example.com").unwrap(),
+		};
+		let expected = json!({
+			"username": "my username",
+			"password": "my password",
+			"email": "me@example.com",
+		});
+		assert_eq!(serde_json::to_value(signup).unwrap(), expected);
+	}
 }
