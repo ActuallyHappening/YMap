@@ -29,13 +29,38 @@ dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features c
 [workspace.dependencies.glam]
 version = "0.25.0"
 
-# to allow compiling for wasm32-unknown-unknown
+## to allow compiling for wasm32-unknown-unknown
 [workspace.dependencies.tokio]
 version = "1.38"
-features = ["sync", "macros", "io-util", "rt"]
+features = ["sync", "macros", "rt"]
 # [workspace.dependencies.tokio]
 # version = "1.38"
 # features = ["full"]
+
+[workspace.dependencies.ring]
+version = "0.17.8" # check `cargo tree --target wasm32-unknown-unknown | bat / ring` to keep in sync
+features = ["wasm32_unknown_unknown_js"]
+
+# from previous project
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2.9", features = ["js"] }
+# tracing-web = "0.1.2"
+# console_error_panic_hook = "0.1.7"
+# # wasm_thread = {version = "0.2.0", features = ["es_modules"]}
+# # wasm-futures-executor = "0.2.0"
+
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# arboard = "3.2.0"
+# firebase-rs = "2.0.8"
+
+# # tokio
+# [target.'cfg(target_arch = "wasm32")'.dependencies.tokio]
+# version = "1.29.1"
+# features = ["macros", "rt", "sync"]
+
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies.tokio]
+# version = "1.29.1"
+# features = ["macros", "rt", "sync", "rt-multi-thread"]
 
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
@@ -97,7 +122,7 @@ ios = []
 debug = ["bevy_yscribble_3d/debug"]
 
 [package.metadata.xcode-build-rs.ios]
-## What features to enable for `io` builds, see `xcode-build-rs` for more information
+## What features to enable for `ios` builds, see `xcode-build-rs` for more information
 features = ["ios"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -132,6 +157,10 @@ surrealdb.workspace = true
 serde_json = "1.0.120"
 rand = "0.8.5"
 leptos = "0.6.12"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.tokio]
+version = "1.29.1"
+features = ["full"]
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"
