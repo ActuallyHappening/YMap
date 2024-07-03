@@ -173,15 +173,17 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 		}
 		ProductionCommand::Import => {
 			let db = config.connect_ws().await?;
+			config.root_sign_in(&db).await?;
+			config.root_init(&db).await?;
 			db.use_ns(config.primary_namespace())
 				.use_db(config.primary_database())
 				.await?;
-			config.root_init(&db).await?;
 
 			Ok(())
 		}
 		ProductionCommand::Connect => {
-			bossy::Command::pure("surreal")
+			bossy::Command::pure(which("surreal").wrap_err("Cannot find local surreal binary")?)
+				.with_arg("sql")
 				.with_args(config.get_sql_cli_args())
 				.run_and_wait()
 				.wrap_err("Failed to run surreal sql")?;

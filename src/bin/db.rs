@@ -5,6 +5,7 @@ pub mod prelude {
 	pub(crate) use ymap::secrets::{Secrets, SecretsTemplate};
 	pub(crate) use camino::{Utf8Path, Utf8PathBuf};
 	pub(crate) use color_eyre::eyre::WrapErr;
+	pub(crate) use which::which;
 }
 
 #[path = "db/production.rs"]
@@ -61,7 +62,7 @@ async fn main() {
 	match run(cli).await {
 		Ok(_) => info!("ysurreal CLI completed successfully"),
 		Err(err) => {
-			eprintln!("{}", err);
+			eprintln!("Error running DB script: {}", err);
 		}
 	}
 }
