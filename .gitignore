@@ -19,3 +19,4 @@
 !Trunk.toml
 !init.surql
 !xcode
+!secrets_template.rs

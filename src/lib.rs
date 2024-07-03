@@ -13,6 +13,7 @@ mod prelude {
 	pub use extension_traits::extension;
 	pub use serde::{Deserialize, Serialize};
 }
+pub mod secrets;
 mod camera;
 mod consts;
 mod debug;

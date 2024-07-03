@@ -1,5 +1,13 @@
-use clap::{Parser, Subcommand};
-use tracing::*;
+pub mod prelude {
+	pub(crate) use clap::{Parser, Subcommand};
+	pub(crate) use color_eyre::eyre::Report;
+	pub(crate) use tracing::*;
+}
+
+#[path = "db/production.rs"]
+pub mod production;
+
+use crate::prelude::*;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -13,10 +21,10 @@ pub enum Commands {
 	/// Executes commands on the server, see [ProductionCommand]
 	Production {
 		#[clap(flatten)]
-		ssh_server: ysurreal::production::SSHServerConnection,
+		ssh_server: production::SSHServerConnection,
 
 		#[clap(subcommand)]
-		production_command: ysurreal::production::ProductionCommand,
+		production_command: production::ProductionCommand,
 	},
 }
 
@@ -55,13 +63,13 @@ async fn main() {
 	}
 }
 
-async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn run(cli: Cli) -> Result<(), Report> {
 	match cli.command {
 		Commands::Production {
 			ssh_server,
 			production_command,
 		} => {
-			ysurreal::production::handle(ssh_server, production_command).await?;
+			production::handle(&ssh_server, &production_command).await?;
 		}
 	}
 
