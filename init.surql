@@ -13,15 +13,21 @@ DEFINE FIELD password ON user TYPE string; # stores an HASH not the actual passw
 
 DEFINE INDEX email on user FIELDS email UNIQUE;
 
-DEFINE SCOPE user
+DEFINE SCOPE end_user
 	SESSION 1d
 	SIGNIN (
 		SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password)
 	)
 	SIGNUP (
+		-- CREATE user CONTENT {
+		-- 	username: $username,
+		-- 	email: $email,
+		-- 	password: crypto::argon2::generate($password)
+		-- }
+
 		CREATE user CONTENT {
-			username: $username,
-			email: $email,
-			password: crypto::argon2::generate($password)
+			username: "test",
+			email: "test",
+			password: "test",
 		}
 	);

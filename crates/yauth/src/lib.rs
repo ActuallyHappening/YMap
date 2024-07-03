@@ -20,10 +20,9 @@ pub mod prelude {
 use crate::prelude::*;
 
 pub mod config {
+	use crate::prelude::*;
 	use surrealdb::opt::auth::Jwt;
 	use ysurreal::config::DBConnectRemoteConfig;
-
-	use crate::{error::InternalInvariantBroken, prelude::*, types::UserRecord};
 
 	pub trait DBAuthConfig: DBConnectRemoteConfig {
 		fn users_table(&self) -> String;
@@ -109,7 +108,7 @@ pub mod configs {
 		}
 
 		fn users_scope(&self) -> String {
-			"user".into()
+			"end_user".into()
 		}
 	}
 

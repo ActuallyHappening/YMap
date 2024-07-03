@@ -37,22 +37,29 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 			namespace: config.primary_namespace().as_str(),
 			database: config.primary_database().as_str(),
 			scope: config.users_scope().as_str(),
-			params: &signup,
+			// params: &signup,
+			params: &(),
 		})
 		.await?;
 
 	trace!("User signed up successfully");
 
-	let new_user: Option<UserRecord> = db
-		.query("SELECT * FROM type::table($table) WHERE email = $email")
+	let new_user: Vec<serde_json::Value> = db
+		.query("SELECT * FROM type::table($table)")
 		.bind(("email", &signup.email))
 		.bind(("table", config.users_table()))
 		.await?
 		.take(0)?;
 
-	new_user
-		.map(|u| (jwt, u))
-		.ok_or(AuthError::InternalInvariantBroken(
-			InternalInvariantBroken::UserSignedUpButNoRecord,
-		))
+	trace!(?new_user);
+
+	todo!()
+
+	// new_user
+	// 	.into_iter()
+	// 	.next()
+	// 	.map(|u| (jwt, u))
+	// 	.ok_or(AuthError::InternalInvariantBroken(
+	// 		InternalInvariantBroken::UserSignedUpButNoRecord,
+	// 	))
 }

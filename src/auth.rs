@@ -18,7 +18,7 @@ mod test {
 		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
 
 		let debug_info = db.query("INFO FOR db").await?;
-		trace!(?debug_info);
+		trace!("{:#?}", debug_info);
 
 		auth_config
 			.sign_up(
