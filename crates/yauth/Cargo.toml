@@ -10,7 +10,6 @@ garde = { version = "0.19.2", features = ["derive", "email"] }
 serde = { version = "1.0.203", features = ["derive"] }
 surrealdb = { workspace = true, features = ["protocol-http"] }
 thiserror = "1.0.61"
-tokio.workspace = true
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 tracing-error = "0.2.0"
@@ -19,6 +18,14 @@ serde_json = "1.0.119"
 rand = "0.8.5"
 leptos = { version = "0.6.12", optional = true }
 console_error_panic_hook = "0.1.7"
+
+# for non-wasm builds
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.29.1", features = ["full"] }
+
+# for wasm builds
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { version = "1.29.1", features = ["sync", "macros", "rt"] }
 
 [features]
 default = ["leptos-ui"]

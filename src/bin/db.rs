@@ -1,3 +1,7 @@
+//! The Database controller script
+//! 
+//! This cannot be build for wasm (obviously) because the `openssh` crate depends on non-wasm stuff
+
 pub mod prelude {
 	pub(crate) use camino::Utf8Path;
 	pub(crate) use clap::{Parser, Subcommand};

@@ -4,3 +4,7 @@ t = "test-all-features"
 db = "--quiet r -p ymap --bin db --"
 xcb = "xcode-build-rs --colour --manifest-dir . test"
 bw = "b --target wasm32-unknown-unknown"
+
+[target.'cfg(target_arch = "wasm32")']
+# for wasm builds
+rustflags = ["--cfg", "web_sys_unstable_apis"]

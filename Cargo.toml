@@ -7,7 +7,7 @@ resolver = "2"
 # in workspace for global versioning
 surrealdb = "1.5.3"
 
-## Internal re-exports deps
+### Internal re-exports deps
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 
@@ -21,12 +21,30 @@ path = "crates/ysurreal"
 [workspace.dependencies.yauth]
 path = "crates/yauth"
 
-## Internal deps
+### Internal deps
+
+# to keep in sync with bevy itself
+[workspace.dependencies.glam]
+version = "0.25.0"
+
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"
 git = "https://github.com/ActuallyHappening/bevy_editor_pls.git"
 branch = "update-gizmos"
+
+## For `Debug` impl on `ParentSync`
+[patch.crates-io.bevy_replicon]
+# version = "0.26.3"
+# git = "https://github.com/ActuallyHappening/bevy_replicon.git"
+# branch = "debug-parent-sync"
+git = "https://github.com/projectharmonia/bevy_replicon.git"
+branch = "master"
+
+## When not using apple pencil double tap support
+[workspace.dependencies.bevy]
+version = "0.13.2"
+features = ["serialize"]
 
 # ## For Apple pencil double tap support
 # [patch.crates-io.winit]
@@ -44,19 +62,6 @@ branch = "update-gizmos"
 # # git = "https://github.com/ActuallyHappening/bevy.git"
 # # branch = "add-ansi-log-option"
 
-## When not using apple pencil double tap support
-[workspace.dependencies.bevy]
-version = "0.13.2"
-features = ["serialize"]
-
-
-## For `Debug` impl on `ParentSync`
-[patch.crates-io.bevy_replicon]
-# version = "0.26.3"
-# git = "https://github.com/ActuallyHappening/bevy_replicon.git"
-# branch = "debug-parent-sync"
-git = "https://github.com/projectharmonia/bevy_replicon.git"
-branch = "master"
 
 ## Workspace config
 [workspace.lints.clippy]
@@ -64,10 +69,6 @@ type_complexity = "allow"
 
 [workspace.metadata.scripts]
 dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
-
-# to keep in sync with bevy itself
-[workspace.dependencies.glam]
-version = "0.25.0"
 
 ## to allow compiling for wasm32-unknown-unknown
 
@@ -89,11 +90,10 @@ publish = false
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-not-wasm = ["dep:openssh"]
 ## If enabled, will not link in production secrets
 ## ENABLE THIS FOR PRODUCTION BUILDS
 production = []
-default = ["debug", "not-wasm"]
+default = ["debug"]
 ios = []
 ## Enabled bevy_yscribble_3d/debug
 debug = ["bevy_yscribble_3d/debug"]
@@ -122,14 +122,9 @@ color-eyre = "0.6.3"
 serde = { version = "1.0.203", features = ["derive"] }
 extension-traits = "1.0.1"
 tracing-error = "0.2.0"
-tokio = { workspace = true }
-openssh = { version = "0.10.4", features = [
-	"native-mux",
-	"openssh-mux-client",
-], optional = true }
+
 camino = "1.1.7"
 bossy = "0.2.1"
-surrealdb.workspace = true
 serde_json = "1.0.120"
 rand = "0.8.5"
 leptos = "0.6.12"
@@ -139,12 +134,25 @@ leptos = "0.6.12"
 which = "6.0.1"
 tokio = { version = "1.29.1", features = ["full"] }
 surrealdb = { workspace = true, features = ["kv-mem", "protocol-http"] }
+openssh = { version = "0.10.4", features = [
+	"native-mux",
+	"openssh-mux-client",
+] }
 
 # for wasm builds
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tokio = { version = "1.29.1", features = ["sync", "macros", "rt"] }
 surrealdb = { workspace = true }
 getrandom = { version = "0.2.9", features = ["js"] }
+
+# COPY for tokio wasm dependency
+# # for non-wasm builds
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# tokio = { version = "1.29.1", features = ["full"] }
+
+# # for wasm builds
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
+# tokio = { version = "1.29.1", features = ["sync", "macros", "rt"] }
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"

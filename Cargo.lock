@@ -9552,6 +9552,7 @@ dependencies = [
  "camino",
  "clap",
  "color-eyre",
+ "getrandom",
  "rand",
  "surrealdb",
  "thiserror",

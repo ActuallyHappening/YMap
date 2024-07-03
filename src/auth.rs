@@ -2,8 +2,6 @@
 mod init;
 
 pub mod config {
-	use openssh::Session;
-
 	use crate::prelude::*;
 
 	#[derive(Args, Debug, Clone)]
@@ -72,10 +70,11 @@ pub mod config {
 	}
 
 	impl ProductionConfig {
+		#[cfg(not(target_arch = "wasm32"))]
 		pub async fn ssh(&self) -> Result<Session, openssh::Error> {
 			let ssh_name = self.ssh_name.as_str();
 			info!(message = "Connecting to server host", ?ssh_name);
-			Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
+			openssh::Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
 		}
 	}
 }
