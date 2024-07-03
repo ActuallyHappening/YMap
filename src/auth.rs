@@ -1,6 +1,5 @@
 #[path = "../init.surql.rs"]
 mod init;
-use init::INIT_SURQL;
 
 pub mod config {
 	use openssh::Session;
@@ -87,8 +86,8 @@ mod test {
 	use color_eyre::eyre::Report;
 	use ysurreal::{config::start_blank_memory_db, configs::TestingMem};
 
-	use super::INIT_SURQL;
-	use yauth::{prelude::*, signup::SignUp};
+	use super::init::INIT_SURQL;
+	use yauth::signup::SignUp;
 
 	macro_rules! setup {
 		(db = $db:ident, conn_config = $conn_config:ident, auth_config = $auth_config:ident) => {

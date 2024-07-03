@@ -13,8 +13,8 @@ mod prelude {
 	pub(crate) use extension_traits::extension;
 	pub(crate) use serde::{Deserialize, Serialize};
 
-	pub use camino::{Utf8Path, Utf8PathBuf};
-	pub use clap::{Args, Subcommand};
+	pub use camino::Utf8PathBuf;
+	pub use clap::Args;
 
 	pub use crate::secrets::*;
 	pub use yauth::prelude::*;
