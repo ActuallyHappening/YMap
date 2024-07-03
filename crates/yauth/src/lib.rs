@@ -15,7 +15,6 @@ pub mod prelude {
 	pub use ysurreal::prelude::*;
 }
 use color_eyre::eyre::{Context, Error};
-use ysurreal::testing::TestingDBConnection;
 
 use crate::prelude::*;
 
@@ -57,21 +56,21 @@ pub struct AuthInstance {
 	pub scope: String,
 }
 
-impl AuthInstance {
-	/// For testing purposes, loads from the environment variables
-	/// `YAUTH_USERS_TABLE` and `YAUTH_USERS_SCOPE`.
-	pub fn from_env_testing() -> Self {
-		use std::env::var;
-		let conn = TestingDBConnection::from_env();
-		AuthInstance {
-			namespace: conn.namespace,
-			database: conn.database,
-			users_table: var("YAUTH_USERS_TABLE")
-				.wrap_err("Couldn't load YAUTH_USERS_TABLE")
-				.unwrap(),
-			scope: var("YAUTH_USERS_SCOPE")
-				.wrap_err("Couldn't load YAUTH_USERS_SCOPE")
-				.unwrap(),
-		}
-	}
-}
+// impl AuthInstance {
+// 	/// For testing purposes, loads from the environment variables
+// 	/// `YAUTH_USERS_TABLE` and `YAUTH_USERS_SCOPE`.
+// 	pub fn from_env_testing() -> Self {
+// 		use std::env::var;
+// 		let conn = TestingDBConnection::from_env();
+// 		AuthInstance {
+// 			namespace: conn.namespace,
+// 			database: conn.database,
+// 			users_table: var("YAUTH_USERS_TABLE")
+// 				.wrap_err("Couldn't load YAUTH_USERS_TABLE")
+// 				.unwrap(),
+// 			scope: var("YAUTH_USERS_SCOPE")
+// 				.wrap_err("Couldn't load YAUTH_USERS_SCOPE")
+// 				.unwrap(),
+// 		}
+// 	}
+// }

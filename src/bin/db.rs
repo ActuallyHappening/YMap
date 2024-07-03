@@ -7,6 +7,8 @@ pub mod prelude {
 #[path = "db/production.rs"]
 pub mod production;
 
+use ymap::secrets::{Secrets, SecretsTemplate};
+
 use crate::prelude::*;
 
 #[derive(Parser, Debug)]
@@ -20,8 +22,8 @@ pub struct Cli {
 pub enum Commands {
 	/// Executes commands on the server, see [ProductionCommand]
 	Production {
-		#[clap(flatten)]
-		ssh_server: production::SSHServerConnection,
+		#[arg(long, default_value_t = Secrets::ssh_name())]
+		ssh_server: String,
 
 		#[clap(subcommand)]
 		production_command: production::ProductionCommand,

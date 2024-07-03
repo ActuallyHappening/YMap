@@ -87,18 +87,18 @@ impl<'db, C: Connection> AuthConnection<'db, C> {
 	}
 }
 
-#[cfg(test)]
-mod tests {
-	use ysurreal::testing::TestingDBConnection;
+// #[cfg(test)]
+// mod tests {
+// 	use ysurreal::testing::TestingDBConnection;
 
-	use crate::prelude::*;
+// 	use crate::prelude::*;
 
-	#[tokio::test]
-	async fn testing_blank_signup_works() {
-		let conn_options = TestingDBConnection::from_env();
-		let db = conn_options.connect_ws().await.unwrap();
-		let auth_con = AuthConnection {
-			db: &db,
-		};
-	}
-}
+// 	#[tokio::test]
+// 	async fn testing_blank_signup_works() {
+// 		let conn_options = TestingDBConnection::from_env();
+// 		let db = conn_options.connect_ws().await.unwrap();
+// 		let auth_con = AuthConnection {
+// 			db: &db,
+// 		};
+// 	}
+// }

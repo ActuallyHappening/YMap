@@ -1,6 +1,6 @@
 pub trait SecretsTemplate: Sized {
-	fn ssh_name() -> &'static str;
-	fn production_password() -> &'static str;
+	fn ssh_name() -> String;
+	fn production_password() -> String;
 }
 
 /// This file is not checked into version control.
