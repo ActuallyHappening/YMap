@@ -4,6 +4,7 @@ use init::INIT_SURQL;
 
 #[cfg(test)]
 mod test {
+	use crate::prelude::*;
 	use color_eyre::eyre::Report;
 	use ysurreal::{config::start_in_memory, configs::TestingMem};
 
@@ -15,6 +16,9 @@ mod test {
 		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
 		let db = start_in_memory(&conn_config).unwrap().await?;
 		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
+
+		let debug_info = db.query("INFO FOR db").await?;
+		trace!(?debug_info);
 
 		auth_config
 			.sign_up(

@@ -2,28 +2,28 @@
 
 pub mod prelude {
 	// deps re-exports
+	pub(crate) use color_eyre::eyre::{Context, Report};
 	pub(crate) use garde::Validate;
 	pub(crate) use serde::{Deserialize, Serialize};
 	pub(crate) use std::future::Future;
 	pub(crate) use surrealdb::{Connection, Surreal};
 	pub(crate) use tracing::*;
-	pub(crate) use color_eyre::eyre::{Context, Report};
 
 	// internal re-exports
 	pub(crate) use crate::types::{ValidatedType, ValidationError};
 
 	// public exports
+	pub use crate::config::DBAuthConfig;
 	pub use crate::error::AuthError;
 	pub use ysurreal::prelude::*;
-	pub use crate::config::DBAuthConfig;
 }
 use crate::prelude::*;
 
 pub mod config {
-	use surrealdb::opt::auth::{Jwt, Scope};
+	use surrealdb::opt::auth::Jwt;
 	use ysurreal::config::DBConnectRemoteConfig;
 
-	use crate::{prelude::*, types::UserRecord};
+	use crate::{error::InternalInvariantBroken, prelude::*, types::UserRecord};
 
 	pub trait DBAuthConfig: DBConnectRemoteConfig {
 		fn users_table(&self) -> String;
@@ -36,33 +36,18 @@ pub mod config {
 			&self,
 			db: &Surreal<C>,
 			signup: &crate::signup::Signup,
-		) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync {
-			async move {
-				debug!("Signing user up");
-				let jwt = db
-					.signup(Scope {
-						namespace: self.primary_namespace().as_str(),
-						database: self.primary_database().as_str(),
-						scope: self.users_scope().as_str(),
-						params: &signup,
-					})
-					.await?;
-
-				trace!("User signed up successfully");
-
-				let new_user: Option<UserRecord> = db
-					.query("SELECT * FROM type::table($table) WHERE email = $email")
-					.bind(("email", &signup.email))
-					.bind(("table", self.users_table()))
-					.await?
-					.take(0)?;
-
-				new_user.map(|u| (jwt, u)).ok_or(AuthError::InternalInvariantBroken(String::from("User was signed up and signed into scope successfully, but could not be found in the database as expected")))
-			}
+		) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
+		where
+			Self: Sized,
+		{
+			crate::signup::sign_up(self, db, signup)
 		}
 	}
 
-	impl<C> DBAuthConfig for &C where C: DBAuthConfig {
+	impl<C> DBAuthConfig for &C
+	where
+		C: DBAuthConfig,
+	{
 		fn users_table(&self) -> String {
 			C::users_table(self)
 		}
@@ -84,10 +69,18 @@ pub mod error {
 		ValidationError(#[from] ValidationError),
 
 		#[error("Some internal invariant was broken: {0}")]
-		InternalInvariantBroken(String),
+		InternalInvariantBroken(#[from] InternalInvariantBroken),
 
 		#[error("An error occurred with the database: {0}")]
 		SurrealError(#[from] surrealdb::Error),
+	}
+
+	#[derive(Debug, thiserror::Error)]
+	pub enum InternalInvariantBroken {
+		#[error(
+			"User was signed up to the scope, but no corresponding record was found in the users table"
+		)]
+		UserSignedUpButNoRecord,
 	}
 }
 

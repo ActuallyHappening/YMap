@@ -128,8 +128,12 @@ pub mod config {
 			db: &Surreal<Any>,
 		) -> impl Future<Output = Result<(), surrealdb::Error>> + Send + Sync {
 			async {
-				debug!("Initializing database with SurrealQL");
-				db.query(self.init_surql().as_str()).await?;
+				let init_surql = self.init_surql();
+				debug!(
+					message = "Initializing database with SurrealQL",
+					length_of_surql = init_surql.len()
+				);
+				db.query(&init_surql).await?;
 				Ok(())
 			}
 		}
@@ -221,14 +225,16 @@ pub mod config {
 	{
 		if let StartDBType::Mem = config.db_type() {
 			Some(async {
-				let db = match surrealdb::engine::any::connect("memory".to_owned()).await {
+				// uses default configuration of a new database
+				// whether to use `mem://` or `memory` everywhere idk
+				let db = match surrealdb::engine::any::connect("mem://".to_owned()).await {
 					Ok(db) => db,
 					Err(err) => return Err(err),
 				};
 				db.use_ns(config.primary_namespace())
 					.use_db(config.primary_database())
 					.await?;
-				config.root_sign_in(&db).await?;
+				// config.root_sign_in(&db).await?;
 				config.root_init(&db).await?;
 				Ok(db)
 			})
@@ -296,11 +302,13 @@ pub mod configs {
 
 	impl DBConnectRemoteConfig for TestingMem {
 		fn primary_namespace(&self) -> String {
-			"test".into()
+			// so that init.surql matches production
+			"production".into()
 		}
 
 		fn primary_database(&self) -> String {
-			"test".into()
+			// so that init.surql matches production
+			"production".into()
 		}
 
 		fn connect_host(&self) -> String {
