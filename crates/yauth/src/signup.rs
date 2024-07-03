@@ -20,7 +20,7 @@ pub struct SignUp {
 }
 
 impl SignUp {
-	fn new(username: String, password: String, email: String) -> Result<Self, ValidationError> {
+	pub fn new(username: String, password: String, email: String) -> Result<Self, ValidationError> {
 		Ok(SignUp {
 			username: Username::try_new(username)?,
 			password: Password::try_new(password)?,
@@ -35,11 +35,6 @@ impl SignUp {
 			email: Email::testing_rand(),
 		}
 	}
-}
-
-#[cfg(test)]
-fn testing_compile() {
-	SignUp::testing_rand();
 }
 
 pub(crate) async fn list_users<Config: DBAuthConfig, C: Connection>(

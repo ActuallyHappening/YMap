@@ -12,6 +12,7 @@ pub mod prelude {
 	pub(crate) use crate::types::{ValidatedType, ValidationError};
 
 	// public exports
+	pub use std::str::FromStr;
 	pub use crate::config::DBAuthConfig;
 	pub use crate::error::AuthError;
 	pub use ysurreal::prelude::*;
@@ -19,6 +20,7 @@ pub mod prelude {
 use crate::prelude::*;
 pub mod signin;
 pub mod signup;
+pub mod signout;
 pub mod types;
 
 pub mod config {
@@ -53,6 +55,17 @@ pub mod config {
 			Self: Sized,
 		{
 			crate::signin::sign_in(self, db, signup)
+		}
+
+		/// Calls [Surreal::invalidate].
+		fn invalidate<C: Connection>(
+			&self,
+			db: &Surreal<C>,
+		) -> impl Future<Output = Result<(), AuthError>> + Send + Sync
+		where
+			Self: Sized,
+		{
+			crate::signout::invalidate(self, db)
 		}
 
 		fn list_users<C: Connection>(

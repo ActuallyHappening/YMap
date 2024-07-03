@@ -97,7 +97,7 @@ async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Repor
 
 async fn import(db: &Surreal<Any>, config: &ProductionConfig) -> Result<(), Report> {
 	config.root_sign_in(db).await?;
-	config.root_init(db).await?;
+	config.init_query(db).await?;
 
 	Ok(())
 }

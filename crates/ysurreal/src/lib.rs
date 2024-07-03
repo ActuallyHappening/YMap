@@ -18,7 +18,10 @@ pub mod config {
 	//!
 	//! Ideal use case: `ymap` crate defines its own ProductionConfig that loads secrets
 
-	use surrealdb::opt::auth::{Jwt, Root};
+	use surrealdb::{
+		opt::auth::{Jwt, Root},
+		Connection,
+	};
 
 	use crate::prelude::*;
 
@@ -136,8 +139,9 @@ pub mod config {
 		/// Returns the SurealQL queries to initialize the database.
 		fn init_surql(&self) -> String;
 
+		/// Initializes the database using [DBStartConfig::init_surql].
 		/// *Assumes you have already switch to primary database and namespace.*
-		fn root_init(
+		fn init_query(
 			&self,
 			db: &Surreal<Any>,
 		) -> impl Future<Output = Result<(), surrealdb::Error>> + Send + Sync {
@@ -162,6 +166,18 @@ pub mod config {
 
 		/// What database to connect to by default
 		fn primary_database(&self) -> String;
+
+		fn use_primary_ns_db<C: Connection>(
+			&self,
+			db: &Surreal<C>,
+		) -> impl Future<Output = Result<(), surrealdb::Error>> + Send + Sync {
+			async {
+				db.use_ns(self.primary_namespace())
+					.use_db(self.primary_database())
+					.await?;
+				Ok(())
+			}
+		}
 
 		/// e.g. cloud.surrealdb.com
 		///
@@ -228,10 +244,10 @@ pub mod config {
 	}
 
 	/// Start a new in-memory database for **testing only**.
-	/// Switches to primary database and namespace, and inits as well.
+	/// Switches to primary database and namespace.
 	///
 	/// You must unwrap the option first before calling `.await`.
-	pub fn start_in_memory<Config>(
+	pub fn start_blank_memory_db<Config>(
 		config: &Config,
 	) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync + '_>
 	where

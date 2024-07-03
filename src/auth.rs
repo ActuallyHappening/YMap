@@ -85,7 +85,7 @@ pub mod config {
 mod test {
 	use crate::prelude::*;
 	use color_eyre::eyre::Report;
-	use ysurreal::{config::start_in_memory, configs::TestingMem};
+	use ysurreal::{config::start_blank_memory_db, configs::TestingMem};
 
 	use super::INIT_SURQL;
 	use yauth::{prelude::*, signup::SignUp};
@@ -93,7 +93,7 @@ mod test {
 	#[test_log::test(tokio::test)]
 	async fn sign_up_works() -> Result<(), Report> {
 		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
-		let db = start_in_memory(&conn_config).unwrap().await?;
+		let db = start_blank_memory_db(&conn_config).unwrap().await?;
 		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
 
 		let debug_info = db.query("INFO FOR db").await?;
@@ -115,16 +115,58 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn user_table_permissions_work() -> Result<(), Report> {
+	async fn user_table_appends() -> Result<(), Report> {
 		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
-		let db = start_in_memory(&conn_config).unwrap().await?;
+		let db = start_blank_memory_db(&conn_config).unwrap().await?;
+		conn_config.use_primary_ns_db(&db).await?;
+		// doesn't require authorization by default
+		conn_config.init_query(&db).await?;
 		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
 
-		let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
-		assert_eq!(users.len(), 0, "Users table should not be readable until you have signed in");
+		// doesn't require authorization by default which is sad
+		// let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
+		// assert_eq!(users.len(), 0, "Users table should not be readable until you have signed in");
 
 		let credentials = SignUp::testing_rand();
 		auth_config.sign_up(&db, &credentials).await?;
+
+		let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
+		assert_eq!(
+			users.len(),
+			1,
+			"Users table should have one entry after signing one person in"
+		);
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
+	async fn user_table_appends_multiple() -> Result<(), Report> {
+		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
+		let db = start_blank_memory_db(&conn_config).unwrap().await?;
+		conn_config.use_primary_ns_db(&db).await?;
+		// doesn't require authorization by default
+		conn_config.init_query(&db).await?;
+		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
+
+		// doesn't require authorization by default which is sad
+		// let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
+		// assert_eq!(users.len(), 0, "Users table should not be readable until you have signed in");
+
+		for i in 1..10 {
+			let mut credentials = SignUp::testing_rand();
+			credentials.email = yauth::types::Email::from_str(&format!("testgenerated{i}@me.com")).unwrap();
+			auth_config.sign_up(&db, &credentials).await?;
+
+			let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
+			assert_eq!(
+				users.len(),
+				i,
+				"Users table should have {i} entry after signing {i} people in",
+			);
+
+			auth_config.invalidate(&db).await?;
+		}
 
 		Ok(())
 	}
