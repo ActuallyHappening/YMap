@@ -72,7 +72,8 @@ publish = false
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-## If enabled, will link in secrets and allow for production controller scripts to build
+## If enabled, will not link in production secrets
+## ENABLE THIS FOR PRODUCTION BUILDS
 production = []
 default = ["debug"]
 ios = []

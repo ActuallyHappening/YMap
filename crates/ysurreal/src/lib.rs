@@ -8,10 +8,14 @@ pub mod prelude {
 }
 
 pub mod config {
-	use surrealdb::{
-		engine::remote::ws::Ws,
-		opt::auth::{Jwt, Root},
-	};
+	//! All use cases for information regarding connecting to sureal db databases:
+	//! - Testing against an in-memory database, can use fake testing credentials
+	//! - Human configuring/testing against production database (can be feature flagged out with "production")
+	//! - Shipped configurations for clients to connect WITHOUT ROOT CREDENTIALS to a production database
+	//!
+	//! Ideal use case: `ymap` crate defines its own ProductionConfig that loads secrets
+
+	use surrealdb::opt::auth::{Jwt, Root};
 
 	use crate::prelude::*;
 
@@ -31,30 +35,40 @@ pub mod config {
 		}
 	}
 
-	/// For database configurations that include a root username and password.
-	/// 
-	/// Configurations shipped to clients should not include these
-	pub trait RootDBConfig: Send + Sync {
-
-	}
-
-	/// All config to start, connect and root manage a new database instance,
-	/// for testing or for production.
-	pub trait StartDBConfig: Send + Sync {
+	/// Provides credentials to sign into the root of a database.
+	///
+	/// Useful for importing into testing/production databases.
+	pub trait DBRootCredentials: Send + Sync {
 		fn root_username(&self) -> String {
 			"root".into()
 		}
 
 		fn root_password(&self) -> String;
 
-		fn primary_namespace(&self) -> String;
+		fn root_sign_in(
+			&self,
+			db: &Surreal<Any>,
+		) -> impl Future<Output = Result<Jwt, surrealdb::Error>> + Send + Sync {
+			async {
+				debug!("Signing into database with root credentials");
+				db.signin(Root {
+					username: self.root_username().as_str(),
+					password: self.root_password().as_str(),
+				})
+				.await
+			}
+		}
+	}
 
-		fn primary_database(&self) -> String;
-
+	/// All config to start a new database instance,
+	/// for testing or for production.
+	pub trait StartDBConfig: Send + Sync {
+		/// whether to pass the --strict flag to surreal --start
 		fn strict(&self) -> bool {
 			true
 		}
 
+		/// whether to pass the --auth flag to surreal --start
 		fn auth(&self) -> bool {
 			true
 		}
@@ -70,8 +84,13 @@ pub mod config {
 		/// Whether its a [DBType::Mem] or [DBType::File]
 		fn db_type(&self) -> StartDBType;
 
-		/// Arguments to pass to `surreal start`, e.g. `--password`
-		fn get_cli_args(&self) -> Vec<String> {
+		/// Arguments to pass to `surreal start`, e.g. `--password`.
+		///
+		/// Only used for production databases.
+		fn get_cli_args(&self) -> Vec<String>
+		where
+			Self: DBRootCredentials,
+		{
 			let mut args = vec![
 				"--username".into(),
 				self.root_username(),
@@ -94,26 +113,7 @@ pub mod config {
 		/// Returns the SurealQL queries to initialize the database.
 		fn init_surql(&self) -> String;
 
-		/// e.g. cloud.surrealdb.com
-		fn connect_host(&self) -> String;
-
-		/// Usually [StartDBConfig::bind_port]
-		fn connect_port(&self) -> u16;
-
-		fn root_sign_in(
-			&self,
-			db: &Surreal<Any>,
-		) -> impl Future<Output = Result<Jwt, surrealdb::Error>> + Send + Sync {
-			async {
-				debug!("Signing into database with root credentials");
-				db.signin(Root {
-					username: self.root_username().as_str(),
-					password: self.root_password().as_str(),
-				})
-				.await
-			}
-		}
-
+		/// *Assumes you have already switch to primary database and namespace.*
 		fn root_init(
 			&self,
 			db: &Surreal<Any>,
@@ -124,6 +124,25 @@ pub mod config {
 				Ok(())
 			}
 		}
+	}
+
+	/// All information for clients to connect to the **production** database instance.
+	///
+	/// Should be the only trait that the client config needs to implement.
+	pub trait ConnectRemoteDBConfig: Send + Sync {
+		/// What namespace to connect to by default
+		fn primary_namespace(&self) -> String;
+
+		/// What database to connect to by default
+		fn primary_database(&self) -> String;
+
+		/// e.g. cloud.surrealdb.com
+		///
+		/// Similar to [StartDBConfig::bind_host]
+		fn connect_host(&self) -> String;
+
+		/// Usually [StartDBConfig::bind_port]
+		fn connect_port(&self) -> u16;
 
 		/// Connects to database without signing in or initializing.
 		fn connect_ws(
@@ -133,27 +152,32 @@ pub mod config {
 			let port = self.connect_port();
 			surrealdb::engine::any::connect(format!("ws://{host}:{port}")).into_future()
 		}
+	}
 
-		/// Start a new in-memory database. Signs in and inits as well.
-		///
-		/// You must unwrap the option first before calling `.await`.
-		fn start_in_memory(
-			&self,
-		) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync> {
-			if let StartDBType::Mem = self.db_type() {
-				Some(async {
-					let db = match surrealdb::engine::any::connect("memory".to_owned()).await {
-						Ok(db) => db,
-						Err(err) => return Err(err),
-					};
-					self.root_sign_in(&db).await?;
-					self.root_init(&db).await?;
-					Ok(db)
-				})
-			} else {
-				warn!("Called `config.start_in_memory()` but wasn't a memory DB configuration.");
-				None
-			}
+	/// Start a new in-memory database for **testing only**.
+	/// Signs in as root, switches to primary database and namespace, and inits as well.
+	///
+	/// You must unwrap the option first before calling `.await`.
+	pub fn start_in_memory<Config>(
+		config: &Config,
+	) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync + '_>
+	where
+		Config: StartDBConfig + DBRootCredentials + ConnectRemoteDBConfig,
+	{
+		if let StartDBType::Mem = config.db_type() {
+			Some(async {
+				let db = match surrealdb::engine::any::connect("memory".to_owned()).await {
+					Ok(db) => db,
+					Err(err) => return Err(err),
+				};
+				db.use_ns(config.primary_namespace()).use_db(config.primary_database()).await?;
+				config.root_sign_in(&db).await?;
+				config.root_init(&db).await?;
+				Ok(db)
+			})
+		} else {
+			warn!("Called `config.start_in_memory()` but wasn't a memory DB configuration.");
+			None
 		}
 	}
 }
@@ -164,11 +188,17 @@ pub mod configs {
 	/// Constructs an in-memory database for testing purposes.
 	pub struct TestingMem {
 		pub port: u16,
+		pub username: String,
+		pub password: String,
 	}
 
 	impl TestingMem {
 		pub fn new(port: u16) -> Self {
-			TestingMem { port }
+			TestingMem {
+				port,
+				username: String::from("testing-username"),
+				password: String::from("testing-password"),
+			}
 		}
 
 		/// Generates a [TestingMem] with a random port between 10000 and 20000.

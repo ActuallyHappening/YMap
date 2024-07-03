@@ -5,8 +5,11 @@ pub trait SecretsTemplate: Sized {
 
 /// This file is not checked into version control.
 #[path = "./secrets.rs"]
-#[cfg(feature = "development")]
+#[cfg(not(feature = "production"))]
 mod secrets;
 
-#[cfg(feature = "development")]
+#[cfg(not(feature = "production"))]
 pub use secrets::Secrets;
+
+#[cfg(feature = "production")]
+pub struct Secrets;
