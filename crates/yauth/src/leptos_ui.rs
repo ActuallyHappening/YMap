@@ -6,40 +6,38 @@ use leptos::*;
 
 #[component]
 fn UsernameInput() -> impl IntoView {
+	let (raw_username, set_raw_username) = create_signal("Your Username".to_string());
+
 	view! {
-		<div class="flex items-center justify-center h-[90vh]">
-		<Card class="sm:w-[80vw] xl:w-[40vw] p-4">
-			<template #title>Login</template>
-			<template #content>
-				<form @submit.prevent="handleLogin">
-					<div class="mb-4 md:mb-6">
-						<InputText class="w-full p-2" type="email" placeholder="Email" v-model="email" />
-					</div>
-					<div class="mb-4 md:mb-6">
-						<InputText
-							type="password"
-							class="w-full p-2"
-							placeholder="Password"
-							v-model="password"
-						/>
-					</div>
-					<Button class="w-full p-2" label="Log In" type="submit" />
-				</form>
-			</template>
-		</Card>
-	</div>
+		<div class="mb-4 md:mb-6">
+			<input
+				type="text"
+				class="w-full p-2"
+				placeholder="Username"
+				on:input=move |ev| {
+					set_raw_username(event_target_value(&ev));
+				}
+
+				prop:value=raw_username
+			/>
+		</div>
 	}
 }
 
 #[component]
 fn PasswordInput() -> impl IntoView {
+	let (raw_password, set_raw_password) = create_signal("".to_string());
 	view! {
 		<div class="mb-4 md:mb-6">
-			<InputText
+			<input
 				type="password"
 				class="w-full p-2"
 				placeholder="Password"
-				v-model="password"
+				on:input=move |ev| {
+					set_raw_password(event_target_value(&ev));
+				}
+
+				prop:value=raw_password
 			/>
 		</div>
 	}
@@ -47,9 +45,18 @@ fn PasswordInput() -> impl IntoView {
 
 #[component]
 fn EmailInput() -> impl IntoView {
+	let (raw_email, set_raw_email) = create_signal("".to_string());
+
 	view! {
 		<div class="mb-4 md:mb-6">
-			<InputText class="w-full p-2" type="email" placeholder="Email" v-model="email"/>
+			<input
+				class="w-full p-2"
+				type="email"
+				placeholder="Email"
+				on:input=move |ev| {
+					set_raw_email(event_target_value(&ev));
+				}
+			/>
 		</div>
 	}
 }

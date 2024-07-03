@@ -29,7 +29,3 @@ workspace = true
 
 [dev-dependencies]
 serde_json = "1.0.119"
-
-[[example]]
-name = "web_ui"
-required-features = ["web_ui"]
