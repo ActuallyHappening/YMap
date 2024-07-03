@@ -17,9 +17,19 @@ tracing-error = "0.2.0"
 color-eyre = "0.6.3"
 serde_json = "1.0.119"
 rand = "0.8.5"
+leptos = { version = "0.6.12", optional = true }
+console_error_panic_hook = "0.1.7"
+
+[features]
+default = ["web_ui"]
+web_ui = ["dep:leptos"]
 
 [lints]
 workspace = true
 
 [dev-dependencies]
 serde_json = "1.0.119"
+
+[[example]]
+name = "web_ui"
+required-features = ["web_ui"]

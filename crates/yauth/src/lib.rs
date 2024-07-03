@@ -25,3 +25,5 @@ pub mod signin;
 pub mod signout;
 pub mod signup;
 pub mod types;
+#[cfg(feature = "web_ui")]
+pub mod web_ui;
