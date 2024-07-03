@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/*", "crates/yscribble/bevy_*"]
-exclude = ["crates/testing-winit"]
+exclude = ["crates/testing-winit", "crates/wasm-test"]
 resolver = "2"
 
 [workspace.dependencies]
