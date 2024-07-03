@@ -1,13 +1,12 @@
 pub mod prelude {
-	pub(crate) use clap::{Parser, Subcommand};
+	pub(crate) use clap::{Parser, Subcommand, Args};
 	pub(crate) use color_eyre::eyre::Report;
 	pub(crate) use tracing::*;
+	pub(crate) use ymap::secrets::{Secrets, SecretsTemplate};
 }
 
 #[path = "db/production.rs"]
 pub mod production;
-
-use ymap::secrets::{Secrets, SecretsTemplate};
 
 use crate::prelude::*;
 
@@ -22,8 +21,8 @@ pub struct Cli {
 pub enum Commands {
 	/// Executes commands on the server, see [ProductionCommand]
 	Production {
-		#[arg(long, default_value_t = Secrets::ssh_name())]
-		ssh_server: String,
+		#[clap(flatten)]
+		production_config: production::ProductionConfig,
 
 		#[clap(subcommand)]
 		production_command: production::ProductionCommand,
@@ -68,10 +67,10 @@ async fn main() {
 async fn run(cli: Cli) -> Result<(), Report> {
 	match cli.command {
 		Commands::Production {
-			ssh_server,
+			production_config,
 			production_command,
 		} => {
-			production::handle(&ssh_server, &production_command).await?;
+			production::handle(&production_config, &production_command).await?;
 		}
 	}
 
