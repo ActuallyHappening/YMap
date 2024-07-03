@@ -8958,6 +8958,7 @@ dependencies = [
  "bevy_replicon",
  "bevy_replicon_renet",
  "bevy_yscribble_3d",
+ "bossy",
  "camino",
  "clap",
  "color-eyre",

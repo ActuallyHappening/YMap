@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::prelude::*;
-use ysurreal::config::{RootConnectDBConfig, StartDBConfig};
+use ysurreal::config::{ConnectRemoteDBConfig, DBRootCredentials, StartDBConfig};
 
 #[derive(Args, Debug, Clone)]
 pub struct ProductionConfig {
@@ -16,16 +16,8 @@ pub struct ProductionConfig {
 }
 
 impl StartDBConfig for ProductionConfig {
-	fn root_password(&self) -> String {
-		Secrets::production_password()
-	}
-
-	fn primary_namespace(&self) -> String {
-		"production".into()
-	}
-
-	fn primary_database(&self) -> String {
-		"production".into()
+	fn init_surql(&self) -> String {
+		include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/init.surql")).into()
 	}
 
 	fn bind_port(&self) -> u16 {
@@ -39,7 +31,21 @@ impl StartDBConfig for ProductionConfig {
 	}
 }
 
-impl RootConnectDBConfig for ProductionConfig {
+impl DBRootCredentials for ProductionConfig {
+	fn root_password(&self) -> String {
+		Secrets::production_password()
+	}
+}
+
+impl ConnectRemoteDBConfig for ProductionConfig {
+	fn primary_namespace(&self) -> String {
+		"production".into()
+	}
+
+	fn primary_database(&self) -> String {
+		"production".into()
+	}
+
 	fn connect_host(&self) -> String {
 		"actually-happening.foundation".into()
 	}
@@ -158,6 +164,18 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 		}
 		ProductionCommand::Import => {
 			let db = config.connect_ws().await?;
+			db.use_ns(config.primary_namespace())
+				.use_db(config.primary_database())
+				.await?;
+			config.root_init(&db).await?;
+
+			Ok(())
+		}
+		ProductionCommand::Connect => {
+			bossy::Command::pure("surreal")
+				.with_args(config.get_sql_cli_args())
+				.run_and_wait()
+				.wrap_err("Failed to run surreal sql")?;
 
 			Ok(())
 		}

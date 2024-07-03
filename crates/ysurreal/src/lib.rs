@@ -152,6 +152,31 @@ pub mod config {
 			let port = self.connect_port();
 			surrealdb::engine::any::connect(format!("ws://{host}:{port}")).into_future()
 		}
+
+		/// Returns the arguments to `surreal sql` to successfully connect.
+		///
+		/// Requires [DBRootCredentials] because it signs in as root to execute its commands.
+		/// Requires [ConnectRemoteDBConfig] because it needs the host, port, namespace and database.
+		fn get_sql_cli_args(&self) -> Vec<String>
+		where
+			Self: DBRootCredentials + ConnectRemoteDBConfig,
+		{
+			vec![
+				"--pretty".into(),
+				"--auth-level".into(),
+				"root".into(),
+				"--username".into(),
+				self.root_username(),
+				"--password".into(),
+				self.root_password(),
+				"--endpoint".into(),
+				format!("ws://{}:{}", self.connect_host(), self.connect_port()),
+				"--namespace".into(),
+				self.primary_namespace(),
+				"--database".into(),
+				self.primary_database(),
+			]
+		}
 	}
 
 	/// Start a new in-memory database for **testing only**.
@@ -170,7 +195,9 @@ pub mod config {
 					Ok(db) => db,
 					Err(err) => return Err(err),
 				};
-				db.use_ns(config.primary_namespace()).use_db(config.primary_database()).await?;
+				db.use_ns(config.primary_namespace())
+					.use_db(config.primary_database())
+					.await?;
 				config.root_sign_in(&db).await?;
 				config.root_init(&db).await?;
 				Ok(db)

@@ -106,6 +106,7 @@ tracing-error = "0.2.0"
 tokio = { version = "1.38.0", features = ["full"] }
 openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
 camino = "1.1.7"
+bossy = "0.2.1"
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"
