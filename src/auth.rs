@@ -90,38 +90,77 @@ mod test {
 	use super::INIT_SURQL;
 	use yauth::{prelude::*, signup::SignUp};
 
+	macro_rules! setup {
+		(db = $db:ident, conn_config = $conn_config:ident, auth_config = $auth_config:ident) => {
+			let $conn_config = TestingMem::rand(INIT_SURQL.to_string());
+			let $db = start_blank_memory_db(&$conn_config).unwrap().await?;
+			$conn_config.init_query(&$db).await?;
+			$conn_config.use_primary_ns_db(&$db).await?;
+			let $auth_config = yauth::configs::TestingAuthConfig::new(&$conn_config);
+		};
+	}
+
 	#[test_log::test(tokio::test)]
 	async fn sign_up_works() -> Result<(), Report> {
-		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
-		let db = start_blank_memory_db(&conn_config).unwrap().await?;
-		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
-
-		let debug_info = db.query("INFO FOR db").await?;
-		trace!("{:#?}", debug_info);
+		setup!(
+			db = db,
+			conn_config = conn_config,
+			auth_config = auth_config
+		);
 
 		// signs in as a scoped user
-		auth_config
-			.sign_up(
-				&db,
-				&SignUp {
-					username: "my username 123".parse().unwrap(),
-					password: "my password 123".parse().unwrap(),
-					email: "me@mydomain.com".parse().unwrap(),
-				},
-			)
-			.await?;
+		auth_config.sign_up(&db, &SignUp::testing_rand()).await?;
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
+	async fn sign_in_works() -> Result<(), Report> {
+		setup!(
+			db = db,
+			conn_config = conn_config,
+			auth_config = auth_config
+		);
+
+		let credentials = SignUp::testing_rand();
+
+		// signs in as a scoped user
+		auth_config.sign_up(&db, &credentials).await?;
+		auth_config.invalidate(&db).await?;
+
+		// signs into already signed up user
+		auth_config.sign_in(&db, &credentials.into()).await?;
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
+	async fn sign_up_twice_fails() -> Result<(), Report> {
+		setup!(
+			db = db,
+			conn_config = conn_config,
+			auth_config = auth_config
+		);
+
+		let credentials = SignUp::testing_rand();
+
+		// signs in as a scoped user
+		auth_config.sign_up(&db, &credentials).await?;
+		auth_config.invalidate(&db).await?;
+
+		let result = auth_config.sign_up(&db, &credentials).await;
+		assert!(result.is_err());
 
 		Ok(())
 	}
 
 	#[test_log::test(tokio::test)]
 	async fn user_table_appends() -> Result<(), Report> {
-		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
-		let db = start_blank_memory_db(&conn_config).unwrap().await?;
-		conn_config.use_primary_ns_db(&db).await?;
-		// doesn't require authorization by default
-		conn_config.init_query(&db).await?;
-		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
+		setup!(
+			db = db,
+			conn_config = conn_config,
+			auth_config = auth_config
+		);
 
 		// doesn't require authorization by default which is sad
 		// let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
@@ -142,12 +181,11 @@ mod test {
 
 	#[test_log::test(tokio::test)]
 	async fn user_table_appends_multiple() -> Result<(), Report> {
-		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
-		let db = start_blank_memory_db(&conn_config).unwrap().await?;
-		conn_config.use_primary_ns_db(&db).await?;
-		// doesn't require authorization by default
-		conn_config.init_query(&db).await?;
-		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
+		setup!(
+			db = db,
+			conn_config = conn_config,
+			auth_config = auth_config
+		);
 
 		// doesn't require authorization by default which is sad
 		// let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
@@ -155,8 +193,13 @@ mod test {
 
 		for i in 1..10 {
 			let mut credentials = SignUp::testing_rand();
-			credentials.email = yauth::types::Email::from_str(&format!("testgenerated{i}@me.com")).unwrap();
+			credentials.email =
+				yauth::types::Email::from_str(&format!("testgenerated{i}@me.com")).unwrap();
+
+			// sign into scope account to create new user, then sign into root user
 			auth_config.sign_up(&db, &credentials).await?;
+			auth_config.invalidate(&db).await?;
+			conn_config.root_sign_in(&db).await?;
 
 			let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
 			assert_eq!(
@@ -165,7 +208,7 @@ mod test {
 				"Users table should have {i} entry after signing {i} people in",
 			);
 
-			auth_config.invalidate(&db).await?;
+			auth_config.invalidate(&db).await?
 		}
 
 		Ok(())

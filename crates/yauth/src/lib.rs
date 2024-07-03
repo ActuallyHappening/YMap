@@ -37,24 +37,24 @@ pub mod config {
 		fn sign_up<C: Connection>(
 			&self,
 			db: &Surreal<C>,
-			signup: &crate::signup::SignUp,
+			credentials: &crate::signup::SignUp,
 		) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
 		where
 			Self: Sized,
 		{
-			crate::signup::sign_up(self, db, signup)
+			crate::signup::sign_up(self, db, credentials)
 		}
 
 		/// Signs into the scope assuming the user has already signed up, and switches to primary ns and db.
 		fn sign_in<C: Connection>(
 			&self,
 			db: &Surreal<C>,
-			signup: &crate::signin::SignIn,
+			credentials: &crate::signin::SignIn,
 		) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
 		where
 			Self: Sized,
 		{
-			crate::signin::sign_in(self, db, signup)
+			crate::signin::sign_in(self, db, credentials)
 		}
 
 		/// Calls [Surreal::invalidate].
