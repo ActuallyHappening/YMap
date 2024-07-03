@@ -35,37 +35,53 @@ pub(crate) async fn list_users<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<Vec<UserRecord>, AuthError> {
-	let users: Vec<UserRecord> = db
-		.query("SELECT * FROM type::table($table)")
-		.bind(("table", config.users_table()))
-		.await?
-		.take(0)?;
+	// let users: Vec<UserRecord> = db
+	// 	.query("SELECT * FROM type::table($table)")
+	// 	.bind(("table", config.users_table()))
+	// 	.await?
+	// 	.take(0)?;
+	let users: Vec<UserRecord> = db.select(config.users_table()).await?;
 
 	trace!(?users);
 
 	Ok(users)
 }
 
-/// Signs up, and switches to primary namespace and database.
+/// See [DBAuthConfig::sign_up] for documentation
 pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 	signup: &Signup,
-) -> Result<(Jwt, crate::types::UserRecord), AuthError> {
+) -> Result<crate::types::UserRecord, AuthError> {
 	debug!("Signing user up");
-	db.use_ns(config.primary_namespace())
-		.use_db(config.primary_database())
-		.await?;
-	let jwt = db
+	let namespace = config.primary_namespace();
+	let namespace = namespace.as_str();
+	let database = config.primary_database();
+	let database = database.as_str();
+	let scope = config.users_scope();
+	let scope = scope.as_str();
+
+	db.use_ns(namespace).use_db(database).await?;
+
+	let _jwt = db
 		.signup(Scope {
-			namespace: config.primary_namespace().as_str(),
-			database: config.primary_database().as_str(),
-			scope: config.users_scope().as_str(),
+			namespace,
+			database,
+			scope,
 			params: &signup,
 		})
 		.await?;
+	// db.authenticate(jwt.clone()).await?;
 
-	trace!("User signed up successfully");
+	db.signin(Scope {
+		namespace,
+		database,
+		scope,
+		params: &signup,
+	})
+	.await?;
+
+	trace!("User signed up and signed in successfully");
 
 	let new_user: Option<UserRecord> = db
 		.query("SELECT * FROM type::table($table) WHERE email = $email")
@@ -79,7 +95,6 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	new_user
 		.into_iter()
 		.next()
-		.map(|u| (jwt, u))
 		.ok_or(AuthError::InternalInvariantBroken(
 			InternalInvariantBroken::UserSignedUpButNoRecord,
 		))

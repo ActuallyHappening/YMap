@@ -4,8 +4,7 @@ USE NS production;
 DEFINE DATABASE production;
 USE DB production;
 
--- DEFINE TABLE user SCHEMAFULL PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
-DEFINE TABLE user SCHEMAFULL;
+DEFINE TABLE user SCHEMAFULL PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
 
 DEFINE FIELD username ON user TYPE string;
 -- DEFINE FIELD username ON user TYPE string ASSERT string::len($value) >= 2 AND string::len($value) <= 25;

@@ -18,6 +18,9 @@ pub mod prelude {
 	pub use ysurreal::prelude::*;
 }
 use crate::prelude::*;
+pub mod signin;
+pub mod signup;
+pub mod types;
 
 pub mod config {
 	use crate::{prelude::*, types::UserRecord};
@@ -30,16 +33,28 @@ pub mod config {
 		fn users_scope(&self) -> String;
 
 		/// Signs up, and switches to primary namespace and database.
-		/// See [crate::signup::sign_up] for more details.
+		/// *Automatically signs in as well*
 		fn sign_up<C: Connection>(
 			&self,
 			db: &Surreal<C>,
 			signup: &crate::signup::Signup,
-		) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
+		) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
 		where
 			Self: Sized,
 		{
 			crate::signup::sign_up(self, db, signup)
+		}
+
+		/// Signs into the scope assuming the user has already signed up, and switches to primary ns and db.
+		fn sign_in<C: Connection>(
+			&self,
+			db: &Surreal<C>,
+			signup: &crate::signin::SignIn,
+		) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
+		where
+			Self: Sized,
+		{
+			crate::signin::sign_in(self, db, signup)
 		}
 
 		fn list_users<C: Connection>(
@@ -66,9 +81,6 @@ pub mod config {
 		}
 	}
 }
-
-pub mod signup;
-pub mod types;
 pub mod error {
 	use crate::prelude::*;
 
@@ -86,6 +98,10 @@ pub mod error {
 
 	#[derive(Debug, thiserror::Error)]
 	pub enum InternalInvariantBroken {
+		#[error(
+			"User was signed in to the scope, but no corresponding record was found in the users table"
+		)]
+		UserSignedInButNoRecord,
 		#[error(
 			"User was signed up to the scope, but no corresponding record was found in the users table"
 		)]
