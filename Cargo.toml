@@ -33,6 +33,9 @@ version = "0.25.0"
 [workspace.dependencies.tokio]
 version = "1.38"
 features = ["sync", "macros", "io-util", "rt"]
+# [workspace.dependencies.tokio]
+# version = "1.38"
+# features = ["full"]
 
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
