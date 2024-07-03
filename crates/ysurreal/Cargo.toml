@@ -9,13 +9,19 @@ camino = "1.1.7"
 clap = { version = "4.5.8", features = ["derive", "env"] }
 color-eyre = "0.6.3"
 rand = "0.8.5"
-surrealdb = { workspace = true, features = ["kv-mem", "protocol-http"] }
 thiserror = "1.0.61"
 tokio.workspace = true
 tracing = "0.1.40"
 tracing-error = "0.2.0"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 which = "6.0.1"
+
+[target.'cfg(not(target_familyh = wasm))'.workspace.surrealdb]
+workspace = true
+features = ["kv-mem", "protocol-http"]
+
+[target.'cfg(target_familyh = wasm)'.workspace.surrealdb]
+workspace = true
 
 [lints]
 workspace = true
