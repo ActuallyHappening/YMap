@@ -38,7 +38,7 @@ fn install_tracing() {
 
 	let fmt_layer = fmt::layer().with_target(false);
 	let filter_layer = EnvFilter::try_from_default_env()
-		.or_else(|_| EnvFilter::try_new("info,ysurreal=trace"))
+		.or_else(|_| EnvFilter::try_new("info,ymap=trace,ysurreal=trace"))
 		.unwrap();
 
 	tracing_subscriber::registry()

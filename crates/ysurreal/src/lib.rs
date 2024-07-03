@@ -91,11 +91,18 @@ pub mod config {
 		where
 			Self: DBRootCredentials,
 		{
+			let raw_password =
+			self.root_password();
+			// maybe find a better way than this
+			assert!(!raw_password.contains('`'), "Cannot use backticks ` in password, else can't escape to nushell over the wire");
+			let escaped_password = format!("`{}`", raw_password);
+			trace!(?escaped_password, %escaped_password);
+
 			let mut args = vec![
 				"--username".into(),
 				self.root_username(),
 				"--password".into(),
-				self.root_password(),
+				escaped_password,
 				"--bind".into(),
 				self.bind_host(),
 			];
