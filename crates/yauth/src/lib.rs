@@ -20,7 +20,7 @@ pub mod prelude {
 use crate::prelude::*;
 
 pub mod config {
-	use crate::prelude::*;
+	use crate::{prelude::*, types::UserRecord};
 	use surrealdb::opt::auth::Jwt;
 	use ysurreal::config::DBConnectRemoteConfig;
 
@@ -29,6 +29,8 @@ pub mod config {
 
 		fn users_scope(&self) -> String;
 
+		/// Signs up, and switches to primary namespace and database.
+		/// See [crate::signup::sign_up] for more details.
 		fn sign_up<C: Connection>(
 			&self,
 			db: &Surreal<C>,
@@ -43,7 +45,7 @@ pub mod config {
 		fn list_users<C: Connection>(
 			&self,
 			db: &Surreal<C>,
-		) -> impl Future<Output = Result<Vec<crate::types::UserRecord>, AuthError>> + Send + Sync
+		) -> impl Future<Output = Result<Vec<UserRecord>, AuthError>> + Send + Sync
 		where
 			Self: Sized,
 		{

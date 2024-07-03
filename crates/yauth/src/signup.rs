@@ -46,12 +46,16 @@ pub(crate) async fn list_users<Config: DBAuthConfig, C: Connection>(
 	Ok(users)
 }
 
+/// Signs up, and switches to primary namespace and database.
 pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 	signup: &Signup,
 ) -> Result<(Jwt, crate::types::UserRecord), AuthError> {
 	debug!("Signing user up");
+	db.use_ns(config.primary_namespace())
+		.use_db(config.primary_database())
+		.await?;
 	let jwt = db
 		.signup(Scope {
 			namespace: config.primary_namespace().as_str(),
@@ -63,18 +67,14 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 
 	trace!("User signed up successfully");
 
-	list_users(config, db).await?;
-
 	let new_user: Option<UserRecord> = db
-		.query("SELECT * FROM type::table($table)")
-		.bind(("email", &signup.email))
+		.query("SELECT * FROM type::table($table) WHERE email = $email")
 		.bind(("table", config.users_table()))
+		.bind(("email", &signup.email))
 		.await?
 		.take(0)?;
 
-	trace!(?new_user);
-
-	// todo!()
+	trace!(?new_user, "User record identified successfully");
 
 	new_user
 		.into_iter()

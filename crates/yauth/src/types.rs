@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 use crate::prelude::*;
-use surrealdb::sql::Id;
+use surrealdb::sql::{Id, Thing};
 
 /// A type directly wrapping an inner, validatable type.
 ///
@@ -183,7 +183,7 @@ impl Display for Email {
 
 /// The ID of a user
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct UserID(Id);
+pub struct UserID(Thing);
 
 /// What is stored in the [AuthConnection::users_table] table
 #[derive(Debug, Deserialize)]
