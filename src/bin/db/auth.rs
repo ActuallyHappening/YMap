@@ -28,7 +28,13 @@ pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<
 			let db = config.connect_ws().await?;
 			// logs in as root to list all of them, else IAM error
 			config.root_sign_in(&db).await?;
-			config.list_users(&db).await?;
+			info!("Listing users");
+			let users = config.list_users(&db).await?;
+			
+			println!("Found {} users:", users.len());
+			for user in users {
+				println!("- {:?}", user);
+			}
 
 			Ok(())
 		}

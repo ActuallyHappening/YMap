@@ -5,6 +5,7 @@ use surrealdb::opt::auth::Scope;
 
 /// User facing signup data request
 #[derive(garde::Validate, clap::Args, Serialize, Clone, Debug)]
+#[group(skip)]
 pub struct SignUp {
 	#[arg(long)]
 	#[garde(dive)]
