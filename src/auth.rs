@@ -99,6 +99,7 @@ mod test {
 		let debug_info = db.query("INFO FOR db").await?;
 		trace!("{:#?}", debug_info);
 
+		// signs in as a scoped user
 		auth_config
 			.sign_up(
 				&db,
@@ -109,6 +110,21 @@ mod test {
 				},
 			)
 			.await?;
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
+	async fn user_table_permissions_work() -> Result<(), Report> {
+		let conn_config = TestingMem::rand(INIT_SURQL.to_string());
+		let db = start_in_memory(&conn_config).unwrap().await?;
+		let auth_config = yauth::configs::TestingAuthConfig::new(&conn_config);
+
+		let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
+		assert_eq!(users.len(), 0, "Users table should not be readable until you have signed in");
+
+		let credentials = SignUp::testing_rand();
+		auth_config.sign_up(&db, &credentials).await?;
 
 		Ok(())
 	}

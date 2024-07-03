@@ -110,7 +110,7 @@ pub mod error {
 pub mod configs {
 	use ysurreal::config::DBConnectRemoteConfig;
 
-	use crate::{config::DBAuthConfig, prelude::*};
+	use crate::config::DBAuthConfig;
 
 	#[derive(Debug)]
 	pub struct TestingAuthConfig<InnerConfig> {

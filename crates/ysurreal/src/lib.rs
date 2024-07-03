@@ -228,14 +228,14 @@ pub mod config {
 	}
 
 	/// Start a new in-memory database for **testing only**.
-	/// Signs in as root, switches to primary database and namespace, and inits as well.
+	/// Switches to primary database and namespace, and inits as well.
 	///
 	/// You must unwrap the option first before calling `.await`.
 	pub fn start_in_memory<Config>(
 		config: &Config,
 	) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync + '_>
 	where
-		Config: DBStartConfig + DBRootCredentials + DBConnectRemoteConfig,
+		Config: DBStartConfig + DBConnectRemoteConfig,
 	{
 		if let StartDBType::Mem = config.db_type() {
 			Some(async {
@@ -248,8 +248,6 @@ pub mod config {
 				db.use_ns(config.primary_namespace())
 					.use_db(config.primary_database())
 					.await?;
-				// config.root_sign_in(&db).await?;
-				config.root_init(&db).await?;
 				Ok(db)
 			})
 		} else {

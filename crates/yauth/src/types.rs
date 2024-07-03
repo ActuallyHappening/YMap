@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 use crate::prelude::*;
-use surrealdb::sql::{Id, Thing};
+use surrealdb::sql::Thing;
 
 /// A type directly wrapping an inner, validatable type.
 ///
@@ -124,6 +124,18 @@ impl Display for Username {
 	}
 }
 
+impl Username {
+	pub fn testing_rand() -> Self {
+		use std::str::FromStr;
+		Username::from_str(&format!(
+			"Random username: {}{}",
+			rand::random::<char>(),
+			rand::random::<char>()
+		))
+		.unwrap()
+	}
+}
+
 /// Implements [`Debug`](std::fmt::Debug) without exposing the password
 #[derive(garde::Validate, Serialize, Clone)]
 #[serde(try_from = "String")]
@@ -142,6 +154,18 @@ impl std::fmt::Debug for Password {
 impl Display for Password {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "********")
+	}
+}
+
+impl Password {
+	pub fn testing_rand() -> Self {
+		use std::str::FromStr;
+		Self::from_str(&format!(
+			"Random password: {}{}",
+			rand::random::<char>(),
+			rand::random::<char>()
+		))
+		.unwrap()
 	}
 }
 
@@ -178,6 +202,22 @@ pub struct Email(#[garde(email, length(min = 5))] String);
 impl Display for Email {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		self.0.fmt(f)
+	}
+}
+
+impl Email {
+	pub fn testing_rand() -> Self {
+		use std::str::FromStr;
+		let chars_allowed = "absdefghijklmnopqrstuvwxyz0123456789";
+		let random_char1 = chars_allowed
+			.chars()
+			.nth(rand::random::<usize>() % chars_allowed.len())
+			.unwrap();
+		let random_char2 = chars_allowed
+			.chars()
+			.nth(rand::random::<usize>() % chars_allowed.len())
+			.unwrap();
+		Self::from_str(&format!("random@email{}{}.com", random_char1, random_char2,)).unwrap()
 	}
 }
 
