@@ -3,6 +3,7 @@ pub mod prelude {
 	pub(crate) use color_eyre::eyre::Report;
 	pub(crate) use tracing::*;
 	pub(crate) use ymap::secrets::{Secrets, SecretsTemplate};
+	pub(crate) use camino::{Utf8Path, Utf8PathBuf};
 }
 
 #[path = "db/production.rs"]
