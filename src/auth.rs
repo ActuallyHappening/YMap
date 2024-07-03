@@ -5,7 +5,7 @@ use init::INIT_SURQL;
 pub mod config {
 	use openssh::Session;
 
-use crate::prelude::*;
+	use crate::prelude::*;
 
 	#[derive(Args, Debug, Clone)]
 	pub struct ProductionConfig {
@@ -59,6 +59,16 @@ use crate::prelude::*;
 
 		fn connect_port(&self) -> u16 {
 			42069
+		}
+	}
+
+	impl DBAuthConfig for ProductionConfig {
+		fn users_scope(&self) -> String {
+			"end_user".into()
+		}
+
+		fn users_table(&self) -> String {
+			"user".into()
 		}
 	}
 

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::prelude::*;
+use surrealdb::{engine::any::Any, Surreal};
 use ymap::auth::config::ProductionConfig;
 use ysurreal::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
 
@@ -12,38 +13,15 @@ pub enum ProductionCommand {
 	Import,
 	Connect,
 	Check,
+	/// Kills, clans, starts, and imports all in one!
+	Restart,
 	Auth {
 		#[clap(subcommand)]
 		auth_subcommand: auth::AuthCommand,
 	},
 }
 
-pub mod auth {
-	use crate::prelude::*;
-	use yauth::prelude::*;
-	use ymap::auth::config::ProductionConfig;
-
-	#[derive(Subcommand, Debug, Clone)]
-	pub enum AuthCommand {
-		SignUp {
-			#[clap(flatten)]
-			signup_options: yauth::signup::Signup,
-		},
-	}
-
-	pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<(), Report> {
-		match command {
-			AuthCommand::SignUp { signup_options } => {
-				let db = config.connect_ws().await?;
-				db.use_ns(config.primary_namespace())
-					.use_db(config.primary_database())
-					.await?;
-
-				Ok(())
-			}
-		}
-	}
-}
+pub mod auth;
 
 use color_eyre::eyre::eyre;
 use openssh::Session;
@@ -116,6 +94,13 @@ async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Repor
 	Ok(())
 }
 
+async fn import(db: &Surreal<Any>, config: &ProductionConfig) -> Result<(), Report> {
+	config.root_sign_in(db).await?;
+	config.root_init(db).await?;
+
+	Ok(())
+}
+
 pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> Result<(), Report> {
 	match command {
 		ProductionCommand::Auth { auth_subcommand } => auth::handle(config, auth_subcommand).await,
@@ -143,11 +128,7 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 		}
 		ProductionCommand::Import => {
 			let db = config.connect_ws().await?;
-			config.root_sign_in(&db).await?;
-			config.root_init(&db).await?;
-			db.use_ns(config.primary_namespace())
-				.use_db(config.primary_database())
-				.await?;
+			import(&db, config).await?;
 
 			Ok(())
 		}
@@ -163,6 +144,14 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 		ProductionCommand::Check => {
 			let session = config.ssh().await?;
 			check(&session, &config.nu_binary_path).await?;
+
+			Ok(())
+		}
+		ProductionCommand::Restart => {
+			let session = config.ssh().await?;
+			kill(&session, &config.nu_binary_path).await?;
+			clean(&session, &config.surreal_data_path).await?;
+			start(&session, config, Duration::from_secs(2)).await?;
 
 			Ok(())
 		}

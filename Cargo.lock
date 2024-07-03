@@ -9002,6 +9002,7 @@ dependencies = [
  "extension-traits",
  "openssh",
  "serde",
+ "surrealdb",
  "test-log",
  "tokio",
  "tracing",
