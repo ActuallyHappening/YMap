@@ -11,11 +11,11 @@ pub struct ScribblePos {
 }
 
 impl ScribblePos {
-	pub fn absolute_position(&self) -> Vec2 {
-		Vec2::new(self.center_x, self.center_y)
+	pub fn absolute_position(&self) -> glam::Vec2 {
+		glam::Vec2::new(self.center_x, self.center_y)
 	}
 
-	pub fn from_absolute_position(absolute_pos: Vec2) -> Self {
+	pub fn from_absolute_position(absolute_pos: glam::Vec2) -> Self {
 		ScribblePos {
 			center_x: absolute_pos.x,
 			center_y: absolute_pos.y,

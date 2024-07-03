@@ -25,6 +25,10 @@ type_complexity = "allow"
 [workspace.metadata.scripts]
 dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
 
+# to keep in sync with bevy itself
+[workspace.dependencies.glam]
+version = "0.25.0"
+
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"

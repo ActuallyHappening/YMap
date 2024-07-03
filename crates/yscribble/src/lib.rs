@@ -33,7 +33,7 @@ mod point {
 			ScribblePoint { pos }
 		}
 
-		pub(crate) fn add_delta(&self, absolute_delta: Vec2) -> Self {
+		pub(crate) fn add_delta(&self, absolute_delta: glam::Vec2) -> Self {
 			ScribblePoint {
 				pos: ScribblePos {
 					center_x: self.pos.center_x + absolute_delta.x,

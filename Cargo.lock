@@ -3697,12 +3697,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glam"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
-
-[[package]]
 name = "glob"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9021,7 +9015,7 @@ name = "yscribble"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "glam 0.28.0",
+ "glam 0.25.0",
  "serde",
  "tracing",
 ]

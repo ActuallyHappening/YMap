@@ -42,11 +42,11 @@ impl PartialLine {
 		}
 	}
 
-	/// Pushes a new [ScribblePoint] to [Self::partial_line] using only the
+	/// Pushes a new [ScribblePoint] using only the
 	/// change in absolute position since the last [ScribblePoint].
 	///
 	/// [tracing::error]s if no points in partial line to resolve delta from.
-	pub fn push_partial_delta(&mut self, absolute_delta: Vec2) {
+	pub fn push_partial_delta(&mut self, absolute_delta: glam::Vec2) {
 		let Some(last_point) = self.into_iter().last().cloned() else {
 			error!(message = "Trying to `push_partial_delta`, but no points to resolve delta from");
 			return;
