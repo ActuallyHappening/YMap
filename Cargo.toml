@@ -29,6 +29,11 @@ dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features c
 [workspace.dependencies.glam]
 version = "0.25.0"
 
+# to allow compiling for wasm32-unknown-unknown
+[workspace.dependencies.tokio]
+version = "1.38"
+features = ["sync", "macros", "io-util", "rt"]
+
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"
@@ -111,7 +116,7 @@ color-eyre = "0.6.3"
 serde = { version = "1.0.203", features = ["derive"] }
 extension-traits = "1.0.1"
 tracing-error = "0.2.0"
-tokio = { version = "1.38.0", features = ["full"] }
+tokio.workspace = true
 openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
 camino = "1.1.7"
 bossy = "0.2.1"

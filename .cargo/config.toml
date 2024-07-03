@@ -1,9 +1,6 @@
 [alias]
-xtask = "run -p xtask --"
-x = "xtask"
 rs = "run-script"
 t = "test-all-features"
-# db = "-q r -p ysurreal --"
 db = "-q r -p ymap --bin db --"
-se = "rs source-env"
 xcb = "xcode-build-rs --colour --manifest-dir . test"
+bw = "b --target wasm32-unknown-unknown"
