@@ -8,7 +8,6 @@ bossy = "0.2.1"
 camino = "1.1.7"
 clap = { version = "4.5.8", features = ["derive", "env"] }
 color-eyre = "0.6.3"
-openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
 rand = "0.8.5"
 surrealdb = { workspace = true, features = ["kv-mem", "protocol-http"] }
 thiserror = "1.0.61"

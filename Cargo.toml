@@ -87,10 +87,11 @@ publish = false
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
+not-wasm = ["dep:openssh"]
 ## If enabled, will not link in production secrets
 ## ENABLE THIS FOR PRODUCTION BUILDS
 production = []
-default = ["debug"]
+default = ["debug", "not-wasm"]
 ios = []
 ## Enabled bevy_yscribble_3d/debug
 debug = ["bevy_yscribble_3d/debug"]
@@ -119,8 +120,11 @@ color-eyre = "0.6.3"
 serde = { version = "1.0.203", features = ["derive"] }
 extension-traits = "1.0.1"
 tracing-error = "0.2.0"
-tokio.workspace = true
-openssh = { version = "0.10.4", features = ["native-mux", "openssh-mux-client"] }
+tokio = { workspace = true }
+openssh = { version = "0.10.4", features = [
+	"native-mux",
+	"openssh-mux-client",
+], optional = true }
 camino = "1.1.7"
 bossy = "0.2.1"
 which = "6.0.1"
