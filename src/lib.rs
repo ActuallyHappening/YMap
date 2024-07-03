@@ -7,19 +7,25 @@ use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
 mod prelude {
-	pub use crate::consts::pos;
-	pub use bevy::prelude::*;
+	pub(crate) use crate::consts::pos;
+	pub(crate) use bevy::prelude::*;
 	pub use color_eyre::eyre::Context as _;
-	pub use extension_traits::extension;
-	pub use serde::{Deserialize, Serialize};
+	pub(crate) use extension_traits::extension;
+	pub(crate) use serde::{Deserialize, Serialize};
+
+	pub use camino::{Utf8Path, Utf8PathBuf};
+	pub use clap::{Args, Subcommand};
+
+	pub use crate::secrets::*;
+	pub use yauth::prelude::*;
 }
-pub mod secrets;
+pub mod auth;
 mod camera;
 mod consts;
 mod debug;
 mod scribble_pad;
+pub mod secrets;
 mod utils;
-mod auth;
 
 pub struct YMapPlugins;
 

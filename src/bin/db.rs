@@ -25,7 +25,7 @@ pub enum Commands {
 	/// Executes commands on the server, see [ProductionCommand]
 	Production {
 		#[clap(flatten)]
-		production_config: production::ProductionConfig,
+		production_config: ymap::auth::config::ProductionConfig,
 
 		#[clap(subcommand)]
 		production_command: production::ProductionCommand,

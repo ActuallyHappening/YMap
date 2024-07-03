@@ -1,70 +1,8 @@
 use std::time::Duration;
 
 use crate::prelude::*;
+use ymap::auth::config::ProductionConfig;
 use ysurreal::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
-
-#[derive(Args, Debug, Clone)]
-pub struct ProductionConfig {
-	#[arg(long, default_value_t = { Secrets::ssh_name() })]
-	ssh_name: String,
-
-	#[arg(long, default_value_t = Utf8PathBuf::from("/root/home/YMap/surreal.db"))]
-	surreal_data_path: Utf8PathBuf,
-
-	#[arg(long, default_value_t = Utf8PathBuf::from("/usr/local/bin/surreal"))]
-	surreal_binary_path: Utf8PathBuf,
-
-	#[arg(long, default_value_t = Utf8PathBuf::from("/root/.cargo/bin/nu"))]
-	nu_binary_path: Utf8PathBuf,
-}
-
-impl DBStartConfig for ProductionConfig {
-	fn init_surql(&self) -> String {
-		include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/init.surql")).into()
-	}
-
-	fn bind_port(&self) -> u16 {
-		42069
-	}
-
-	fn db_type(&self) -> ysurreal::config::StartDBType {
-		ysurreal::config::StartDBType::File {
-			data_path: Utf8PathBuf::from("/root/home/YMap/surreal.db"),
-		}
-	}
-}
-
-impl DBRootCredentials for ProductionConfig {
-	fn root_password(&self) -> String {
-		Secrets::production_password()
-	}
-}
-
-impl DBConnectRemoteConfig for ProductionConfig {
-	fn primary_namespace(&self) -> String {
-		"production".into()
-	}
-
-	fn primary_database(&self) -> String {
-		"production".into()
-	}
-
-	fn connect_host(&self) -> String {
-		"actually-happening.foundation".into()
-	}
-
-	fn connect_port(&self) -> u16 {
-		42069
-	}
-}
-
-impl ProductionConfig {
-	pub async fn ssh(&self) -> Result<Session, openssh::Error> {
-		let ssh_name = self.ssh_name.as_str();
-		info!(message = "Connecting to server host", ?ssh_name);
-		Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
-	}
-}
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum ProductionCommand {
@@ -74,6 +12,37 @@ pub enum ProductionCommand {
 	Import,
 	Connect,
 	Check,
+	Auth {
+		#[clap(subcommand)]
+		auth_subcommand: auth::AuthCommand,
+	},
+}
+
+pub mod auth {
+	use crate::prelude::*;
+	use yauth::prelude::*;
+	use ymap::auth::config::ProductionConfig;
+
+	#[derive(Subcommand, Debug, Clone)]
+	pub enum AuthCommand {
+		SignUp {
+			#[clap(flatten)]
+			signup_options: yauth::signup::Signup,
+		},
+	}
+
+	pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<(), Report> {
+		match command {
+			AuthCommand::SignUp { signup_options } => {
+				let db = config.connect_ws().await?;
+				db.use_ns(config.primary_namespace())
+					.use_db(config.primary_database())
+					.await?;
+
+				Ok(())
+			}
+		}
+	}
 }
 
 use color_eyre::eyre::eyre;
@@ -149,6 +118,7 @@ async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Repor
 
 pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> Result<(), Report> {
 	match command {
+		ProductionCommand::Auth { auth_subcommand } => auth::handle(config, auth_subcommand).await,
 		ProductionCommand::Kill => {
 			let session = config.ssh().await?;
 			info!("Killing all surreal processes on the server");
