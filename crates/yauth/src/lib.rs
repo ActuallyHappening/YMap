@@ -29,8 +29,6 @@ pub mod config {
 
 		fn users_scope(&self) -> String;
 
-		/// Auto provided method to actually sign up
-		#[must_use = "Futures do nothing unless you `.await` or poll them"]
 		fn sign_up<C: Connection>(
 			&self,
 			db: &Surreal<C>,
@@ -40,6 +38,16 @@ pub mod config {
 			Self: Sized,
 		{
 			crate::signup::sign_up(self, db, signup)
+		}
+
+		fn list_users<C: Connection>(
+			&self,
+			db: &Surreal<C>,
+		) -> impl Future<Output = Result<Vec<crate::types::UserRecord>, AuthError>> + Send + Sync
+		where
+			Self: Sized,
+		{
+			crate::signup::list_users(self, db)
 		}
 	}
 

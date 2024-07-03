@@ -90,6 +90,20 @@ macro_rules! impl_validation_only {
 				<$ty as ValidatedType>::try_new(s.to_string())
 			}
 		}
+
+		impl TryFrom<String> for $ty {
+			type Error = ValidationError;
+
+			fn try_from(value: String) -> Result<Self, Self::Error> {
+				<$ty as ValidatedType>::try_new(value)
+			}
+		}
+
+		impl From<$ty> for String {
+			fn from(value: $ty) -> Self {
+				value.0
+			}
+		}
 	};
 	(many: $($ty:ty),*) => {
 		$(impl_validation_only! { $ty })*
@@ -112,7 +126,9 @@ impl Display for Username {
 
 /// Implements [`Debug`](std::fmt::Debug) without exposing the password
 #[derive(garde::Validate, Serialize, Clone)]
-#[serde(transparent)]
+#[serde(try_from = "String")]
+#[serde(into = "String")]
+// #[serde(transparent)]
 #[garde(transparent)]
 #[repr(transparent)]
 pub struct Password(#[garde(length(min = 7, max = 50))] String);
@@ -131,6 +147,8 @@ impl Display for Password {
 
 /// Implements [`Debug`](std::fmt::Debug) without exposing the password
 #[derive(Deserialize, Clone)]
+// #[serde(try_from = "String")]
+// #[serde(into = "String")]
 #[serde(transparent)]
 #[repr(transparent)]
 pub struct HashedPassword(String);
@@ -150,7 +168,9 @@ impl Display for HashedPassword {
 }
 
 #[derive(garde::Validate, Serialize, Debug, Clone, PartialEq)]
-#[serde(transparent)]
+#[serde(try_from = "String")]
+#[serde(into = "String")]
+// #[serde(transparent)]
 #[garde(transparent)]
 #[repr(transparent)]
 pub struct Email(#[garde(email, length(min = 5))] String);

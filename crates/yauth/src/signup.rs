@@ -31,6 +31,21 @@ impl Signup {
 	}
 }
 
+pub(crate) async fn list_users<Config: DBAuthConfig, C: Connection>(
+	config: &Config,
+	db: &Surreal<C>,
+) -> Result<Vec<UserRecord>, AuthError> {
+	let users: Vec<UserRecord> = db
+		.query("SELECT * FROM type::table($table)")
+		.bind(("table", config.users_table()))
+		.await?
+		.take(0)?;
+
+	trace!(?users);
+
+	Ok(users)
+}
+
 pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
@@ -48,7 +63,9 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 
 	trace!("User signed up successfully");
 
-	let new_user: Vec<serde_json::Value> = db
+	list_users(config, db).await?;
+
+	let new_user: Option<UserRecord> = db
 		.query("SELECT * FROM type::table($table)")
 		.bind(("email", &signup.email))
 		.bind(("table", config.users_table()))
@@ -57,15 +74,15 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 
 	trace!(?new_user);
 
-	todo!()
+	// todo!()
 
-	// new_user
-	// 	.into_iter()
-	// 	.next()
-	// 	.map(|u| (jwt, u))
-	// 	.ok_or(AuthError::InternalInvariantBroken(
-	// 		InternalInvariantBroken::UserSignedUpButNoRecord,
-	// 	))
+	new_user
+		.into_iter()
+		.next()
+		.map(|u| (jwt, u))
+		.ok_or(AuthError::InternalInvariantBroken(
+			InternalInvariantBroken::UserSignedUpButNoRecord,
+		))
 }
 
 #[cfg(test)]

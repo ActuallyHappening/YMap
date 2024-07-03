@@ -9,6 +9,7 @@ pub enum AuthCommand {
 		#[clap(flatten)]
 		signup_options: yauth::signup::Signup,
 	},
+	List,
 }
 
 pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<(), Report> {
@@ -20,6 +21,14 @@ pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<
 			// 	.await?;
 
 			config.sign_up(&db, signup_options).await?;
+
+			Ok(())
+		}
+		AuthCommand::List => {
+			let db = config.connect_ws().await?;
+			// logs in as root to list all of them, else IAM error
+			config.root_sign_in(&db).await?;
+			config.list_users(&db).await?;
 
 			Ok(())
 		}

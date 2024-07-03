@@ -48,12 +48,21 @@ pub mod config {
 
 		fn root_password(&self) -> String;
 
+		/// Signs in with root credentials.
+		/// Also switches the namespace and database to the primary namespace and database,
+		/// which is probably what you wanted.
 		fn root_sign_in(
 			&self,
 			db: &Surreal<Any>,
-		) -> impl Future<Output = Result<Jwt, surrealdb::Error>> + Send + Sync {
+		) -> impl Future<Output = Result<Jwt, surrealdb::Error>> + Send + Sync
+		where
+			Self: DBConnectRemoteConfig,
+		{
 			async {
 				debug!("Signing into database with root credentials");
+				db.use_ns(self.primary_namespace())
+					.use_db(self.primary_database())
+					.await?;
 				db.signin(Root {
 					username: self.root_username().as_str(),
 					password: self.root_password().as_str(),
@@ -68,7 +77,9 @@ pub mod config {
 	pub trait DBStartConfig: Send + Sync {
 		/// whether to pass the --strict flag to surreal --start
 		fn strict(&self) -> bool {
-			true
+			// true
+			// TODO set back to true
+			false
 		}
 
 		/// whether to pass the --auth flag to surreal --start
