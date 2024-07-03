@@ -30,7 +30,7 @@ pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<
 			config.root_sign_in(&db).await?;
 			info!("Listing users");
 			let users = config.list_users(&db).await?;
-			
+
 			println!("Found {} users:", users.len());
 			for user in users {
 				println!("- {:?}", user);

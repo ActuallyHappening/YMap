@@ -1,9 +1,9 @@
 pub mod prelude {
+	pub(crate) use camino::Utf8Path;
 	pub(crate) use clap::{Parser, Subcommand};
 	pub(crate) use color_eyre::eyre::Report;
-	pub(crate) use tracing::*;
-	pub(crate) use camino::Utf8Path;
 	pub(crate) use color_eyre::eyre::WrapErr;
+	pub(crate) use tracing::*;
 	pub(crate) use which::which;
 }
 

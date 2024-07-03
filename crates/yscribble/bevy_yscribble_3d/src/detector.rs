@@ -54,7 +54,7 @@ impl DetectorBundle {
 			pickable: PickableBundle::default(),
 			name: Name::new("Pickable surface"),
 			marker: crate::DetectorMarker,
-			
+
 			#[cfg(feature = "bevy_replicon_parent_sync")]
 			parent_sync: Default::default(),
 

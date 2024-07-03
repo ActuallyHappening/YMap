@@ -21,8 +21,8 @@ leptos = { version = "0.6.12", optional = true }
 console_error_panic_hook = "0.1.7"
 
 [features]
-default = ["web_ui"]
-web_ui = ["dep:leptos"]
+default = ["leptos-ui"]
+leptos-ui = ["dep:leptos"]
 
 [lints]
 workspace = true

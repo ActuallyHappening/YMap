@@ -48,7 +48,11 @@ mod ink {
 	}
 
 	impl DebugInkBundle {
-		pub fn new_with_colour(absolute_pos: Vec2, MMAR { meshs, mats, .. }: &mut MMAR, color: Color) -> Self {
+		pub fn new_with_colour(
+			absolute_pos: Vec2,
+			MMAR { meshs, mats, .. }: &mut MMAR,
+			color: Color,
+		) -> Self {
 			DebugInkBundle {
 				pbr: PbrBundle {
 					transform: Transform::from_translation(Vec3::new(absolute_pos.x, 0.0, -absolute_pos.y)),

@@ -6,5 +6,12 @@
 		{
 			"path": "./crates/ymap",
 		}
-	]
+	],
+	"settings": {
+		"rust-analyzer.rustfmt.overrideCommand": [
+			"leptosfmt",
+			"--stdin",
+			"--rustfmt"
+		]
+	}
 }

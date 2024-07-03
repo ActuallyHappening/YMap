@@ -186,7 +186,11 @@ fn touch_system(
 		let window_resolution = &window.resolution;
 		let logical_dimensions = Vec2::new(window_resolution.width(), window_resolution.height());
 		if window_timer.tick(time.delta()).just_finished() {
-			debug!(message = "Window Resolution", ?window_resolution, ?logical_dimensions);
+			debug!(
+				message = "Window Resolution",
+				?window_resolution,
+				?logical_dimensions
+			);
 			// WindowResolution { physical_width: 2778, physical_height: 1940, scale_factor_override: None, scale_factor: 1.7195877 }
 		}
 

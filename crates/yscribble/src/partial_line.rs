@@ -33,7 +33,7 @@ impl PartialLine {
 	}
 
 	/// Fallibly converts from [PartialLine] to [CompleteLine].
-	/// 
+	///
 	/// Takes ownership of [self] to avoid [Clone]ing
 	pub fn try_consolidate(self) -> Result<CompleteLine, Self> {
 		match CompleteLine::new(self.points.into_iter()) {

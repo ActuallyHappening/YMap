@@ -33,7 +33,7 @@ impl Default for PadBundle {
 			transform: Default::default(),
 			visibility: Default::default(),
 			committed_data: Default::default(),
-			
+
 			#[cfg(feature = "bevy_replicon_parent_sync")]
 			parent_sync: Default::default(),
 
