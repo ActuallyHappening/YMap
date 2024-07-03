@@ -14,7 +14,8 @@ pub enum ProductionCommand {
 	Connect,
 	Check,
 	/// Kills, clans, starts, and imports all in one!
-	Restart,
+	#[clap(alias = "restart")]
+	Reset,
 	Auth {
 		#[clap(subcommand)]
 		auth_subcommand: auth::AuthCommand,
@@ -147,11 +148,13 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 
 			Ok(())
 		}
-		ProductionCommand::Restart => {
+		ProductionCommand::Reset => {
 			let session = config.ssh().await?;
 			kill(&session, &config.nu_binary_path).await?;
 			clean(&session, &config.surreal_data_path).await?;
 			start(&session, config, Duration::from_secs(2)).await?;
+			let db = config.connect_ws().await?;
+			import(&db, config).await?;
 
 			Ok(())
 		}
