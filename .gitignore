@@ -18,5 +18,7 @@
 ## YMap
 !Trunk.toml
 !init.surql
+!init.surql.rs
 !xcode
 !secrets_template.rs
+!test.nu

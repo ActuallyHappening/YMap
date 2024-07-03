@@ -62,7 +62,7 @@ pub mod config {
 
 	/// All config to start a new database instance,
 	/// for testing or for production.
-	pub trait StartDBConfig: Send + Sync {
+	pub trait DBStartConfig: Send + Sync {
 		/// whether to pass the --strict flag to surreal --start
 		fn strict(&self) -> bool {
 			true
@@ -91,10 +91,12 @@ pub mod config {
 		where
 			Self: DBRootCredentials,
 		{
-			let raw_password =
-			self.root_password();
+			let raw_password = self.root_password();
 			// maybe find a better way than this
-			assert!(!raw_password.contains('`'), "Cannot use backticks ` in password, else can't escape to nushell over the wire");
+			assert!(
+				!raw_password.contains('`'),
+				"Cannot use backticks ` in password, else can't escape to nushell over the wire"
+			);
 			let escaped_password = format!("`{}`", raw_password);
 			// trace!(?escaped_password, %escaped_password);
 
@@ -136,7 +138,7 @@ pub mod config {
 	/// All information for clients to connect to the **production** database instance.
 	///
 	/// Should be the only trait that the client config needs to implement.
-	pub trait ConnectRemoteDBConfig: Send + Sync {
+	pub trait DBConnectRemoteConfig: Send + Sync {
 		/// What namespace to connect to by default
 		fn primary_namespace(&self) -> String;
 
@@ -166,7 +168,7 @@ pub mod config {
 		/// Requires [ConnectRemoteDBConfig] because it needs the host, port, namespace and database.
 		fn get_sql_cli_args(&self) -> Vec<String>
 		where
-			Self: DBRootCredentials + ConnectRemoteDBConfig,
+			Self: DBRootCredentials + DBConnectRemoteConfig,
 		{
 			vec![
 				"--pretty".into(),
@@ -186,6 +188,27 @@ pub mod config {
 		}
 	}
 
+	impl<'c, C> DBConnectRemoteConfig for &'c C
+	where
+		C: DBConnectRemoteConfig + Send + Sync,
+	{
+		fn primary_namespace(&self) -> String {
+			C::primary_namespace(self)
+		}
+
+		fn primary_database(&self) -> String {
+			C::primary_database(self)
+		}
+
+		fn connect_host(&self) -> String {
+			C::connect_host(self)
+		}
+
+		fn connect_port(&self) -> u16 {
+			C::connect_port(self)
+		}
+	}
+
 	/// Start a new in-memory database for **testing only**.
 	/// Signs in as root, switches to primary database and namespace, and inits as well.
 	///
@@ -194,7 +217,7 @@ pub mod config {
 		config: &Config,
 	) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync + '_>
 	where
-		Config: StartDBConfig + DBRootCredentials + ConnectRemoteDBConfig,
+		Config: DBStartConfig + DBRootCredentials + DBConnectRemoteConfig,
 	{
 		if let StartDBType::Mem = config.db_type() {
 			Some(async {
@@ -217,28 +240,75 @@ pub mod config {
 }
 
 pub mod configs {
-	use crate::prelude::*;
+	use crate::{
+		config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig},
+		prelude::*,
+	};
 
 	/// Constructs an in-memory database for testing purposes.
 	pub struct TestingMem {
 		pub port: u16,
 		pub username: String,
 		pub password: String,
+		pub init_surql: String,
 	}
 
 	impl TestingMem {
-		pub fn new(port: u16) -> Self {
+		pub fn new(port: u16, init_surql: String) -> Self {
 			TestingMem {
 				port,
 				username: String::from("testing-username"),
 				password: String::from("testing-password"),
+				init_surql,
 			}
 		}
 
 		/// Generates a [TestingMem] with a random port between 10000 and 20000.
-		pub fn rand() -> Self {
+		pub fn rand(init_surql: String) -> Self {
 			let mut rand = rand::thread_rng();
-			TestingMem::new(rand.gen_range(10000..20000))
+			TestingMem::new(rand.gen_range(10000..20000), init_surql)
+		}
+	}
+
+	impl DBStartConfig for TestingMem {
+		fn bind_port(&self) -> u16 {
+			self.port
+		}
+
+		fn db_type(&self) -> crate::config::StartDBType {
+			crate::config::StartDBType::Mem
+		}
+
+		fn init_surql(&self) -> String {
+			self.init_surql.clone()
+		}
+	}
+
+	impl DBRootCredentials for TestingMem {
+		fn root_username(&self) -> String {
+			"root-testing".into()
+		}
+
+		fn root_password(&self) -> String {
+			"testing password".into()
+		}
+	}
+
+	impl DBConnectRemoteConfig for TestingMem {
+		fn primary_namespace(&self) -> String {
+			"test".into()
+		}
+
+		fn primary_database(&self) -> String {
+			"test".into()
+		}
+
+		fn connect_host(&self) -> String {
+			"localhost".into()
+		}
+
+		fn connect_port(&self) -> u16 {
+			self.port
 		}
 	}
 }

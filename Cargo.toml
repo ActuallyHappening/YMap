@@ -16,6 +16,9 @@ features = ["bevy_replicon_replicated"]
 [workspace.dependencies.ysurreal]
 path = "crates/ysurreal"
 
+[workspace.dependencies.yauth]
+path = "crates/yauth"
+
 [workspace.lints.clippy]
 type_complexity = "allow"
 
@@ -88,6 +91,7 @@ features = ["ios"]
 
 [dependencies]
 ysurreal.workspace = true
+yauth.workspace = true
 bevy.workspace = true
 bevy_editor_pls.workspace = true
 bevy_yscribble_3d.workspace = true
@@ -125,3 +129,6 @@ workspace = true
 
 [[bin]]
 name = "db"
+
+[dev-dependencies]
+test-log = { version = "0.2.16", features = ["trace"] }

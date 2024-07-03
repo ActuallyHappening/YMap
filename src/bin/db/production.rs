@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::prelude::*;
-use ysurreal::config::{ConnectRemoteDBConfig, DBRootCredentials, StartDBConfig};
+use ysurreal::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
 
 #[derive(Args, Debug, Clone)]
 pub struct ProductionConfig {
@@ -18,7 +18,7 @@ pub struct ProductionConfig {
 	nu_binary_path: Utf8PathBuf,
 }
 
-impl StartDBConfig for ProductionConfig {
+impl DBStartConfig for ProductionConfig {
 	fn init_surql(&self) -> String {
 		include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/init.surql")).into()
 	}
@@ -40,7 +40,7 @@ impl DBRootCredentials for ProductionConfig {
 	}
 }
 
-impl ConnectRemoteDBConfig for ProductionConfig {
+impl DBConnectRemoteConfig for ProductionConfig {
 	fn primary_namespace(&self) -> String {
 		"production".into()
 	}
