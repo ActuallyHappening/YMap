@@ -1,17 +1,18 @@
 pub mod prelude {
+	pub(crate) use rand::Rng;
+	pub(crate) use std::future::{Future, IntoFuture};
+	pub(crate) use surrealdb::engine::any::Any;
+	pub(crate) use surrealdb::Surreal;
 	pub(crate) use tracing::*;
+	pub(crate) use camino::Utf8PathBuf;
 }
 
 pub mod config {
-	use camino::Utf8PathBuf;
-
-use crate::prelude::*;
+	use crate::prelude::*;
 
 	pub enum DBType {
-		File {
-			data_path: Utf8PathBuf,
-		},
-		Mem
+		File { data_path: Utf8PathBuf },
+		Mem,
 	}
 
 	/// All config to start a new database instance,
@@ -69,6 +70,41 @@ use crate::prelude::*;
 				}
 			}
 			args
+		}
+
+		/// Start a new in-memory database.
+		///
+		/// You must unwrap the option first before calling `.await`.
+		fn start_in_memory(
+			&self,
+		) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync> {
+			if let DBType::Mem = self.db_type() {
+				Some(surrealdb::engine::any::connect("memory".to_owned()).into_future())
+			} else {
+				warn!("Called `config.start_in_memory()` but wasn't a memory DB configuration.");
+				None
+			}
+		}
+	}
+}
+
+pub mod configs {
+	use crate::prelude::*;
+
+	/// Constructs an in-memory database for testing purposes.
+	pub struct TestingMem {
+		pub port: u16,
+	}
+
+	impl TestingMem {
+		pub fn new(port: u16) -> Self {
+			TestingMem { port }
+		}
+
+		/// Generates a [TestingMem] with a random port between 10000 and 20000.
+		pub fn rand() -> Self {
+			let mut rand = rand::thread_rng();
+			TestingMem::new(rand.gen_range(10000..20000))
 		}
 	}
 }

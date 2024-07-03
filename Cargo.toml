@@ -94,10 +94,12 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 bevy_replicon = "0.26.3"
 bevy_replicon_renet = "0.3.0"
-clap = { version = "4.5.7", features = ["derive"] }
+clap = { version = "4.5.7", features = ["derive", "env"] }
 color-eyre = "0.6.3"
 serde = { version = "1.0.203", features = ["derive"] }
 extension-traits = "1.0.1"
+tracing-error = "0.2.0"
+tokio = { version = "1.38.0", features = ["full"] }
 
 [package.metadata.bundle]
 identifier = "com.ymap.test-ios69"

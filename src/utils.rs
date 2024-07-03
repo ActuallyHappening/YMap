@@ -2,6 +2,6 @@
 #[macro_export]
 macro_rules! include_asset {
 	($name:literal) => {
-		include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets/", $name))
+		include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/", $name))
 	};
 }
