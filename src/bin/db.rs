@@ -13,7 +13,7 @@ pub mod production;
 use crate::prelude::*;
 
 #[derive(Parser, Debug)]
-#[command(version, about)]
+#[command(version, about = "DB controller script")]
 pub struct Cli {
 	#[clap(subcommand)]
 	pub command: Commands,

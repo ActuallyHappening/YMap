@@ -13,6 +13,9 @@ pub struct ProductionConfig {
 
 	#[arg(long, default_value_t = Utf8PathBuf::from("/usr/local/bin/surreal"))]
 	surreal_binary_path: Utf8PathBuf,
+
+	#[arg(long, default_value_t = Utf8PathBuf::from("/root/.cargo/bin/nu"))]
+	nu_binary_path: Utf8PathBuf,
 }
 
 impl StartDBConfig for ProductionConfig {
@@ -70,6 +73,7 @@ pub enum ProductionCommand {
 	Start,
 	Import,
 	Connect,
+	Check,
 }
 
 use color_eyre::eyre::eyre;
@@ -97,10 +101,10 @@ async fn sshserver(
 	}
 }
 
-async fn kill(session: &Session) -> Result<(), Report> {
+async fn kill(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Report> {
 	sshserver(
 		session,
-		"/root/.cargo/bin/nu",
+		nu_binary_path.as_str(),
 		[
 			"-c",
 			r##"ps | find surreal | get pid | each {|pid| kill $pid; $pid }"##,
@@ -110,7 +114,7 @@ async fn kill(session: &Session) -> Result<(), Report> {
 }
 
 async fn clean(session: &Session, data_path: &Utf8Path) -> Result<(), Report> {
-	sshserver(session, "rm", ["rf", data_path.as_str()]).await
+	sshserver(session, "rm", ["-rf", data_path.as_str()]).await
 }
 
 async fn start(
@@ -121,7 +125,7 @@ async fn start(
 	let surreal_bin_path = config.surreal_binary_path.as_str();
 	let args = config.get_cli_args().join(" ");
 	let server_cmd = format!("{surreal_bin_path} start {args}");
-	let mut start_cmd = session.command("nu");
+	let mut start_cmd = session.command(config.nu_binary_path.as_str());
 	start_cmd.args(["-c", &server_cmd]);
 	let start_cmd = start_cmd.spawn().await?;
 
@@ -132,8 +136,13 @@ async fn start(
 	Ok(())
 }
 
-async fn check(session: &Session) -> Result<(), Report> {
-	sshserver(session, "nu", ["-c", "lsof -i -P -n | find surreal"]).await?;
+async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Report> {
+	sshserver(
+		session,
+		nu_binary_path.as_str(),
+		["-c", "lsof -i -P -n | find surreal"],
+	)
+	.await?;
 
 	Ok(())
 }
@@ -143,7 +152,7 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 		ProductionCommand::Kill => {
 			let session = config.ssh().await?;
 			info!("Killing all surreal processes on the server");
-			kill(&session).await?;
+			kill(&session, &config.nu_binary_path).await?;
 
 			Ok(())
 		}
@@ -158,7 +167,7 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 			let session = config.ssh().await?;
 			info!("Starting surrealdb instance on server");
 			start(&session, config, Duration::from_secs(2)).await?;
-			check(&session).await?;
+			check(&session, &config.nu_binary_path).await?;
 
 			Ok(())
 		}
@@ -176,6 +185,12 @@ pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> R
 				.with_args(config.get_sql_cli_args())
 				.run_and_wait()
 				.wrap_err("Failed to run surreal sql")?;
+
+			Ok(())
+		}
+		ProductionCommand::Check => {
+			let session = config.ssh().await?;
+			check(&session, &config.nu_binary_path).await?;
 
 			Ok(())
 		}

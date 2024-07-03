@@ -121,3 +121,6 @@ denylist = ["production"]
 
 [lints]
 workspace = true
+
+[[bin]]
+name = "db"
