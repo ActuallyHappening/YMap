@@ -1,6 +1,7 @@
 [workspace]
-members = ["crates/*", "crates/yscribble/bevy_*", "website"]
-exclude = ["crates/testing-winit", "crates/wasm-test"]
+members = ["crates/*", "crates/yscribble/bevy_*"]
+# exclude the website to avoid having to recompile for different targets
+exclude = ["crates/testing-winit", "crates/wasm-test", "website"]
 resolver = "2"
 
 [workspace.dependencies]

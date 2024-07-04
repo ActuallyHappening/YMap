@@ -1,6 +1,6 @@
 use yauth::{
 	signin::SignIn,
-	types::{Email, Password, ValidationError},
+	types::{Email, Password},
 };
 use ymap::auth::config::ProductionConfig;
 
@@ -81,7 +81,7 @@ pub fn Login() -> impl IntoView {
 						set_raw_password.set(value.clone());
 					}
 
-					get=raw_email
+					get=raw_password
 				/>
 
 				<Button on_click=|_| {}>"Login"</Button>

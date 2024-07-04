@@ -9,8 +9,10 @@ publish = false
 production = ["ymap/production"]
 
 [dependencies]
-yauth = { workspace = true }
-ymap = { workspace = true }
+# yauth = { workspace = true }
+yauth = { path = "../crates/yauth" }
+ymap = { path = ".." }
+# ymap = { workspace = true }
 console_error_panic_hook = "0.1.7"
 # leptonic = { version = "0.5.0", features = ["csr"] }
 leptos = { version = "0.6.5", features = ["csr"] }
@@ -36,8 +38,9 @@ style-dir = "style"
 # Leptonic's `<Root>` component expects JS files to be available at a "js" directory at runtime (for dynamic script includes). Specify a different prop value if you choose a non-standard location here. 
 js-dir = "public/js"
 
-[lints]
-workspace = true
+# lints won't carry over
+# [lints]
+# workspace = true
 
 ## Profiles, need to be root to actually apple though
 # [profile.dev]

@@ -1457,7 +1457,8 @@ dependencies = [
 [[package]]
 name = "bevy_replicon"
 version = "0.26.3"
-source = "git+https://github.com/projectharmonia/bevy_replicon.git?branch=master#84c38cf49da58d7865c424f85acefd8fb2c191cd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d3cebc54b69f9494b3e29ccad299b253a7dc57876b7789d15b1a1af75d344c3"
 dependencies = [
  "bevy",
  "bincode",
@@ -1697,7 +1698,6 @@ name = "bevy_yscribble_3d"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "bevy_editor_pls",
  "bevy_mod_picking",
  "bevy_replicon",
  "document-features",
@@ -2037,23 +2037,6 @@ name = "camino"
 version = "1.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e0ec6b951b160caa93cc0c7b209e5a3bff7aae9062213451ac99493cd844c239"
-
-[[package]]
-name = "cargo-xcode-build-rs"
-version = "0.2.3"
-dependencies = [
- "bossy",
- "camino",
- "clap",
- "color-eyre",
- "dirs",
- "serde",
- "toml",
- "tracing",
- "tracing-error",
- "tracing-subscriber",
- "which",
-]
 
 [[package]]
 name = "cargo_toml"
@@ -2903,15 +2886,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys",
-]
-
-[[package]]
 name = "dirs-next"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2919,18 +2893,6 @@ checksum = "b98cf8ebf19c3d1b223e151f99a4f9f0690dca41414773390fc824184ac833e1"
 dependencies = [
  "cfg-if",
  "dirs-sys-next",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users",
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -3178,27 +3140,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.68",
-]
-
-[[package]]
-name = "env_filter"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a009aa4810eb158359dda09d0c87378e4bbb89b5a801f016885a4707ba24f7ea"
-dependencies = [
- "log",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38b35839ba51819680ba087cd351788c9a3c476841207e0b8cee0b04722343b9"
-dependencies = [
- "anstream",
- "anstyle",
- "env_filter",
- "log",
 ]
 
 [[package]]
@@ -6067,12 +6008,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "option-ext"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
-
-[[package]]
 name = "orbclient"
 version = "0.3.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8256,28 +8191,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "test-log"
-version = "0.2.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dffced63c2b5c7be278154d76b479f9f9920ed34e7574201407f0b14e2bbb93"
-dependencies = [
- "env_logger",
- "test-log-macros",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "test-log-macros"
-version = "0.2.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5999e24eaa32083191ba4e425deb75cdf25efefabe5aaccb7446dd0d4122a3f5"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.68",
-]
-
-[[package]]
 name = "thiserror"
 version = "1.0.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9927,7 +9840,6 @@ dependencies = [
  "color-eyre",
  "console_error_panic_hook",
  "garde",
- "leptos",
  "rand",
  "serde",
  "serde_json",
@@ -9972,7 +9884,6 @@ dependencies = [
  "serde",
  "serde_json",
  "surrealdb",
- "test-log",
  "tokio",
  "tracing",
  "tracing-error",
@@ -9981,6 +9892,23 @@ dependencies = [
  "which",
  "yauth",
  "ysurreal",
+]
+
+[[package]]
+name = "ymap-website"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "leptonic",
+ "leptos",
+ "leptos_meta",
+ "leptos_router",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-wasm",
+ "yauth",
+ "ymap",
 ]
 
 [[package]]
