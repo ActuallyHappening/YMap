@@ -47,7 +47,7 @@ mod main {
 		/// Executes commands on the server, see [ProductionCommand]
 		Production {
 			#[clap(flatten)]
-			production_config: ymap::auth::config::ProductionConfig,
+			production_config: ymap::auth::config::ProductionControllerConfig,
 
 			#[clap(subcommand)]
 			production_command: production::ProductionCommand,

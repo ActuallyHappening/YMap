@@ -5,7 +5,7 @@ pub mod config {
 	use crate::prelude::*;
 
 	#[derive(Args, Debug, Clone)]
-	pub struct ProductionConfig {
+	pub struct ProductionControllerConfig {
 		#[arg(long)]
 		#[cfg_attr(not(feature = "production"), arg(default_value_t = { Secrets::ssh_name() }))]
 		pub ssh_name: String,
@@ -20,7 +20,7 @@ pub mod config {
 		pub nu_binary_path: Utf8PathBuf,
 	}
 
-	impl DBStartConfig for ProductionConfig {
+	impl DBStartConfig for ProductionControllerConfig {
 		fn init_surql(&self) -> String {
 			include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/init.surql")).into()
 		}
@@ -37,13 +37,13 @@ pub mod config {
 	}
 
 	#[cfg(not(feature = "production"))]
-	impl DBRootCredentials for ProductionConfig {
+	impl DBRootCredentials for ProductionControllerConfig {
 		fn root_password(&self) -> String {
 			Secrets::production_password()
 		}
 	}
 
-	impl DBConnectRemoteConfig for ProductionConfig {
+	impl DBConnectRemoteConfig for ProductionControllerConfig {
 		fn primary_namespace(&self) -> String {
 			"production".into()
 		}
@@ -61,7 +61,7 @@ pub mod config {
 		}
 	}
 
-	impl DBAuthConfig for ProductionConfig {
+	impl DBAuthConfig for ProductionControllerConfig {
 		fn users_scope(&self) -> String {
 			"end_user".into()
 		}
@@ -71,7 +71,7 @@ pub mod config {
 		}
 	}
 
-	impl ProductionConfig {
+	impl ProductionControllerConfig {
 		#[cfg(not(target_arch = "wasm32"))]
 		pub async fn ssh(&self) -> Result<openssh::Session, openssh::Error> {
 			let ssh_name = self.ssh_name.as_str();

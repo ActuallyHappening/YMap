@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use yauth::prelude::*;
-use ymap::auth::config::ProductionConfig;
+use ymap::auth::config::ProductionControllerConfig;
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum AuthCommand {
@@ -14,7 +14,7 @@ pub enum AuthCommand {
 	List,
 }
 
-pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<(), Report> {
+pub async fn handle(config: &ProductionControllerConfig, command: &AuthCommand) -> Result<(), Report> {
 	match command {
 		AuthCommand::SignUp { signup_options } => {
 			let db = config.connect_ws().await?;

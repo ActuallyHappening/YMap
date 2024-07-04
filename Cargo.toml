@@ -8,6 +8,9 @@ resolver = "2"
 surrealdb = "1.5.3"
 
 ### Internal re-exports deps
+[workspace.dependencies.ymap]
+path = "."
+
 [workspace.dependencies.yutils]
 path = "crates/yutils"
 

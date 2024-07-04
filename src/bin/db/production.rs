@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::prelude::*;
 use surrealdb::{engine::any::Any, Surreal};
-use ymap::auth::config::ProductionConfig;
+use ymap::auth::config::ProductionControllerConfig;
 use ysurreal::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
 
 #[derive(Subcommand, Debug, Clone)]
@@ -67,7 +67,7 @@ async fn clean(session: &Session, data_path: &Utf8Path) -> Result<(), Report> {
 
 async fn start(
 	session: &Session,
-	config: &ProductionConfig,
+	config: &ProductionControllerConfig,
 	wait_duration: Duration,
 ) -> Result<(), Report> {
 	let surreal_bin_path = config.surreal_binary_path.as_str();
@@ -95,14 +95,14 @@ async fn check(session: &Session, nu_binary_path: &Utf8Path) -> Result<(), Repor
 	Ok(())
 }
 
-async fn import(db: &Surreal<Any>, config: &ProductionConfig) -> Result<(), Report> {
+async fn import(db: &Surreal<Any>, config: &ProductionControllerConfig) -> Result<(), Report> {
 	config.root_sign_in(db).await?;
 	config.init_query(db).await?;
 
 	Ok(())
 }
 
-pub async fn handle(config: &ProductionConfig, command: &ProductionCommand) -> Result<(), Report> {
+pub async fn handle(config: &ProductionControllerConfig, command: &ProductionCommand) -> Result<(), Report> {
 	match command {
 		ProductionCommand::Auth { auth_subcommand } => auth::handle(config, auth_subcommand).await,
 		ProductionCommand::Kill => {

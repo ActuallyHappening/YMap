@@ -16,7 +16,7 @@ pub mod config {
 	//! - Human configuring/testing against production database (can be feature flagged out with "production")
 	//! - Shipped configurations for clients to connect WITHOUT ROOT CREDENTIALS to a production database
 	//!
-	//! Ideal use case: `ymap` crate defines its own ProductionConfig that loads secrets
+	//! Ideal use case: `ymap` crate defines its own ProductionControllerConfig that loads secrets
 
 	use surrealdb::{
 		opt::auth::{Jwt, Root},
