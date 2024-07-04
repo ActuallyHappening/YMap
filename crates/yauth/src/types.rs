@@ -36,7 +36,7 @@ pub(crate) trait ValidatedType: Sized + Validate {
 }
 
 /// Wraps validation errors, so as to not expose internals of [garde]
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Clone)]
 #[error("Error validating: {0}")]
 pub struct ValidationError(#[from] garde::Report);
 

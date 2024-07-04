@@ -3,6 +3,7 @@ pub mod prelude {
 	pub(crate) use leptos::*;
 	pub(crate) use thiserror::Error;
 	pub(crate) use tracing::*;
+	pub(crate) use yauth::prelude::*;
 }
 
 mod app;

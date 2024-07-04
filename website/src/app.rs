@@ -5,7 +5,7 @@ use leptos_router::*;
 
 use crate::{
 	error_template::{AppError, ErrorTemplate},
-	pages::welcome::Login,
+	pages::login::Login,
 };
 
 #[component]
