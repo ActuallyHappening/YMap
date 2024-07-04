@@ -78,7 +78,7 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	})
 	.await?;
 
-	config.sign_in(db, &signup.into()).await?;
+	// config.sign_in(db, &signup.into()).await?;
 
 	trace!("User signed up and signed in successfully");
 

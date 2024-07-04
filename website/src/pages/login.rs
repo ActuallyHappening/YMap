@@ -27,6 +27,12 @@ pub fn Login() -> impl IntoView {
 		info!(message = "Logging in ...", ?email);
 	};
 
+	let ignore_submit = |ev: leptos::ev::SubmitEvent| {
+		ev.prevent_default();
+
+		warn!("Submitting via form not supported, see https://github.com/lpotthast/leptonic/issues/70")
+	};
+
 	view! {
 		<div class="flex items-center justify-center">
 			<h1>"Login"</h1>
@@ -54,9 +60,7 @@ pub fn Login() -> impl IntoView {
 					get=raw_email
 				/>
 
-				<Button type="submit">
-					"Login"
-				</Button>
+				<Button on_click=|_| {}>"Login"</Button>
 			</form>
 		</div>
 	}
