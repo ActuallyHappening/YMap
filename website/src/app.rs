@@ -6,6 +6,7 @@ use leptos_router::*;
 use crate::{
 	error_template::{AppError, ErrorTemplate},
 	pages::login::Login,
+	pages::logged_in::LoggedIn,
 };
 
 #[component]
@@ -21,7 +22,7 @@ pub fn App() -> impl IntoView {
 			<Stylesheet id="leptos" href="/pkg/leptonic-template-ssr.css"/>
 			<Stylesheet href="https://fonts.googleapis.com/css?family=Roboto&display=swap"/>
 
-			<Title text="Leptonic CSR template"/>
+			<Title text="YMap Website"/>
 
 			<Root default_theme=LeptonicTheme::default()>
 					<Router fallback=|| {
@@ -32,7 +33,8 @@ pub fn App() -> impl IntoView {
 							}
 					}>
 							<Routes>
-									<Route path="" view=|| view! { <Login/> }/>
+									<Route path="/login" view=|| view! { <Login/> }/>
+									<Route path="" view=|| view! { <LoggedIn /> }/>
 							</Routes>
 					</Router>
 			</Root>
