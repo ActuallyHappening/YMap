@@ -21,7 +21,7 @@ DEFINE FUNCTION fn::signin($email: string, $password: string) {
 	};
 	-- This doesn't actually break control flow, but here for clarity
 	RETURN $user;
-}
+};
 
 DEFINE FUNCTION fn::signup($username: string, $email: string, $password: string) {
 	IF string::len($password) < 7 {
@@ -39,7 +39,7 @@ DEFINE FUNCTION fn::signup($username: string, $email: string, $password: string)
 		password: crypto::argon2::generate($password)
 	};
 	RETURN $user;
-}
+};
 
 DEFINE SCOPE end_user
 	SESSION 1d
