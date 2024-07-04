@@ -31,27 +31,27 @@ pub fn App() -> impl IntoView {
 				view! { <ErrorTemplate outside_errors/> }
 			}>
 				<nav>
-					<Box style="position: relative; border: 4px solid gray; width: 100%; height: 20em; overflow: auto;">
-						<AppBar style="z-index: 1; background: var(--brand-color); color: white; height: 100%;">
-							<H3 style="margin-left: 1em; color: white;">"YMap"</H3>
-							<Stack
-								orientation=StackOrientation::Horizontal
-								spacing=Size::Em(1.0)
-								style="margin-right: 1em"
-							>
-								<LinkExt
-									href="https://github.com/ActuallyHappening/YMap"
-									target=LinkExtTarget::Blank
-								>
-									<Icon icon=icondata::FaGithubBrands/>
-								</LinkExt>
+					// <Box style="position: relative; border: 4px solid gray; width: 100%; height: 20em; overflow: auto;">
+					// 	<AppBar style="z-index: 1; background: var(--brand-color); color: white; height: 100%;">
+					// 		<H3 style="margin-left: 1em; color: white;">"YMap"</H3>
+					// 		<Stack
+					// 			orientation=StackOrientation::Horizontal
+					// 			spacing=Size::Em(1.0)
+					// 			style="margin-right: 1em"
+					// 		>
+					// 			<LinkExt
+					// 				href="https://github.com/ActuallyHappening/YMap"
+					// 				target=LinkExtTarget::Blank
+					// 			>
+					// 				<Icon icon=icondata::FaGithubBrands/>
+					// 			</LinkExt>
 
-								<Link href="/login">"Login" <Icon icon=icondata::LuDoorOpen/></Link>
-							</Stack>
-						</AppBar>
-					</Box>
+					// 			<Link href="/login">"Login" <Icon icon=icondata::LuDoorOpen/></Link>
+					// 		</Stack>
+					// 	</AppBar>
+					// </Box>
 				</nav>
-				<main>
+				<main style="width: 100vw; height: 100vh; display: flex; justify-content: center;">
 					<Routes>
 						<Route path="/login" view=|| view! { <Login/> }/>
 						<Route path="" view=|| view! { <LoggedIn/> }/>

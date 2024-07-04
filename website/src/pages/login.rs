@@ -60,9 +60,9 @@ pub fn Login() -> impl IntoView {
 	};
 
 	view! {
-		<div class="flex items-center justify-center">
-			<h1>"Login"</h1>
-			<form on:submit=on_submit>
+		<div style="display: flex; flex-direction: column;">
+			<H1>"Login"</H1>
+			<form on:submit=on_submit style="display: flex; flex-direction: column; align-items: center;">
 
 				<TextInput
 					placeholder="Email"
