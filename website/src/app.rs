@@ -32,35 +32,31 @@ pub fn App() -> impl IntoView {
 			}>
 				<nav>
 					<Box style="position: relative; border: 4px solid gray; width: 100%; height: 20em; overflow: auto;">
-						<AppBar
-						style="z-index: 1; background: var(--brand-color); color: white;">
+						<AppBar style="z-index: 1; background: var(--brand-color); color: white; height: 100%;">
 							<H3 style="margin-left: 1em; color: white;">"YMap"</H3>
 							<Stack
 								orientation=StackOrientation::Horizontal
 								spacing=Size::Em(1.0)
 								style="margin-right: 1em"
 							>
-								<Icon icon=icondata::FaGithubBrands/>
+								<LinkExt
+									href="https://github.com/ActuallyHappening/YMap"
+									target=LinkExtTarget::Blank
+								>
+									<Icon icon=icondata::FaGithubBrands/>
+								</LinkExt>
 
+								<Link href="/login">"Login" <Icon icon=icondata::LuDoorOpen/></Link>
 							</Stack>
 						</AppBar>
-
-						<Box style="padding: 0.5em;">
-							<P>"Scroll ↓"</P>
-							<Stack spacing=Size::Em(
-								0.5,
-							)>
-								{(0..10)
-									.map(|_| view! { <Skeleton height=Size::Em(3.0)/> })
-									.collect_view()}
-							</Stack>
-						</Box>
 					</Box>
 				</nav>
-				<Routes>
-					<Route path="/login" view=|| view! { <Login/> }/>
-					<Route path="" view=|| view! { <LoggedIn/> }/>
-				</Routes>
+				<main>
+					<Routes>
+						<Route path="/login" view=|| view! { <Login/> }/>
+						<Route path="" view=|| view! { <LoggedIn/> }/>
+					</Routes>
+				</main>
 			</Router>
 		</Root>
 	}
