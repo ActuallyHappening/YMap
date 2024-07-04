@@ -42,7 +42,7 @@ pub struct ValidationError(#[from] garde::Report);
 
 impl ValidationError {
 	/// Represents the error that no value was passed.
-	/// 
+	///
 	/// Not strictly the same as the actual error produced by [garde::Validate],
 	/// but it is manually constructable
 	pub fn empty(path: impl Into<String>, message: impl Into<String>) -> Self {

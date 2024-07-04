@@ -4,23 +4,94 @@ mod init;
 pub mod config {
 	use crate::prelude::*;
 
-	#[derive(Args, Debug, Clone)]
-	pub struct ProductionControllerConfig {
-		#[arg(long)]
-		#[cfg_attr(not(feature = "production"), arg(default_value_t = { Secrets::ssh_name() }))]
-		pub ssh_name: String,
+	#[cfg(not(feature = "production"))]
+	pub use production_controller::ProductionControllerConfig;
+	#[cfg(not(feature = "production"))]
+	mod production_controller {
+		use crate::prelude::*;
 
-		#[arg(long, default_value_t = Utf8PathBuf::from("/root/home/YMap/surreal.db"))]
-		pub surreal_data_path: Utf8PathBuf,
+		use crate::auth::config::ProductionConfig;
 
-		#[arg(long, default_value_t = Utf8PathBuf::from("/usr/local/bin/surreal"))]
-		pub surreal_binary_path: Utf8PathBuf,
+		#[derive(Args, Debug, Clone)]
+		pub struct ProductionControllerConfig {
+			#[arg(long)]
+			#[cfg_attr(not(feature = "production"), arg(default_value_t = { Secrets::ssh_name() }))]
+			pub ssh_name: String,
 
-		#[arg(long, default_value_t = Utf8PathBuf::from("/root/.cargo/bin/nu"))]
-		pub nu_binary_path: Utf8PathBuf,
+			#[arg(long, default_value_t = Utf8PathBuf::from("/root/home/YMap/surreal.db"))]
+			pub surreal_data_path: Utf8PathBuf,
+
+			#[arg(long, default_value_t = Utf8PathBuf::from("/usr/local/bin/surreal"))]
+			pub surreal_binary_path: Utf8PathBuf,
+
+			#[arg(long, default_value_t = Utf8PathBuf::from("/root/.cargo/bin/nu"))]
+			pub nu_binary_path: Utf8PathBuf,
+		}
+
+		impl DBStartConfig for ProductionControllerConfig {
+			fn init_surql(&self) -> String {
+				ProductionConfig::init_surql().into()
+			}
+
+			fn bind_port(&self) -> u16 {
+				42069
+			}
+
+			fn db_type(&self) -> ysurreal::config::StartDBType {
+				ysurreal::config::StartDBType::File {
+					data_path: Utf8PathBuf::from("/root/home/YMap/surreal.db"),
+				}
+			}
+		}
+
+		impl DBRootCredentials for ProductionControllerConfig {
+			fn root_password(&self) -> String {
+				Secrets::production_password()
+			}
+		}
+
+		impl DBConnectRemoteConfig for ProductionControllerConfig {
+			fn primary_namespace(&self) -> String {
+				"production".into()
+			}
+
+			fn primary_database(&self) -> String {
+				"production".into()
+			}
+
+			fn connect_host(&self) -> String {
+				"actually-happening.foundation".into()
+			}
+
+			fn connect_port(&self) -> u16 {
+				42069
+			}
+		}
+
+		impl DBAuthConfig for ProductionControllerConfig {
+			fn users_scope(&self) -> String {
+				"end_user".into()
+			}
+
+			fn users_table(&self) -> String {
+				"user".into()
+			}
+		}
+
+		impl ProductionControllerConfig {
+			#[cfg(not(target_arch = "wasm32"))]
+			pub async fn ssh(&self) -> Result<openssh::Session, openssh::Error> {
+				let ssh_name = self.ssh_name.as_str();
+				info!(message = "Connecting to server host", ?ssh_name);
+				openssh::Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
+			}
+		}
 	}
 
-	impl DBStartConfig for ProductionControllerConfig {
+	/// The specific configuration used by `ymap` in production
+	pub struct ProductionConfig;
+
+	impl DBStartConfig for ProductionConfig {
 		fn init_surql(&self) -> String {
 			include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/init.surql")).into()
 		}
@@ -36,14 +107,7 @@ pub mod config {
 		}
 	}
 
-	#[cfg(not(feature = "production"))]
-	impl DBRootCredentials for ProductionControllerConfig {
-		fn root_password(&self) -> String {
-			Secrets::production_password()
-		}
-	}
-
-	impl DBConnectRemoteConfig for ProductionControllerConfig {
+	impl DBConnectRemoteConfig for ProductionConfig {
 		fn primary_namespace(&self) -> String {
 			"production".into()
 		}
@@ -61,22 +125,13 @@ pub mod config {
 		}
 	}
 
-	impl DBAuthConfig for ProductionControllerConfig {
+	impl DBAuthConfig for ProductionConfig {
 		fn users_scope(&self) -> String {
 			"end_user".into()
 		}
 
 		fn users_table(&self) -> String {
 			"user".into()
-		}
-	}
-
-	impl ProductionControllerConfig {
-		#[cfg(not(target_arch = "wasm32"))]
-		pub async fn ssh(&self) -> Result<openssh::Session, openssh::Error> {
-			let ssh_name = self.ssh_name.as_str();
-			info!(message = "Connecting to server host", ?ssh_name);
-			openssh::Session::connect_mux(ssh_name, openssh::KnownHosts::Strict).await
 		}
 	}
 }

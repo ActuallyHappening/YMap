@@ -14,7 +14,10 @@ pub enum AuthCommand {
 	List,
 }
 
-pub async fn handle(config: &ProductionControllerConfig, command: &AuthCommand) -> Result<(), Report> {
+pub async fn handle(
+	config: &ProductionControllerConfig,
+	command: &AuthCommand,
+) -> Result<(), Report> {
 	match command {
 		AuthCommand::SignUp { signup_options } => {
 			let db = config.connect_ws().await?;

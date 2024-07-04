@@ -102,7 +102,10 @@ async fn import(db: &Surreal<Any>, config: &ProductionControllerConfig) -> Resul
 	Ok(())
 }
 
-pub async fn handle(config: &ProductionControllerConfig, command: &ProductionCommand) -> Result<(), Report> {
+pub async fn handle(
+	config: &ProductionControllerConfig,
+	command: &ProductionCommand,
+) -> Result<(), Report> {
 	match command {
 		ProductionCommand::Auth { auth_subcommand } => auth::handle(config, auth_subcommand).await,
 		ProductionCommand::Kill => {

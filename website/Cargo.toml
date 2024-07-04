@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[features]
+## Use this when building for production
+production = ["ymap/production"]
+
 [dependencies]
 yauth = { workspace = true }
-ymap = { workspace = true, features = ["production"] }
+ymap = { workspace = true }
 console_error_panic_hook = "0.1.7"
 # leptonic = { version = "0.5.0", features = ["csr"] }
 leptos = { version = "0.6.5", features = ["csr"] }
