@@ -158,7 +158,7 @@ impl Username {
 // #[serde(transparent)]
 #[garde(transparent)]
 #[repr(transparent)]
-pub struct Password(#[garde(length(min = 7, max = 50))] String);
+pub struct Password(#[garde(length(min = 7))] String);
 
 impl std::fmt::Debug for Password {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

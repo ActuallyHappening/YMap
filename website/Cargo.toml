@@ -57,3 +57,8 @@ js-dir = "public/js"
 # debug = 0
 # strip = true
 # # codegen-units = 1
+
+### Optimizations
+[profile.dev]
+debug = 0
+strip = "debuginfo"
