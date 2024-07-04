@@ -2,17 +2,30 @@ use leptonic::prelude::*;
 use leptos::*;
 
 #[component]
-pub fn Welcome() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
+pub fn Login() -> impl IntoView {
+	let on_submit = |ev: leptos::ev::SubmitEvent| {
+		ev.prevent_default();
 
-    view! {
-        <Box style="display: flex; flex-direction: column; align-items: center; padding: 1em; min-height: 100%; min-width: 100%">
-            <H2>"Welcome to Leptonic"</H2>
+		info!(message = "Form submitted",);
+	};
 
-            <span style="margin-top: 3em;">"Count: " {move || count.get()}</span>
-            <Button on_click=move|_| set_count.update(|c| *c += 1)>
-                "Increase"
-            </Button>
-        </Box>
-    }
+	let (email, set_email) = create_signal(Err(ValidationError::empty(
+		"password",
+		"Please enter a password",
+	)));
+
+	view! {
+		<div class="flex items-center justify-center">
+			<h1>"Login"</h1>
+			<form on:submit=on_submit>
+				// <yauth::leptos_ui::UsernameInput />
+				<div class="mb-4 md:mb-6">
+					<yauth::leptos_ui::EmailInput set_email=set_email></yauth::leptos_ui::EmailInput>
+				</div>
+				<yauth::leptos_ui::PasswordInput></yauth::leptos_ui::PasswordInput>
+
+				<button></button>
+			</form>
+		</div>
+	}
 }

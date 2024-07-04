@@ -21,8 +21,6 @@ pub mod prelude {
 pub mod config;
 pub mod configs;
 pub mod error;
-#[cfg(feature = "leptos-ui")]
-pub mod leptos_ui;
 pub mod signin;
 pub mod signout;
 pub mod signup;

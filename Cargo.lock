@@ -9996,6 +9996,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
+ "yauth",
 ]
 
 [[package]]
