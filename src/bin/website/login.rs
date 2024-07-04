@@ -3,6 +3,8 @@ use crate::prelude::*;
 #[component]
 pub fn LoginForm() -> impl IntoView {
 	view! {
-		<h1> "TODO form" </h1>
+		<div class="flex items-center justify-center">
+		
+		</div>
 	}
 }
