@@ -8,11 +8,11 @@ pub mod prelude {
 	pub(crate) use color_eyre::eyre::Report;
 	pub(crate) use color_eyre::eyre::WrapErr;
 	pub(crate) use tracing::*;
-	#[cfg(not(target_arch = "wasm32"))]
+	#[cfg(all(not(target_arch = "wasm32"), not(feature = "production")))]
 	pub(crate) use which::which;
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "production")))]
 fn main() {
 	main::main();
 }
@@ -22,8 +22,13 @@ fn main() {
 	panic!("DB controller script only supports desktop");
 }
 
+#[cfg(feature = "production")]
+fn main() {
+	panic!("DB controller script can only run with production credentials baked in");
+}
+
 #[path = "db"]
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "production")))]
 mod main {
 	#[path = "production.rs"]
 	pub mod production;

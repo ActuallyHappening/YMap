@@ -160,7 +160,8 @@ open-xcode = "open xcode/*.xcodeproj"
 # open-app = "open xcode/build/Debug-iphoneos/YMap.app"
 
 [package.metadata.cargo-all-features]
-denylist = ["production"]
+# requires a bit of work and thinking
+# denylist = ["production"]
 
 [lints]
 workspace = true

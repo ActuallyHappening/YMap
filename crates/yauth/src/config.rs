@@ -1,4 +1,5 @@
 use crate::{prelude::*, types::UserRecord};
+use surrealdb::opt::auth::Jwt;
 use ysurreal::config::DBConnectRemoteConfig;
 
 pub trait DBAuthConfig: DBConnectRemoteConfig {
@@ -12,7 +13,7 @@ pub trait DBAuthConfig: DBConnectRemoteConfig {
 		&self,
 		db: &Surreal<C>,
 		credentials: &crate::signup::SignUp,
-	) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
+	) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
 	where
 		Self: Sized,
 	{
@@ -24,7 +25,7 @@ pub trait DBAuthConfig: DBConnectRemoteConfig {
 		&self,
 		db: &Surreal<C>,
 		credentials: &crate::signin::SignIn,
-	) -> impl Future<Output = Result<crate::types::UserRecord, AuthError>> + Send + Sync
+	) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
 	where
 		Self: Sized,
 	{

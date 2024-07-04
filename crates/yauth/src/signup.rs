@@ -1,7 +1,7 @@
 use crate::error::InternalInvariantBroken;
 use crate::prelude::*;
 use crate::types::{Email, Password, UserRecord, Username};
-use surrealdb::opt::auth::Scope;
+use surrealdb::opt::auth::{Jwt, Scope};
 
 /// User facing signup data request
 #[derive(garde::Validate, clap::Args, Serialize, Clone, Debug)]
@@ -59,7 +59,7 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 	signup: &SignUp,
-) -> Result<crate::types::UserRecord, AuthError> {
+) -> Result<(Jwt, crate::types::UserRecord), AuthError> {
 	debug!("Signing user up");
 	let namespace = config.primary_namespace();
 	let namespace = namespace.as_str();
@@ -70,13 +70,14 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 
 	db.use_ns(namespace).use_db(database).await?;
 
-	db.signup(Scope {
-		namespace,
-		database,
-		scope,
-		params: &signup,
-	})
-	.await?;
+	let jwt = db
+		.signup(Scope {
+			namespace,
+			database,
+			scope,
+			params: &signup,
+		})
+		.await?;
 
 	// config.sign_in(db, &signup.into()).await?;
 
@@ -92,6 +93,7 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 	new_user
 		.into_iter()
 		.next()
+		.map(|user| (jwt, user))
 		.ok_or(AuthError::InternalInvariantBroken(
 			InternalInvariantBroken::UserSignedUpButNoRecord,
 		))

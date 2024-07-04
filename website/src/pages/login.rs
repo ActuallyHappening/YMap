@@ -25,6 +25,7 @@ pub fn Login() -> impl IntoView {
 		let password = password.get();
 
 		info!(message = "Logging in ...", ?email);
+		
 	};
 
 	let ignore_submit = |ev: leptos::ev::SubmitEvent| {

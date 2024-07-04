@@ -6,7 +6,8 @@ pub mod config {
 
 	#[derive(Args, Debug, Clone)]
 	pub struct ProductionConfig {
-		#[arg(long, default_value_t = { Secrets::ssh_name() })]
+		#[arg(long)]
+		#[cfg_attr(not(feature = "production"), arg(default_value_t = { Secrets::ssh_name() }))]
 		pub ssh_name: String,
 
 		#[arg(long, default_value_t = Utf8PathBuf::from("/root/home/YMap/surreal.db"))]
@@ -35,6 +36,7 @@ pub mod config {
 		}
 	}
 
+	#[cfg(not(feature = "production"))]
 	impl DBRootCredentials for ProductionConfig {
 		fn root_password(&self) -> String {
 			Secrets::production_password()

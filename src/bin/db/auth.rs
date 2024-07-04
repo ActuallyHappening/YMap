@@ -9,6 +9,8 @@ pub enum AuthCommand {
 		#[clap(flatten)]
 		signup_options: yauth::signup::SignUp,
 	},
+	/// Only available with production credentials
+	#[cfg(not(feature = "production"))]
 	List,
 }
 
@@ -24,6 +26,7 @@ pub async fn handle(config: &ProductionConfig, command: &AuthCommand) -> Result<
 
 			Ok(())
 		}
+		#[cfg(not(feature = "production"))]
 		AuthCommand::List => {
 			let db = config.connect_ws().await?;
 			// logs in as root to list all of them, else IAM error
