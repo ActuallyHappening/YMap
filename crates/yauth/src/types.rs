@@ -40,6 +40,21 @@ pub(crate) trait ValidatedType: Sized + Validate {
 #[error("Error validating: {0}")]
 pub struct ValidationError(#[from] garde::Report);
 
+impl ValidationError {
+	/// Represents the error that no value was passed.
+	/// 
+	/// Not strictly the same as the actual error produced by [garde::Validate],
+	/// but it is manually constructable
+	pub fn empty(path: impl Into<String>, message: impl Into<String>) -> Self {
+		let mut report = garde::Report::new();
+		report.append(
+			garde::Path::new(path.into()),
+			garde::Error::new(message.into()),
+		);
+		Self(report)
+	}
+}
+
 macro_rules! impl_validation_only {
 	($ty:ty) => {
 		impl ValidatedType for $ty {
