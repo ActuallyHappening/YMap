@@ -4889,21 +4889,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "leptonic-template-csr"
-version = "0.1.0"
-dependencies = [
- "console_error_panic_hook",
- "leptonic",
- "leptos",
- "leptos_meta",
- "leptos_router",
- "thiserror",
- "tracing",
- "tracing-subscriber",
- "tracing-wasm",
-]
-
-[[package]]
 name = "leptonic-theme"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9996,6 +9981,21 @@ dependencies = [
  "which",
  "yauth",
  "ysurreal",
+]
+
+[[package]]
+name = "ymap-website"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "leptonic",
+ "leptos",
+ "leptos_meta",
+ "leptos_router",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-wasm",
 ]
 
 [[package]]

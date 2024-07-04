@@ -1,7 +1,8 @@
 [package]
-name = "leptonic-template-csr"
+name = "ymap-website"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [profile.dev]
 # Potential to opt-in on higher optimization for our code. This may increase incremental compilation times, but will reduce binaty size.
@@ -16,7 +17,7 @@ opt-level = "z"
 lto = "fat"
 debug = 0
 strip = true
-codegen-units = 1
+# codegen-units = 1
 
 [dependencies]
 console_error_panic_hook = "0.1.7"

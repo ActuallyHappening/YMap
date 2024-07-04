@@ -8,5 +8,5 @@ ignore = [
 
 [serve]
 address = "127.0.0.1"
-port = 4001
-open = false
+port = 6969
+open = true

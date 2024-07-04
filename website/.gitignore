@@ -6,6 +6,7 @@
 !README.md
 !rust-toolchain.toml
 !src
+!.cargo
 
 #
 !Trunk.toml

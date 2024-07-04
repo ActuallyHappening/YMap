@@ -5,9 +5,7 @@
 !.cargo
 !Cargo.lock
 !Cargo.toml
-!index.html
 !README.md
-!Trunk.toml
 !assets
 !xtask
 !.rustfmt.toml
@@ -16,7 +14,6 @@
 !_typos.toml
 
 ## YMap
-!Trunk.toml
 !init.surql
 !init.surql.rs
 !xcode
