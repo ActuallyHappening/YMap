@@ -1,36 +1,62 @@
-use yauth::types::{Email, Password, ValidationError};
+use yauth::{
+	signin::SignIn,
+	types::{Email, Password, ValidationError},
+};
+use ymap::auth::config::ProductionConfig;
 
 use crate::prelude::*;
+
+async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
+	info!("Logging in ..");
+	let config = ProductionConfig::new();
+	let db = config.connect_ws().await?;
+	let (jwt, user_record) = config.sign_in(&db, credentials).await?;
+
+	debug!("Logged in user {}", user_record.id());
+
+	Ok(jwt)
+}
 
 #[component]
 pub fn Login() -> impl IntoView {
 	// email
-	let (email, set_email) = create_signal(Err(ValidationError::empty(
-		"email",
-		"Please enter an email",
-	)));
 	let (raw_email, set_raw_email) = create_signal(String::new());
+	let email = Signal::derive(move || Email::from_str(&raw_email.get()));
 
 	// password
-	let (password, set_password) = create_signal(Err(ValidationError::empty(
-		"password",
-		"Please enter a password",
-	)));
 	let (raw_password, set_raw_password) = create_signal(String::new());
+	let password = Signal::derive(move || Password::from_str(&raw_password.get()));
+
+	let (error, set_error) = create_signal(None);
+
+	let submit_action = create_action(|credentials: &SignIn| {
+		let credentials = credentials.clone();
+		async move {
+			let jwt = login(&credentials).await;
+			trace!(?jwt);
+		}
+	});
 
 	let on_submit = move |ev: leptos::ev::SubmitEvent| {
 		ev.prevent_default();
 
-		let email = email.get();
-		let password = password.get();
+		let email = match email.get() {
+			Ok(email) => email,
+			Err(err) => {
+				set_error.set(Some(err));
+				return;
+			}
+		};
+		let password = match password.get() {
+			Ok(password) => password,
+			Err(err) => {
+				set_error.set(Some(err));
+				return;
+			}
+		};
+		set_error.set(None);
 
-		info!(message = "Logging in ...", ?email);
-	};
-
-	let ignore_submit = |ev: leptos::ev::SubmitEvent| {
-		ev.prevent_default();
-
-		warn!("Submitting via form not supported, see https://github.com/lpotthast/leptonic/issues/70")
+		submit_action.dispatch(SignIn { email, password });
 	};
 
 	view! {
@@ -43,7 +69,6 @@ pub fn Login() -> impl IntoView {
 					on:input=move |ev| {
 						let value = event_target_value(&ev);
 						set_raw_email.set(value.clone());
-						set_email.set(Email::from_str(&value));
 					}
 
 					get=raw_email
@@ -54,7 +79,6 @@ pub fn Login() -> impl IntoView {
 					on:input=move |ev| {
 						let value = event_target_value(&ev);
 						set_raw_password.set(value.clone());
-						set_password.set(Password::from_str(&value));
 					}
 
 					get=raw_email
@@ -62,6 +86,7 @@ pub fn Login() -> impl IntoView {
 
 				<Button on_click=|_| {}>"Login"</Button>
 			</form>
+			{move || error.with(|err| err.as_ref().map(|err| format!("Error: {}", err)))}
 		</div>
 	}
 }

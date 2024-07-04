@@ -2,6 +2,8 @@
 mod init;
 
 pub mod config {
+	use std::marker::PhantomData;
+
 	use crate::prelude::*;
 
 	#[cfg(not(feature = "production"))]
@@ -14,6 +16,9 @@ pub mod config {
 
 		#[derive(Args, Debug, Clone)]
 		pub struct ProductionControllerConfig {
+			#[clap(flatten)]
+			pub production_config: ProductionConfig,
+
 			#[arg(long)]
 			#[cfg_attr(not(feature = "production"), arg(default_value_t = { Secrets::ssh_name() }))]
 			pub ssh_name: String,
@@ -30,21 +35,21 @@ pub mod config {
 
 		impl DBStartConfig for ProductionControllerConfig {
 			fn init_surql(&self) -> String {
-				ProductionConfig::init_surql().into()
+				self.production_config.init_surql()
 			}
 
 			fn bind_port(&self) -> u16 {
-				42069
+				self.production_config.bind_port()
 			}
 
 			fn db_type(&self) -> ysurreal::config::StartDBType {
-				ysurreal::config::StartDBType::File {
-					data_path: Utf8PathBuf::from("/root/home/YMap/surreal.db"),
-				}
+				self.production_config.db_type()
 			}
 		}
 
 		impl DBRootCredentials for ProductionControllerConfig {
+			/// The magic of [ProductionControllerConfig] versus just plain
+			/// [ProductionConfig].
 			fn root_password(&self) -> String {
 				Secrets::production_password()
 			}
@@ -52,19 +57,19 @@ pub mod config {
 
 		impl DBConnectRemoteConfig for ProductionControllerConfig {
 			fn primary_namespace(&self) -> String {
-				"production".into()
+				self.production_config.primary_namespace()
 			}
 
 			fn primary_database(&self) -> String {
-				"production".into()
+				self.production_config.primary_database()
 			}
 
 			fn connect_host(&self) -> String {
-				"actually-happening.foundation".into()
+				self.production_config.connect_host()
 			}
 
 			fn connect_port(&self) -> u16 {
-				42069
+				self.production_config.connect_port()
 			}
 		}
 
@@ -89,7 +94,18 @@ pub mod config {
 	}
 
 	/// The specific configuration used by `ymap` in production
-	pub struct ProductionConfig;
+	#[derive(Default, Debug, Args, Clone)]
+	pub struct ProductionConfig {
+		#[clap(skip = PhantomData)]
+		_marker: PhantomData<()>,
+	}
+
+	impl ProductionConfig {
+		/// Trait implementations provide the necessary data
+		pub fn new() -> Self {
+			Self::default()
+		}
+	}
 
 	impl DBStartConfig for ProductionConfig {
 		fn init_surql(&self) -> String {

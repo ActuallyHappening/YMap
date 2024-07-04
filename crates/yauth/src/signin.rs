@@ -7,7 +7,7 @@ use crate::{
 	types::{Email, Password, UserRecord},
 };
 
-#[derive(clap::Args, Validate, Serialize, Debug)]
+#[derive(clap::Args, Validate, Serialize, Debug, Clone)]
 pub struct SignIn {
 	#[arg(long)]
 	#[garde(dive)]
@@ -60,6 +60,8 @@ pub(crate) async fn sign_in<Config: DBAuthConfig, C: Connection>(
 			params: &signin,
 		})
 		.await?;
+
+	db.wait_for(surrealdb::opt::WaitFor::Database).await;
 
 	trace!("User signed up and signed in successfully");
 

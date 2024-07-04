@@ -1,6 +1,6 @@
 //! Useful types
 
-use std::fmt::Display;
+use std::fmt::{write, Display};
 
 use crate::prelude::*;
 use surrealdb::sql::Thing;
@@ -239,6 +239,13 @@ impl Email {
 /// The ID of a user
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UserID(Thing);
+
+impl std::fmt::Display for UserID {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		// ignores the db portion
+		self.0.id.fmt(f)
+	}
+}
 
 /// What is stored in the [AuthConnection::users_table] table
 #[derive(Debug, Deserialize)]
