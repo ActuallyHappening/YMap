@@ -14,35 +14,38 @@ DEFINE FIELD password ON user TYPE string; # stores an HASH not the actual passw
 
 DEFINE INDEX email on user FIELDS email UNIQUE;
 
+DEFINE FUNCTION fn::signin($email: string, $password: string) {
+	LET $user = SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password);
+	if !$user {
+		THROW "You either provided invalid credentials, or a user with the email " + <string> $email + " doesn't exist.";
+	};
+	-- This doesn't actually break control flow, but here for clarity
+	RETURN $user;
+}
+
+DEFINE FUNCTION fn::signup($username: string, $email: string, $password: string) {
+	IF string::len($password) < 7 {
+		THROW "Password must be at least 7 characters long.";
+	};
+	IF string::len($email) > 50 {
+		THROW "Email must be at most 50 characters long.";
+	};
+	IF string::len($username) < 2 OR string::len($username) > 25 {
+		THROW "Username must be at least 2 characters long and at most 25 characters long.";
+	};
+	let $user = CREATE user CONTENT {
+		username: $username,
+		email: $email,
+		password: crypto::argon2::generate($password)
+	};
+	RETURN $user;
+}
+
 DEFINE SCOPE end_user
 	SESSION 1d
 	SIGNIN {
-		LET $email_input = type::string($email);
-		LET $password_input = type::string($password);
-		LET $user = SELECT * FROM user WHERE email = $email_input AND crypto::argon2::compare(password, $password_input);
-		if !$user {
-			THROW "You either provided invalid credentials, or a user with the email " + <string> $email + " doesn't exist.";
-		};
-		-- This doesn't actually break control flow, but here for clarity
-		RETURN $user;
+		RETURN fn::signin($email, $password);
 	}
 	SIGNUP {
-		LET $password_input = type::string($password);
-		IF string::len($password_input) < 7 {
-			THROW "Password must be at least 7 characters long.";
-		};
-		LET $email_input = type::string($email);
-		IF string::len($email_input) > 50 {
-			THROW "Email must be at most 50 characters long.";
-		};
-		LET $username_input = type::string($username);
-		IF string::len($username_input) < 2 OR string::len($username_input) > 25 {
-			THROW "Username must be at least 2 characters long and at most 25 characters long.";
-		};
-		let $user = CREATE user CONTENT {
-			username: $username_input,
-			email: $email_input,
-			password: crypto::argon2::generate($password_input)
-		};
-		RETURN $user;
+		RETURN fn::signup($username, $email, $password);
 	};
