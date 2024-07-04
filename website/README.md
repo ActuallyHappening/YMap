@@ -1,3 +1,4 @@
-# Leptonic CSR template
+## Website for YMap
 
-To run the app with [trunk](https://trunkrs.dev/) use `trunk serve` in the root of this directory.
+## Developing
+`trunk serve`
