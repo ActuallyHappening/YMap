@@ -4607,6 +4607,7 @@ dependencies = [
  "tracing",
  "typed-builder",
  "typed-builder-macro",
+ "wasm-bindgen",
  "web-sys",
 ]
 
@@ -4704,6 +4705,7 @@ dependencies = [
  "cfg-if",
  "futures",
  "indexmap 2.2.6",
+ "js-sys",
  "oco_ref",
  "paste",
  "pin-project",
@@ -4715,7 +4717,9 @@ dependencies = [
  "slotmap",
  "thiserror",
  "tracing",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

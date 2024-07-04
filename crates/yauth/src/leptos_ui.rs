@@ -15,7 +15,7 @@ fn UsernameInput() -> impl IntoView {
 				class="w-full p-2"
 				placeholder="Username"
 				on:input=move |ev| {
-					set_raw_username(event_target_value(&ev));
+					set_raw_username.set(event_target_value(&ev));
 				}
 
 				prop:value=raw_username
@@ -34,7 +34,7 @@ fn PasswordInput() -> impl IntoView {
 				class="w-full p-2"
 				placeholder="Password"
 				on:input=move |ev| {
-					set_raw_password(event_target_value(&ev));
+					set_raw_password.set(event_target_value(&ev));
 				}
 
 				prop:value=raw_password
@@ -54,7 +54,7 @@ fn EmailInput() -> impl IntoView {
 				type="email"
 				placeholder="Email"
 				on:input=move |ev| {
-					set_raw_email(event_target_value(&ev));
+					set_raw_email.set(event_target_value(&ev));
 				}
 			/>
 		</div>
