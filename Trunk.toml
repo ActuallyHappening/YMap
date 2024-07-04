@@ -1,3 +1,6 @@
+[build]
+
+
 [serve]
 open = true
 port = 6969
