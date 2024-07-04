@@ -26,6 +26,8 @@ pub fn LoginForm() -> impl IntoView {
 					<yauth::leptos_ui::EmailInput set_email=set_email></yauth::leptos_ui::EmailInput>
 				</div>
 				<yauth::leptos_ui::PasswordInput />
+
+				<button />
 			</form>
 		</div>
 	}
