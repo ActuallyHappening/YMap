@@ -23,6 +23,8 @@ DEFINE SCOPE end_user
 		if !$user {
 			THROW "You either provided invalid credentials, or a user with the email " + <string> $email + " doesn't exist.";
 		};
+		-- This doesn't actually break control flow, but here for clarity
+		RETURN $user;
 	}
 	SIGNUP {
 		LET $password_input = type::string($password);
@@ -37,9 +39,10 @@ DEFINE SCOPE end_user
 		IF string::len($username_input) < 2 OR string::len($username_input) > 25 {
 			THROW "Username must be at least 2 characters long and at most 25 characters long.";
 		};
-		CREATE user CONTENT {
+		let $user = CREATE user CONTENT {
 			username: $username_input,
 			email: $email_input,
 			password: crypto::argon2::generate($password_input)
-		}
+		};
+		RETURN $user;
 	};
