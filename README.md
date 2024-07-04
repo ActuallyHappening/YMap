@@ -33,6 +33,8 @@ InstalledDir: /opt/homebrew/opt/llvm/bin
 ```
 Because that seems to fix the `error: failed to build archive: 'wasm32.o': section too large` error?
 
+Also don't forget `rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim wasm32-unknown-unknown`
+
 <!-- Infinite mind mapping software
 
 https://dev.to/wadecodez/exploring-rust-for-native-ios-game-development-2bna
