@@ -74,6 +74,11 @@ type_complexity = "allow"
 [workspace.metadata.scripts]
 dev-install = "cargo install nu cargo-run-script apple-clis cargo-all-features cargo-bundle"
 
+### Optimizations
+[profile.dev]
+debug = 0
+strip = "debuginfo"
+
 ########## YMAP ##########
 
 [package]
