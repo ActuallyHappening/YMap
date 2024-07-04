@@ -172,7 +172,7 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn sign_up_works() -> Result<(), Report> {
+	async fn db_sign_up() -> Result<(), Report> {
 		setup!(
 			db = db,
 			conn_config = conn_config,
@@ -186,7 +186,7 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn sign_in_works() -> Result<(), Report> {
+	async fn db_sign_in() -> Result<(), Report> {
 		setup!(
 			db = db,
 			conn_config = conn_config,
@@ -206,7 +206,7 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn sign_up_twice_fails() -> Result<(), Report> {
+	async fn db_sign_up_twice_fails() -> Result<(), Report> {
 		setup!(
 			db = db,
 			conn_config = conn_config,
@@ -226,7 +226,7 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn user_table_appends() -> Result<(), Report> {
+	async fn db_user_table_appends() -> Result<(), Report> {
 		setup!(
 			db = db,
 			conn_config = conn_config,
@@ -251,7 +251,7 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
-	async fn user_table_appends_multiple() -> Result<(), Report> {
+	async fn db_user_table_appends_multiple() -> Result<(), Report> {
 		setup!(
 			db = db,
 			conn_config = conn_config,
