@@ -79,7 +79,7 @@ pub(crate) async fn sign_up<Config: DBAuthConfig, C: Connection>(
 		})
 		.await?;
 
-		db.wait_for(surrealdb::opt::WaitFor::Database).await;
+	db.wait_for(surrealdb::opt::WaitFor::Database).await;
 
 	trace!("User signed up and signed in successfully");
 

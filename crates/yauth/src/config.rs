@@ -8,7 +8,7 @@ pub trait DBAuthConfig: DBConnectRemoteConfig {
 	fn users_scope(&self) -> String;
 
 	/// Signs up, and switches to primary namespace and database.
-	/// 
+	///
 	/// This implicitly signs in as well.
 	/// Also waits for the database to be ready.
 	fn sign_up<C: Connection>(
@@ -23,7 +23,7 @@ pub trait DBAuthConfig: DBConnectRemoteConfig {
 	}
 
 	/// Signs into the scope assuming the user has already signed up, and switches to primary ns and db.
-	/// 
+	///
 	/// Also waits for the database to be ready.
 	fn sign_in<C: Connection>(
 		&self,
