@@ -10,7 +10,7 @@ async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
 	info!("Logging in ..");
 	let config = ProductionConfig::new();
 	let db = config.connect_ws().await?;
-	let (jwt, user_record) = config.sign_in(&db, credentials).await?;
+	let (jwt, user_record) = config.control_db(&db).sign_in(credentials).await?;
 
 	debug!("Logged in user {}", user_record.id());
 

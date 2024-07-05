@@ -180,7 +180,7 @@ mod test {
 		);
 
 		// signs in as a scoped user
-		auth_config.sign_up(&db, &SignUp::testing_rand()).await?;
+		auth_config.control_db(&db).sign_up(&SignUp::testing_rand()).await?;
 
 		Ok(())
 	}
@@ -196,11 +196,11 @@ mod test {
 		let credentials = SignUp::testing_rand();
 
 		// signs in as a scoped user
-		auth_config.sign_up(&db, &credentials).await?;
-		auth_config.invalidate(&db).await?;
+		auth_config.control_db(&db).sign_up(&credentials).await?;
+		auth_config.control_db(&db).invalidate().await?;
 
 		// signs into already signed up user
-		auth_config.sign_in(&db, &credentials.into()).await?;
+		auth_config.control_db(&db).sign_in(&credentials.into()).await?;
 
 		Ok(())
 	}
@@ -216,10 +216,10 @@ mod test {
 		let credentials = SignUp::testing_rand();
 
 		// signs in as a scoped user
-		auth_config.sign_up(&db, &credentials).await?;
-		auth_config.invalidate(&db).await?;
+		auth_config.control_db(&db).sign_up(&credentials).await?;
+		auth_config.control_db(&db).invalidate().await?;
 
-		let result = auth_config.sign_up(&db, &credentials).await;
+		let result = auth_config.control_db(&db).sign_up(&credentials).await;
 		assert!(result.is_err());
 
 		Ok(())
@@ -238,7 +238,7 @@ mod test {
 		// assert_eq!(users.len(), 0, "Users table should not be readable until you have signed in");
 
 		let credentials = SignUp::testing_rand();
-		auth_config.sign_up(&db, &credentials).await?;
+		auth_config.control_db(&db).sign_up(&credentials).await?;
 
 		let users: Vec<serde_json::Value> = db.select(auth_config.users_table()).await?;
 		assert_eq!(
@@ -268,8 +268,8 @@ mod test {
 				yauth::types::Email::from_str(&format!("testgenerated{i}@me.com")).unwrap();
 
 			// sign into scope account to create new user, then sign into root user
-			auth_config.sign_up(&db, &credentials).await?;
-			auth_config.invalidate(&db).await?;
+			auth_config.control_db(&db).sign_up(&credentials).await?;
+			auth_config.control_db(&db).invalidate().await?;
 			// basically signing into root here, since the default is no authentication
 			// conn_config.root_sign_in(&db).await?;
 
@@ -280,7 +280,7 @@ mod test {
 				"Users table should have {i} entry after signing {i} people in",
 			);
 
-			auth_config.invalidate(&db).await?
+			auth_config.control_db(&db).invalidate().await?
 		}
 
 		Ok(())

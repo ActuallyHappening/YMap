@@ -25,7 +25,7 @@ pub async fn handle(
 			// 	.use_db(config.primary_database())
 			// 	.await?;
 
-			config.sign_up(&db, signup_options).await?;
+			config.control_db(&db).sign_up(signup_options).await?;
 
 			Ok(())
 		}
@@ -35,7 +35,7 @@ pub async fn handle(
 			// logs in as root to list all of them, else IAM error
 			config.root_sign_in(&db).await?;
 			info!("Listing users");
-			let users = config.list_users(&db).await?;
+			let users = config.control_db(&db).list_users().await?;
 
 			println!("Found {} users:", users.len());
 			for user in users {
