@@ -2,59 +2,70 @@ use crate::{prelude::*, types::UserRecord};
 use surrealdb::opt::auth::Jwt;
 use ysurreal::config::DBConnectRemoteConfig;
 
-pub trait DBAuthConfig: DBConnectRemoteConfig {
-	fn users_table(&self) -> String;
+#[derive(Debug)]
+pub struct AuthConnection<'db, C: Connection, Config> {
+	db: &'db Surreal<C>,
+	config: &'db Config,
+}
 
-	fn users_scope(&self) -> String;
-
+impl<'db, C: Connection, Config> AuthConnection<'db, C, Config>
+where
+	Config: DBAuthConfig,
+{
 	/// Signs up, and switches to primary namespace and database.
 	///
 	/// This implicitly signs in as well.
 	/// Also waits for the database to be ready.
-	fn sign_up<C: Connection>(
+	pub async fn sign_up(
 		&self,
-		db: &Surreal<C>,
 		credentials: &crate::signup::SignUp,
-	) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
+	) -> Result<(Jwt, crate::types::UserRecord), AuthError>
 	where
 		Self: Sized,
 	{
-		crate::signup::sign_up(self, db, credentials)
+		crate::signup::sign_up(self.config, self.db, credentials).await
 	}
 
 	/// Signs into the scope assuming the user has already signed up, and switches to primary ns and db.
 	///
 	/// Also waits for the database to be ready.
-	fn sign_in<C: Connection>(
+	pub async fn sign_in(
 		&self,
-		db: &Surreal<C>,
 		credentials: &crate::signin::SignIn,
-	) -> impl Future<Output = Result<(Jwt, crate::types::UserRecord), AuthError>> + Send + Sync
+	) -> Result<(Jwt, crate::types::UserRecord), AuthError>
 	where
 		Self: Sized,
 	{
-		crate::signin::sign_in(self, db, credentials)
+		crate::signin::sign_in(self.config, self.db, credentials).await
 	}
 
 	/// Calls [Surreal::invalidate].
-	fn invalidate<C: Connection>(
-		&self,
-		db: &Surreal<C>,
-	) -> impl Future<Output = Result<(), AuthError>> + Send + Sync
+	pub async fn invalidate(&self) -> Result<(), AuthError>
 	where
 		Self: Sized,
 	{
-		crate::signout::invalidate(self, db)
+		crate::signout::invalidate(self.config, self.db).await
 	}
 
-	fn list_users<C: Connection>(
-		&self,
-		db: &Surreal<C>,
-	) -> impl Future<Output = Result<Vec<UserRecord>, AuthError>> + Send + Sync
+	pub async fn list_users(&self) -> Result<Vec<UserRecord>, AuthError>
 	where
 		Self: Sized,
 	{
-		crate::signup::list_users(self, db)
+		crate::signup::list_users(self.config, self.db).await
+	}
+}
+
+pub trait DBAuthConfig: DBConnectRemoteConfig {
+	fn users_table(&self) -> String;
+
+	fn users_scope(&self) -> String;
+
+	/// Use this to utilize this configuration.
+	fn control_db<'db, C: Connection>(&'db self, db: &'db Surreal<C>) -> AuthConnection<'db, C, Self>
+	where
+		Self: Sized,
+	{
+		AuthConnection { db, config: self }
 	}
 }
 
