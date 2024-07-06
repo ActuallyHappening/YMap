@@ -12,7 +12,7 @@ pub struct AppState {
 	db: OnceCell<Surreal<Any>>,
 }
 
-#[derive(Debug, thiserror::Error, Serialize, Clone)]
+#[derive(Debug, thiserror::Error, Deserialize, Serialize, Clone)]
 pub enum AppError {
 	#[error("Page not found")]
 	NotFound,
@@ -24,7 +24,7 @@ pub enum AppError {
 	AuthError { debug: String },
 }
 
-impl From<AuthError> for AppError {
+impl From<yauth::error::AuthError> for AppError {
 	fn from(value: AuthError) -> Self {
 		AppError::AuthError {
 			debug: format!("{:?}", value),

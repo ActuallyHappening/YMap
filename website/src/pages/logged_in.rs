@@ -18,17 +18,18 @@ pub fn LoggedIn() -> impl IntoView {
 
 	let main_view = move || match session_info.get() {
 		Some(session_info) => match session_info {
-			Ok(SessionInfo::SignedIn) => view! { <h1>"Signed In "</h1> }.into_view(),
+			Ok(SessionInfo::SignedIn) => view! { <H1>"Signed In "</H1> }.into_view(),
 			Ok(SessionInfo::SignedOut) => {
 				info!("Loading the LoggedIn page while actually logged out");
 				navigate("/login", Default::default());
-				view! { <h1>"Logged out, redirecting ..."</h1> }.into_view()
+				view! { <H1>"Logged out, redirecting ..."</H1> }.into_view()
 			}
 			Err(err) => {
 				error!("Error while checking if logged in: {:#?}", err);
-				view! { <h1>"Error while checking if logged in"</h1> }.into_view()
+				view! { <H1>"Error while checking if logged in"</H1> }.into_view()
 			}
 		},
+		None => view! {<H1> "Loading ..."</H1>},
 	};
 
 	view! { move || main_view() }

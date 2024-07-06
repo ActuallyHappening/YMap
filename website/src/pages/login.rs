@@ -6,7 +6,7 @@ use ymap::auth::config::ProductionConfig;
 
 use crate::{app_state, prelude::*};
 
-async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
+async fn login(credentials: &SignIn) -> Result<Jwt, AppError> {
 	info!("Logging in ..");
 	let state = app_state();
 	let config = state.config().await;
