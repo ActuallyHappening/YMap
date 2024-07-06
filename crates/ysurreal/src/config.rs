@@ -81,9 +81,16 @@ pub trait DBStartConfig: Send + Sync {
 	/// e.g. 8000
 	fn bind_port(&self) -> u16;
 
-	/// usually 0.0.0.0:8000
+	/// E.g. 0.0.0.0
 	fn bind_host(&self) -> String {
-		format!("0.0.0.0:{}", self.bind_port())
+		"0.0.0.0".into()
+	}
+
+	/// usually 0.0.0.0:8000
+	///
+	/// Provided for you, automatically combines [StartDBConfig::bind_host] and [StartDBConfig::bind_port].
+	fn bind_full_host(&self) -> String {
+		format!("{}:{}", self.bind_host(), self.bind_port())
 	}
 
 	/// Whether its a [DBType::Mem] or [DBType::File]
@@ -109,7 +116,7 @@ pub trait DBStartConfig: Send + Sync {
 			"--password".into(),
 			escaped_password,
 			"--bind".into(),
-			self.bind_host(),
+			self.bind_full_host(),
 		];
 		if self.auth() {
 			args.push("--auth".into());
@@ -167,7 +174,7 @@ pub trait DBConnectRemoteConfig: Send + Sync {
 
 	/// e.g. cloud.surrealdb.com
 	///
-	/// Similar to [StartDBConfig::bind_host]
+	/// Similar to [StartDBConfig::bind_full_host]
 	fn connect_host(&self) -> String;
 
 	/// Usually [StartDBConfig::bind_port]

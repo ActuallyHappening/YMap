@@ -87,7 +87,7 @@ impl DBStartConfig for TestingMem {
 		self.port
 	}
 
-	fn bind_host(&self) -> String {
+	fn bind_full_host(&self) -> String {
 		"127.0.0.1".into()
 	}
 
