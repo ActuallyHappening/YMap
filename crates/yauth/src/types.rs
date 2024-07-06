@@ -1,6 +1,6 @@
 //! Useful types
 
-use std::fmt::{write, Display};
+use std::fmt::Display;
 
 use crate::prelude::*;
 use surrealdb::sql::Thing;
