@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
 pub enum SessionError {
 	#[error("User is signed into the wrong database: expected {expected:?}, found {found:?}")]
 	WrongDatabase { expected: String, found: String },

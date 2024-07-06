@@ -7,11 +7,7 @@ use leptos_meta::{provide_meta_context, Meta, Stylesheet, Title};
 use leptos_router::*;
 use ymap::auth::config::ProductionConfig;
 
-use crate::{
-	error_template::{AppError, ErrorTemplate},
-	pages::logged_in::LoggedIn,
-	pages::login::Login,
-};
+use crate::{error_template::ErrorTemplate, pages::logged_in::LoggedIn, pages::login::Login};
 
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -19,7 +15,7 @@ pub struct AppState {
 	db: OnceCell<Surreal<Any>>,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
 pub enum AppError {
 	#[error("Page not found")]
 	NotFound,

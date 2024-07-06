@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
 pub enum AuthError {
 	#[error("A validation error occurred: {0}")]
 	ValidationError(#[from] ValidationError),
@@ -15,7 +15,7 @@ pub enum AuthError {
 	SessionError(#[from] crate::cmds::session_info::SessionError),
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
 pub enum InternalInvariantBroken {
 	#[error(
 		"User was signed in to the scope, but no corresponding record was found in the users table"

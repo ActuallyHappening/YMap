@@ -2,8 +2,9 @@ pub mod prelude {
 	pub(crate) use crate::app::AppState;
 	pub(crate) use leptonic::prelude::*;
 	pub(crate) use leptos::*;
-	pub(crate) use surrealdb::Surreal;
+	pub(crate) use serde::{Deserialize, Serialize};
 	pub(crate) use surrealdb::engine::any::Any;
+	pub(crate) use surrealdb::Surreal;
 	pub(crate) use thiserror::Error;
 	pub(crate) use tracing::*;
 	pub(crate) use yauth::prelude::*;

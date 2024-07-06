@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 ysurreal.workspace = true
 clap = { version = "4.5.8", features = ["derive", "env"] }
-garde = { version = "0.20", features = ["derive", "email"] }
+garde = { version = "0.20", features = ["derive", "email", "serde"] }
 serde = { version = "1.0.203", features = ["derive"] }
 surrealdb = { workspace = true, features = ["protocol-http"] }
 thiserror = "1.0.61"

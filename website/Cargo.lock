@@ -9900,6 +9900,7 @@ dependencies = [
  "leptos",
  "leptos_meta",
  "leptos_router",
+ "serde",
  "surrealdb",
  "thiserror",
  "tracing",

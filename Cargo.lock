@@ -2408,6 +2408,7 @@ dependencies = [
  "cfg-if",
  "itoa",
  "ryu",
+ "serde",
  "static_assertions",
 ]
 
@@ -3612,6 +3613,7 @@ dependencies = [
  "garde_derive",
  "once_cell",
  "regex",
+ "serde",
  "smallvec",
 ]
 

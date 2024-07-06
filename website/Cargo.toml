@@ -23,6 +23,7 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 tracing-wasm = "0.2.1"
 surrealdb = "1.5.3"
+serde = { version = "1.0.203", features = ["derive"] }
 
 [dependencies.leptonic]
 features = ["csr"]
