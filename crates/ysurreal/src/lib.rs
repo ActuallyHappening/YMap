@@ -12,10 +12,10 @@ pub mod prelude {
 	// public exports
 	pub use crate::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
 	#[cfg(not(target_arch = "wasm32-unknown-unknown"))]
-	pub use crate::testing::{start_testing_db, TestingMemoryDB};
+	pub use crate::testing::{start_testing_db, TestingMem, TestingMemoryDB};
 }
 
 pub mod config;
-pub mod configs;
+// pub mod configs;
 #[cfg(not(target_arch = "wasm32-unknown-unknown"))]
 pub mod testing;

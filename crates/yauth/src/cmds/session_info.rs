@@ -179,16 +179,17 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 
 #[cfg(test)]
 mod tests {
-	use ysurreal::{config::start_blank_memory_db, configs::TestingMem};
+	use color_eyre::eyre::Report;
+	use ysurreal::prelude::*;
 
 	use super::*;
 
 	const INIT_SURQL: &str = "";
 
 	#[test_log::test(tokio::test)]
-	async fn db_no_session() -> Result<(), AuthError> {
+	async fn db_no_session() -> Result<(), Report> {
 		let conn_config = TestingMem::rand(INIT_SURQL.into());
-		let db = start_blank_memory_db(&conn_config).unwrap().await?;
+		let db = start_testing_db(&conn_config).await?;
 		// conn_config.init_query(&db).await?;
 		conn_config.use_primary_ns_db(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
