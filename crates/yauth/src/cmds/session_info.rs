@@ -194,16 +194,9 @@ mod tests {
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
-		let session_info_raw: Option<Session> = db
-			.query("SELECT exp FROM $session FETCH sd")
-			.await?
-			.take(0)?;
+		let session_info = auth_conn.session_info().await?;
 
-		panic!("{:?}", session_info_raw);
-
-		// let session_info = auth_conn.session_info().await?;
-
-		// assert_eq!(session_info, SessionInfo::SignedOut);
+		assert_eq!(session_info, SessionInfo::SignedOut);
 
 		Ok(())
 	}

@@ -13,6 +13,7 @@ use surrealdb::{
 use crate::prelude::*;
 
 /// Options for DB engine implementation
+#[derive(Debug, PartialEq)]
 pub enum StartDBType {
 	File { data_path: Utf8PathBuf },
 	Mem,
@@ -89,8 +90,6 @@ pub trait DBStartConfig: Send + Sync {
 	fn db_type(&self) -> StartDBType;
 
 	/// Arguments to pass to `surreal start`, e.g. `--password`.
-	///
-	/// Only used for production databases.
 	fn get_cli_args(&self) -> Vec<String>
 	where
 		Self: DBRootCredentials,
@@ -227,34 +226,5 @@ where
 
 	fn connect_port(&self) -> u16 {
 		C::connect_port(self)
-	}
-}
-
-/// Start a new in-memory database for **testing only**.
-/// Switches to primary database and namespace.
-///
-/// You must unwrap the option first before calling `.await`.
-pub fn start_blank_memory_db<Config>(
-	config: &Config,
-) -> Option<impl Future<Output = Result<Surreal<Any>, surrealdb::Error>> + Send + Sync + '_>
-where
-	Config: DBStartConfig + DBConnectRemoteConfig,
-{
-	if let StartDBType::Mem = config.db_type() {
-		Some(async {
-			// uses default configuration of a new database
-			// whether to use `mem://` or `memory` everywhere idk
-			let db = match surrealdb::engine::any::connect("mem://".to_owned()).await {
-				Ok(db) => db,
-				Err(err) => return Err(err),
-			};
-			db.use_ns(config.primary_namespace())
-				.use_db(config.primary_database())
-				.await?;
-			Ok(db)
-		})
-	} else {
-		warn!("Called `config.start_in_memory()` but wasn't a memory DB configuration.");
-		None
 	}
 }
