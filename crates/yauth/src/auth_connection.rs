@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::commands::*;
 
 #[derive(Debug)]
 pub struct AuthConnection<'db, C: Connection, Config> {
@@ -21,7 +22,7 @@ where
 	where
 		Self: Sized,
 	{
-		crate::signup::sign_up(self.config, self.db, credentials).await
+		signup::sign_up(self.config, self.db, credentials).await
 	}
 
 	/// Signs into the scope assuming the user has already signed up, and switches to primary ns and db.
@@ -34,7 +35,7 @@ where
 	where
 		Self: Sized,
 	{
-		crate::signin::sign_in(self.config, self.db, credentials).await
+		signin::sign_in(self.config, self.db, credentials).await
 	}
 
 	/// Calls [Surreal::invalidate].
@@ -42,13 +43,18 @@ where
 	where
 		Self: Sized,
 	{
-		crate::signout::invalidate(self.config, self.db).await
+		signout::invalidate(self.config, self.db).await
 	}
 
+	pub async fn session_info(&self) -> Result<crate::session_info::SessionInfo, AuthError> where Self: Sized {
+		session_info::session_info(&self.config, self.db).await
+	}
+
+	/// Debugging use only
 	pub async fn list_users(&self) -> Result<Vec<UserRecord>, AuthError>
 	where
 		Self: Sized,
 	{
-		crate::signup::list_users(self.config, self.db).await
+		signup::list_users(self.config, self.db).await
 	}
 }
