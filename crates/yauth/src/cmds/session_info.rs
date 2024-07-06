@@ -20,7 +20,7 @@ pub enum SessionError {
 	NoSessionFound,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SessionInfo {
 	/// Not signed into any scope
 	/// 
@@ -178,7 +178,7 @@ mod tests {
 
 		let session_info = auth_conn.session_info().await?;
 
-		assert!(session_info, SessionInfo::SignedOut);
+		assert_eq!(session_info, SessionInfo::SignedOut);
 
 		Ok(())
 	}
