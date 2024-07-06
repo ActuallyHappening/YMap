@@ -11,8 +11,9 @@ pub enum SessionError {
 	#[error("User is signed into the wrong scope: expected {expected:?}, found {found:?}")]
 	WrongScope { expected: String, found: String },
 
-	#[error("User is signed into the wrong table: expected {expected:?}, found {found:?}")]
-	WrongUserTable { expected: String, found: String },
+	// may become possible in surrealdb 2.0
+	// #[error("User is signed into the wrong table: expected {expected:?}, found {found:?}")]
+	// WrongUserTable { expected: String, found: String },
 
 	/// This shouldn't happen, and doesn't indicate not signed in.
 	#[error("No authentication session found at all! This means the $session meta-variable was empty, maybe didn't pass --auth?")]
@@ -31,30 +32,6 @@ pub enum SessionInfo {
 	/// This the session is signed into any other scope, [`session_info`] will
 	/// return an error instead of this variant.
 	SignedIn,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Session {
-	/// UNIX timestamp
-	exp: Option<u128>,
-
-	/// Should be primary_database
-	#[serde(rename = "db")]
-	database: String,
-
-	/// Should be primary namespace
-	#[serde(rename = "ns")]
-	namespace: String,
-
-	/// Should be end user scope from config
-	#[serde(rename = "sc")]
-	scope: String,
-
-	/// Requires `FETCH sd` in query, or will return record link ID instead of actual [UserRecord] data
-	/// 
-	/// If this is [`None`], then the user is not signed into any scope
-	#[serde(rename = "sd")]
-	scope_data: Option<UserRecord>,
 }
 
 /// There are more fields
@@ -88,10 +65,30 @@ pub struct Session {
 ///
 /// });
 /// ```
-#[derive(Debug, Deserialize, Clone)]
-pub struct ScopeData {
+#[derive(Debug, Deserialize)]
+struct Session {
+	/// UNIX timestamp
+	/// 
+	/// Should be [`None`] if [`Session::scope_data`] is [`None`] as well.
+	exp: Option<u128>,
+
+	/// Should be primary_database
 	#[serde(rename = "db")]
-	table: String,
+	database: String,
+
+	/// Should be primary namespace
+	#[serde(rename = "ns")]
+	namespace: String,
+
+	/// Should be end user scope from config
+	#[serde(rename = "sc")]
+	scope: String,
+
+	/// Requires `FETCH sd` in query, or will return record link ID instead of actual [UserRecord] data
+	/// 
+	/// If this is [`None`], then the user is not signed into any scope
+	#[serde(rename = "sd")]
+	scope_data: Option<UserRecord>,
 }
 
 const QUERY: &str = "SELECT exp FROM $session FETCH sd";
@@ -102,9 +99,20 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 ) -> Result<SessionInfo, AuthError> {
 	let session: Option<Session> = db.query(QUERY).await?.take(0)?;
 
+	// todo: rename to session when IDE kicks in
 	let Some(exp) = session else {
 		return Err(SessionError::NoSessionFound.into());
 	};
+
+	if exp.scope_data.is_none() {
+		if exp.exp.is_some() {
+			warn!(
+				message = "Internal inconsistency: No scope data, but the session has an expiration time?",
+				note = "You can safely ignore this, as it is an internal detail of `yauth`s implementation"
+			);
+		}
+		return Ok(SessionInfo::SignedOut);
+	}
 
 	if config.primary_database() != exp.database {
 		return Err(
@@ -126,15 +134,16 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 		);
 	}
 
-	if config.users_table() != exp.scope_data.table {
-		return Err(
-			SessionError::WrongUserTable {
-				expected: config.users_table(),
-				found: exp.scope_data.table,
-			}
-			.into(),
-		);
-	}
+	// this check may be possible with surrealdb 2.0
+	// if config.users_table() != exp.scope_data.table {
+	// 	return Err(
+	// 		SessionError::WrongUserTable {
+	// 			expected: config.users_table(),
+	// 			found: exp.scope_data.table,
+	// 		}
+	// 		.into(),
+	// 	);
+	// }
 
 	if config.users_scope() != exp.scope {
 		return Err(
@@ -146,8 +155,8 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 		);
 	}
 
-	todo!()
-	// Ok(exp)
+	// all checks pass, signed in yay!
+	Ok(SessionInfo::SignedIn)
 }
 
 #[cfg(test)]
@@ -159,17 +168,17 @@ mod tests {
 	const INIT_SURQL: &str = "";
 
 	#[test_log::test(tokio::test)]
-	async fn no_session() -> Result<(), AuthError> {
+	async fn db_no_session() -> Result<(), AuthError> {
 		let conn_config = TestingMem::rand(INIT_SURQL.into());
-		let db = start_blank_memory_db(&conn_config).await?;
+		let db = start_blank_memory_db(&conn_config).unwrap().await?;
 		conn_config.init_query(&db).await?;
 		conn_config.use_primary_ns_db(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
-		let empty_session: Option<serde_json::Value> = db.query(QUERY).await?.take(0)?;
+		let session_info = auth_conn.session_info().await?;
 
-		panic!("Empty session: {:?}", empty_session);
+		assert!(session_info, SessionInfo::SignedOut);
 
 		Ok(())
 	}
