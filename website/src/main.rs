@@ -1,7 +1,8 @@
 pub mod prelude {
-	pub(crate) use crate::app::AppState;
+	pub(crate) use crate::app::{AppError, AppState};
 	pub(crate) use leptonic::prelude::*;
 	pub(crate) use leptos::*;
+	pub(crate) use leptos_router::*;
 	pub(crate) use serde::{Deserialize, Serialize};
 	pub(crate) use surrealdb::engine::any::Any;
 	pub(crate) use surrealdb::Surreal;

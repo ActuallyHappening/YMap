@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 // A basic function to display errors served by the error boundaries.
 // Feel free to do more complicated things here than just displaying the error.
 #[component]
@@ -28,27 +27,38 @@ pub fn ErrorTemplate(
 	let num_errors = errors.len();
 
 	view! {
-			<Box style="display: flex; flex-direction: column; align-items:center;">
-					<H1>{match num_errors {
-							1 => "Error",
-							_ => "Errors",
-					}}</H1>
+		<Box style="display: flex; flex-direction: column; align-items:center;">
+			<H1>
+				{match num_errors {
+					1 => "Error",
+					_ => "Errors",
+				}}
 
-					<For
-							each=move || { errors.clone().into_iter().enumerate() }
-							key=|(index, _error)| *index
-							children=move |(_index, error)| {
-									match error {
-											AppError::NotFound => view! {
-													<P>"404 - Not Found"</P>
-											},
-									}
+			</H1>
+
+			<For
+				each=move || { errors.clone().into_iter().enumerate() }
+				key=|(index, _error)| *index
+				children=move |(_index, error)| {
+					match error {
+						AppError::NotFound => view! { <P>"404 - Not Found"</P> },
+						AppError::SurrealError { debug } => {
+							view! {
+								<P>"A surreal error occurred:"</P>
+								<P>{debug}</P>
 							}
-					/>
+						}
+						AppError::AuthError { debug } => {
+							view! {
+								<P>"An authentication error occurred:"</P>
+								<P>{debug}</P>
+							}
+						}
+					}
+				}
+			/>
 
-					<LinkButton href="/">
-							"Back"
-					</LinkButton>
-			</Box>
+			<LinkButton href="/">"Back"</LinkButton>
+		</Box>
 	}
 }

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
+#[derive(Debug, thiserror::Error, Serialize)]
 pub enum AuthError {
 	#[error("A validation error occurred: {0}")]
 	ValidationError(#[from] ValidationError),

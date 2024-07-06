@@ -4,11 +4,14 @@ use yauth::{
 };
 use ymap::auth::config::ProductionConfig;
 
-use crate::prelude::*;
+use crate::{app_state, prelude::*};
 
 async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
 	info!("Logging in ..");
-	
+	let state = app_state();
+	let config = state.config().await;
+	let db = state.db().await?;
+
 	let auth_conn = config.control_db(&db);
 	let (jwt, user_record) = auth_conn.sign_in(credentials).await?;
 
@@ -65,7 +68,10 @@ pub fn Login() -> impl IntoView {
 	view! {
 		<div style="display: flex; flex-direction: column;">
 			<H1>"Login"</H1>
-			<form on:submit=on_submit style="display: flex; flex-direction: column; align-items: center;">
+			<form
+				on:submit=on_submit
+				style="display: flex; flex-direction: column; align-items: center;"
+			>
 
 				<TextInput
 					placeholder="Email"
