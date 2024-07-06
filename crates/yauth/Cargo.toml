@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 ysurreal.workspace = true
 clap = { version = "4.5.8", features = ["derive", "env"] }
-garde = { version = "0.19.2", features = ["derive", "email"] }
+garde = { version = "0.20", features = ["derive", "email"] }
 serde = { version = "1.0.203", features = ["derive"] }
 surrealdb = { workspace = true, features = ["protocol-http"] }
 thiserror = "1.0.61"
@@ -18,7 +18,7 @@ serde_json = "1.0.119"
 rand = "0.8.5"
 leptos = { version = "0.6.12", optional = true }
 console_error_panic_hook = "0.1.7"
-time = "0.3.36"
+time.workspace = true
 
 # for non-wasm builds
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

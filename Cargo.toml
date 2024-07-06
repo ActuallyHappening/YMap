@@ -31,6 +31,12 @@ path = "crates/yauth"
 [workspace.dependencies.glam]
 version = "0.25.0"
 
+# to keep in sync with leptonic
+# this is very stupid, and should be fixed!
+[workspace.dependencies.time]
+features = ["wasm-bindgen", "macros", "serde", "serde-well-known"]
+version = "=0.3.31"
+
 ## For correct egui version
 [workspace.dependencies.bevy_editor_pls]
 # version = "0.8.1"

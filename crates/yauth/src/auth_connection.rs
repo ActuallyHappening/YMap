@@ -17,7 +17,7 @@ where
 	/// Also waits for the database to be ready.
 	pub async fn sign_up(
 		&self,
-		credentials: &crate::signup::SignUp,
+		credentials: &signup::SignUp,
 	) -> Result<(Jwt, crate::types::UserRecord), AuthError>
 	where
 		Self: Sized,
@@ -30,7 +30,7 @@ where
 	/// Also waits for the database to be ready.
 	pub async fn sign_in(
 		&self,
-		credentials: &crate::signin::SignIn,
+		credentials: &signin::SignIn,
 	) -> Result<(Jwt, crate::types::UserRecord), AuthError>
 	where
 		Self: Sized,
@@ -46,7 +46,7 @@ where
 		signout::invalidate(self.config, self.db).await
 	}
 
-	pub async fn session_info(&self) -> Result<crate::session_info::SessionInfo, AuthError> where Self: Sized {
+	pub async fn session_info(&self) -> Result<session_info::SessionInfo, AuthError> where Self: Sized {
 		session_info::session_info(&self.config, self.db).await
 	}
 
