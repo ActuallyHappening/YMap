@@ -58,7 +58,10 @@ pub fn App() -> impl IntoView {
 	provide_meta_context();
 
 	let config = ProductionConfig::new();
-	provide_context(AppState { config, db: None });
+	provide_context(AppState {
+		config,
+		db: OnceCell::default(),
+	});
 
 	view! {
 		<Meta name="charset" content="UTF-8"/>

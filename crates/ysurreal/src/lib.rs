@@ -6,16 +6,16 @@ pub mod prelude {
 	pub(crate) use surrealdb::engine::any::Any;
 	pub(crate) use surrealdb::{Connection, Surreal};
 	pub(crate) use tracing::*;
-	#[cfg(not(target_arch = "wasm32-unknown-unknown"))]
+	#[cfg(not(target_arch = "wasm32"))]
 	pub(crate) use which::which;
 
 	// public exports
 	pub use crate::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
-	#[cfg(not(target_arch = "wasm32-unknown-unknown"))]
+	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::testing::{start_testing_db, TestingConfig, TestingMemoryDB};
 }
 
 pub mod config;
 // pub mod configs;
-#[cfg(not(target_arch = "wasm32-unknown-unknown"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod testing;

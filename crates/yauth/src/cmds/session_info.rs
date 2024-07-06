@@ -19,7 +19,7 @@ pub enum SessionError {
 	NoSessionFound,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum SessionInfo {
 	/// Not signed into any scope
 	///
