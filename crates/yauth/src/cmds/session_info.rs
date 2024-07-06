@@ -188,10 +188,9 @@ mod tests {
 
 	#[test_log::test(tokio::test)]
 	async fn db_no_session() -> Result<(), Report> {
-		let conn_config = TestingMem::rand(INIT_SURQL.into());
+		let conn_config = TestingConfig::rand(INIT_SURQL.into());
 		let db = start_testing_db(&conn_config).await?;
 		// conn_config.init_query(&db).await?;
-		conn_config.use_primary_ns_db(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
