@@ -51,7 +51,7 @@ impl AppState {
 			Some(db) => Ok(db.clone()),
 			None => {
 				let db = self.config().await.connect_ws().await?;
-				self.db.set(db.clone());
+				self.db.set(db.clone()).expect("Was just None");
 				Ok(db)
 			}
 		}

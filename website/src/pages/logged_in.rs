@@ -32,5 +32,5 @@ pub fn LoggedIn() -> impl IntoView {
 		None => view! {<H1> "Loading ..."</H1>},
 	};
 
-	view! { move || main_view() }
+	view! { { move || main_view()}  }
 }
