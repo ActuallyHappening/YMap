@@ -11,6 +11,7 @@
 !.rustfmt.toml
 !crates
 !YMap.code-workspace
+!YMap-website.code-workspace
 !_typos.toml
 
 ## YMap

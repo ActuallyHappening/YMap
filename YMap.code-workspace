@@ -3,15 +3,5 @@
 		{
 			"path": "."
 		},
-		{
-			"path": "website",
-		}
 	],
-	"settings": {
-		"rust-analyzer.rustfmt.overrideCommand": [
-			"leptosfmt",
-			"--stdin",
-			"--rustfmt"
-		]
-	}
 }

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "website",
+		}
+	],
+	"settings": {
+		"rust-analyzer.rustfmt.overrideCommand": [
+			"leptosfmt",
+			"--stdin",
+			"--rustfmt"
+		]
+	}
+}
