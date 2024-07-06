@@ -1,3 +1,5 @@
+use std::cell::OnceCell;
+
 use crate::prelude::*;
 use leptonic::prelude::*;
 use leptos::*;
@@ -14,25 +16,36 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct AppState {
 	config: ProductionConfig,
-	db: Option<Surreal<Any>>,
+	db: OnceCell<Surreal<Any>>,
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
-	#[error("Not Found")]
+	#[error("Page not found")]
 	NotFound,
+
+	#[error("There was a problem talking to the backend: {0}")]
+	SurrealError(#[from] surrealdb::Error),
 
 	#[error("There was an error authenticating: {0}")]
 	AuthError(#[from] yauth::error::AuthError),
 }
 
 impl AppState {
+	/// Only async to force you to deal with db connection in async context
 	pub async fn config(&self) -> &ProductionConfig {
 		&self.config
 	}
 
-	pub async fn db(&self) -> Result<&Surreal<Any>, AppError> {
-		Ok(self.config().await.connect_ws().await?)
+	pub async fn db(&self) -> Result<Surreal<Any>, AppError> {
+		match self.db.get() {
+			Some(db) => Ok(db.clone()),
+			None => {
+				let db = self.config().await.connect_ws().await?;
+				self.db.set(db.clone());
+				Ok(db)
+			}
+		}
 	}
 }
 
