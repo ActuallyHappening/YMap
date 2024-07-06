@@ -159,7 +159,7 @@ mod test {
 	use ysurreal::{config::start_blank_memory_db, configs::TestingMem};
 
 	use super::init::INIT_SURQL;
-	use yauth::signup::SignUp;
+	use yauth::cmds::signup::SignUp;
 
 	macro_rules! setup {
 		(db = $db:ident, conn_config = $conn_config:ident, auth_config = $auth_config:ident) => {

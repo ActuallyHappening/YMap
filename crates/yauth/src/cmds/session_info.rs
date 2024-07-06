@@ -14,7 +14,6 @@ pub enum SessionError {
 	// may become possible in surrealdb 2.0
 	// #[error("User is signed into the wrong table: expected {expected:?}, found {found:?}")]
 	// WrongUserTable { expected: String, found: String },
-
 	/// This shouldn't happen, and doesn't indicate not signed in.
 	#[error("No authentication session found at all! This means the $session meta-variable was empty, maybe didn't pass --auth?")]
 	NoSessionFound,
@@ -23,12 +22,12 @@ pub enum SessionError {
 #[derive(Debug, PartialEq)]
 pub enum SessionInfo {
 	/// Not signed into any scope
-	/// 
+	///
 	/// Maybe still a root user?
 	SignedOut,
 
 	/// Signed into the expected user scope.
-	/// 
+	///
 	/// This the session is signed into any other scope, [`session_info`] will
 	/// return an error instead of this variant.
 	SignedIn,
@@ -68,7 +67,7 @@ pub enum SessionInfo {
 #[derive(Debug, Deserialize)]
 struct Session {
 	/// UNIX timestamp
-	/// 
+	///
 	/// Should be [`None`] if [`Session::scope_data`] is [`None`] as well.
 	exp: Option<u128>,
 
@@ -85,7 +84,7 @@ struct Session {
 	scope: String,
 
 	/// Requires `FETCH sd` in query, or will return record link ID instead of actual [UserRecord] data
-	/// 
+	///
 	/// If this is [`None`], then the user is not signed into any scope
 	#[serde(rename = "sd")]
 	scope_data: Option<UserRecord>,
@@ -97,6 +96,25 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
+	/// Sometimes only an {exp: None} is returned, which means not signed in
+	///
+	/// idk the conditions for this, but i handle it with this struct
+	#[derive(Deserialize)]
+	struct NoSession {
+		exp: Option<()>,
+	}
+	let no_session: Option<NoSession> = db.query(QUERY).await?.take(0)?;
+	match no_session {
+		Some(NoSession { exp: None }) => {
+			debug!(
+				message = "No session was found at all, only the exp passed",
+				note = "IDK why this condition is every hit"
+			);
+			return Ok(SessionInfo::SignedOut);
+		}
+		_ => {}
+	}
+
 	let session: Option<Session> = db.query(QUERY).await?.take(0)?;
 
 	// todo: rename to session when IDE kicks in
@@ -171,14 +189,21 @@ mod tests {
 	async fn db_no_session() -> Result<(), AuthError> {
 		let conn_config = TestingMem::rand(INIT_SURQL.into());
 		let db = start_blank_memory_db(&conn_config).unwrap().await?;
-		conn_config.init_query(&db).await?;
+		// conn_config.init_query(&db).await?;
 		conn_config.use_primary_ns_db(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
-		let session_info = auth_conn.session_info().await?;
+		let session_info_raw: Option<Session> = db
+			.query("SELECT exp FROM $session FETCH sd")
+			.await?
+			.take(0)?;
 
-		assert_eq!(session_info, SessionInfo::SignedOut);
+		panic!("{:?}", session_info_raw);
+
+		// let session_info = auth_conn.session_info().await?;
+
+		// assert_eq!(session_info, SessionInfo::SignedOut);
 
 		Ok(())
 	}
