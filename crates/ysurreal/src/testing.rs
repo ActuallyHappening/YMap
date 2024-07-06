@@ -47,6 +47,7 @@ where
 	let cmd_handle = bossy::Command::pure(&surreal_bin_path)
 		.with_arg("start")
 		.with_args(&cmd_args)
+		.with_args(["--no-banner", "--log=warn"])
 		.run()?;
 
 	debug!("Waiting for database to start up...");
