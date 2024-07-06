@@ -8,8 +8,7 @@ use crate::prelude::*;
 
 async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
 	info!("Logging in ..");
-	let config = ProductionConfig::new();
-	let db = config.connect_ws().await?;
+	
 	let auth_conn = config.control_db(&db);
 	let (jwt, user_record) = auth_conn.sign_in(credentials).await?;
 

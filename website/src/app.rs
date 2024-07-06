@@ -1,7 +1,9 @@
+use crate::prelude::*;
 use leptonic::prelude::*;
 use leptos::*;
 use leptos_meta::{provide_meta_context, Meta, Stylesheet, Title};
 use leptos_router::*;
+use ymap::auth::config::ProductionConfig;
 
 use crate::{
 	error_template::{AppError, ErrorTemplate},
@@ -9,9 +11,37 @@ use crate::{
 	pages::login::Login,
 };
 
+#[derive(Debug, Clone)]
+pub struct AppState {
+	config: ProductionConfig,
+	db: Option<Surreal<Any>>,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    AuthError()
+}
+
+impl AppState {
+	pub async fn config(&self) -> &ProductionConfig {
+		&self.config
+	}
+
+	pub async fn db(&self) -> Result<&Surreal<Any>, yauth::Error> {
+		config.conn
+	}
+}
+
+pub fn app_state() -> AppState {
+	use_context().expect("AppState not provided?")
+}
+
 #[component]
 pub fn App() -> impl IntoView {
 	provide_meta_context();
+
+	let config = ProductionConfig::new();
+	provide_context(AppState { config, db: None });
 
 	view! {
 		<Meta name="charset" content="UTF-8"/>
