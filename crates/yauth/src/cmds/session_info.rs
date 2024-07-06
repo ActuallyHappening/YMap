@@ -3,63 +3,90 @@ use crate::prelude::*;
 #[derive(Debug, thiserror::Error)]
 pub enum SessionError {
 	#[error("User is signed into the wrong database: expected {expected:?}, found {found:?}")]
-	WrongDatabase {
-		expected: String,
-		found: String,
-	},
+	WrongDatabase { expected: String, found: String },
 
 	#[error("Users is signed into the wrong namespace: expected {expected:?}, found {found:?}")]
-	WrongNamespace{
-		expected: String,
-		found: String,
-	},
+	WrongNamespace { expected: String, found: String },
 
 	#[error("User is signed into the wrong scope: expected {expected:?}, found {found:?}")]
-	WrongScope{
-		expected: String,
-		found: String,
-	},
+	WrongScope { expected: String, found: String },
 
 	#[error("User is signed into the wrong table: expected {expected:?}, found {found:?}")]
-	WrongUserTable{
-		expected: String,
-		found: String,
-	},
+	WrongUserTable { expected: String, found: String },
 
+	/// This shouldn't happen, and doesn't indicate not signed in.
 	#[error("No authentication session found at all! This means the $session meta-variable was empty, maybe didn't pass --auth?")]
 	NoSessionFound,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum SessionInfo {
-	/// Not end user
+	/// Not signed into any scope
+	/// 
+	/// Maybe still a root user?
 	SignedOut,
-	SignedIn(Session)
+
+	/// Signed into the expected user scope.
+	/// 
+	/// This the session is signed into any other scope, [`session_info`] will
+	/// return an error instead of this variant.
+	SignedIn,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Session {
-	exp: u128,
+	/// UNIX timestamp
+	exp: Option<u128>,
 
 	/// Should be primary_database
 	#[serde(rename = "db")]
 	database: String,
-	
+
+	/// Should be primary namespace
 	#[serde(rename = "ns")]
 	namespace: String,
 
+	/// Should be end user scope from config
 	#[serde(rename = "sc")]
 	scope: String,
 
+	/// Requires `FETCH sd` in query, or will return record link ID instead of actual [UserRecord] data
+	/// 
+	/// If this is [`None`], then the user is not signed into any scope
 	#[serde(rename = "sd")]
-	scope_data: ScopeData,
+	scope_data: Option<UserRecord>,
 }
 
 /// There are more fields
-/// 
+///
 /// Example:
 /// ```text
-/// session = Some(Object {"db": String("production"), "exp": Number(1720319053), "id": Null, "ip": String("180.216.98.251"), "ns": String("production"), "or": String("http://127.0.0.1:6969"), "sc": String("end_user"), "sd": Object {"tb": String("user"), "id": Object {"String": String("ncuhiz2d3ibhbxxiycc8")}}, "tk": Object {"DB": String("production"), "ID": String("user:ncuhiz2d3ibhbxxiycc8"), "NS": String("production"), "SC": String("end_user"), "exp": Number(1720319053), "iat": Number(1720232653), "iss": String("SurrealDB"), "jti": String("4efa3bae-f673-4a61-9466-cabf60f326c5"), "nbf": Number(1720232653)}});
+/// session = Some(Object {
+///
+/// "db": String("production"),
+/// "exp": Number(1720319053),
+/// "id": Null,
+/// "ip": String("180.216.98.251"),
+/// "ns": String("production"),
+/// "or": String("http://127.0.0.1:6969"),
+/// "sc": String("end_user"),
+/// "sd": Object {
+///   "tb": String("user"),
+///   "id": Object {"String": String("ncuhiz2d3ibhbxxiycc8")}
+/// },
+/// "tk": Object {
+///   "DB": String("production"),
+///   "ID": String("user:ncuhiz2d3ibhbxxiycc8"),
+///   "NS": String("production"),
+///   "SC": String("end_user"),
+///   "exp": Number(1720319053),
+///   "iat": Number(1720232653),
+///   "iss": String("SurrealDB"),
+///   "jti": String("4efa3bae-f673-4a61-9466-cabf60f326c5"),
+///   "nbf": Number(1720232653)
+/// }
+///
+/// });
 /// ```
 #[derive(Debug, Deserialize, Clone)]
 pub struct ScopeData {
@@ -67,17 +94,83 @@ pub struct ScopeData {
 	table: String,
 }
 
+const QUERY: &str = "SELECT exp FROM $session FETCH sd";
+
 pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
-	_config: &Config,
+	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
-	let exp: Option<Session> = db.query("SELECT exp FROM $session").await?.take(0)?;
+	let session: Option<Session> = db.query(QUERY).await?.take(0)?;
 
-	let Some(exp) = exp else {
-		return Err(SessionError::NoSessionFound.into())
+	let Some(exp) = session else {
+		return Err(SessionError::NoSessionFound.into());
 	};
 
+	if config.primary_database() != exp.database {
+		return Err(
+			SessionError::WrongDatabase {
+				expected: config.primary_database(),
+				found: exp.database,
+			}
+			.into(),
+		);
+	}
 
+	if config.primary_namespace() != exp.namespace {
+		return Err(
+			SessionError::WrongNamespace {
+				expected: config.primary_namespace(),
+				found: exp.namespace,
+			}
+			.into(),
+		);
+	}
+
+	if config.users_table() != exp.scope_data.table {
+		return Err(
+			SessionError::WrongUserTable {
+				expected: config.users_table(),
+				found: exp.scope_data.table,
+			}
+			.into(),
+		);
+	}
+
+	if config.users_scope() != exp.scope {
+		return Err(
+			SessionError::WrongScope {
+				expected: config.users_scope(),
+				found: exp.scope,
+			}
+			.into(),
+		);
+	}
 
 	todo!()
+	// Ok(exp)
+}
+
+#[cfg(test)]
+mod tests {
+	use ysurreal::{config::start_blank_memory_db, configs::TestingMem};
+
+	use super::*;
+
+	const INIT_SURQL: &str = "";
+
+	#[test_log::test(tokio::test)]
+	async fn no_session() -> Result<(), AuthError> {
+		let conn_config = TestingMem::rand(INIT_SURQL.into());
+		let db = start_blank_memory_db(&conn_config).await?;
+		conn_config.init_query(&db).await?;
+		conn_config.use_primary_ns_db(&db).await?;
+		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
+		let auth_conn = auth_config.control_db(&db);
+
+		let empty_session: Option<serde_json::Value> = db.query(QUERY).await?.take(0)?;
+
+		panic!("Empty session: {:?}", empty_session);
+
+		Ok(())
+	}
 }

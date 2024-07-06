@@ -9479,6 +9479,7 @@ dependencies = [
  "serde",
  "serde_json",
  "surrealdb",
+ "test-log",
  "thiserror",
  "time",
  "tokio",
