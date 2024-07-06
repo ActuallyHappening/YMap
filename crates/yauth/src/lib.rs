@@ -4,12 +4,11 @@ pub mod prelude {
 	// deps re-exports
 	pub(crate) use garde::Validate;
 	pub(crate) use serde::{Deserialize, Serialize};
-	pub(crate) use std::future::Future;
 	pub(crate) use surrealdb::{Connection, Surreal};
 	pub(crate) use tracing::*;
 
 	// internal re-exports
-	pub(crate) use crate::types::{ValidatedType, ValidationError};
+	pub(crate) use crate::types::{ValidatedType, ValidationError, UserRecord};
 
 	// public exports
 	pub use crate::config::DBAuthConfig;
@@ -26,3 +25,4 @@ pub mod signin;
 pub mod signout;
 pub mod signup;
 pub mod types;
+pub mod auth_connection;
