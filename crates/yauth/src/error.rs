@@ -10,6 +10,9 @@ pub enum AuthError {
 
 	#[error("An error occurred with the database: {0}")]
 	SurrealError(#[from] surrealdb::Error),
+
+	#[error("An error occurred with the user authentication session: {0}")]
+	SessionError(#[from] crate::cmds::session_info::SessionError),
 }
 
 #[derive(Debug, thiserror::Error)]
