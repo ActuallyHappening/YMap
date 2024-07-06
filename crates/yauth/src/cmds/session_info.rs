@@ -191,6 +191,7 @@ mod tests {
 		let conn_config = TestingConfig::rand(INIT_SURQL.into());
 		let db = start_testing_db(&conn_config).await?;
 		// conn_config.init_query(&db).await?;
+		conn_config.root_sign_in(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 

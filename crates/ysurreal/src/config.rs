@@ -54,11 +54,16 @@ pub trait DBRootCredentials: Send + Sync {
 			db.use_ns(self.primary_namespace())
 				.use_db(self.primary_database())
 				.await?;
-			db.signin(Root {
-				username: self.root_username().as_str(),
-				password: self.root_password().as_str(),
-			})
-			.await
+			let result = db
+				.signin(Root {
+					username: self.root_username().as_str(),
+					password: self.root_password().as_str(),
+				})
+				.await;
+			if result.is_err() {
+				error!(message = "Something went wrong signing into the database with root credentials");
+			}
+			result
 		}
 	}
 }
@@ -96,8 +101,33 @@ pub trait DBStartConfig: Send + Sync {
 	/// Whether its a [DBType::Mem] or [DBType::File]
 	fn db_type(&self) -> StartDBType;
 
+	/// OK for local `bossy::run` commands, but not for `nushell -c`
+	fn get_unescaped_cli_args(&self) -> Vec<String>
+	where
+		Self: DBRootCredentials,
+	{
+		let mut args = vec![
+			"--username".into(),
+			self.root_username(),
+			"--password".into(),
+			self.root_password(),
+			"--bind".into(),
+			self.bind_full_host(),
+		];
+		if self.auth() {
+			args.push("--auth".into());
+		}
+		if self.strict() {
+			args.push("--strict".into())
+		}
+		// this goes last
+		args.push(self.db_type().get_start_address());
+		args
+	}
+
 	/// Arguments to pass to `surreal start`, e.g. `--password`.
-	fn get_cli_args(&self) -> Vec<String>
+	/// *Escaped for `nushell -c <get_escaped_cli_args>`*
+	fn get_escaped_cli_args(&self) -> Vec<String>
 	where
 		Self: DBRootCredentials,
 	{
@@ -108,8 +138,6 @@ pub trait DBStartConfig: Send + Sync {
 			"Cannot use backticks ` in password, else can't escape to nushell over the wire"
 		);
 		let escaped_password = format!("`{}`", raw_password);
-		// trace!(?escaped_password, %escaped_password);
-
 		let mut args = vec![
 			"--username".into(),
 			self.root_username(),

@@ -71,7 +71,7 @@ async fn start(
 	wait_duration: Duration,
 ) -> Result<(), Report> {
 	let surreal_bin_path = config.surreal_binary_path.as_str();
-	let args = config.get_cli_args().join(" ");
+	let args = config.get_escaped_cli_args().join(" ");
 	let server_cmd = format!("{surreal_bin_path} start {args}");
 	let mut start_cmd = session.command(config.nu_binary_path.as_str());
 	start_cmd.args(["-c", &server_cmd]);

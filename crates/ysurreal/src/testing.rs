@@ -9,7 +9,11 @@ pub struct TestingMemoryDB<C: Connection> {
 impl<C: Connection> Drop for TestingMemoryDB<C> {
 	fn drop(&mut self) {
 		let cleanup = self.cmd_handle.kill();
-		info!(message = "Cleaning up testing database...", ?cleanup);
+		info!(
+			message = "Cleaning up testing database...",
+			?cleanup,
+			note = "Ignore the next error from bossy, we definitely intend to leak this process"
+		);
 	}
 }
 
@@ -34,7 +38,7 @@ pub async fn start_testing_db<Config>(config: &Config) -> Result<TestingMemoryDB
 where
 	Config: DBStartConfig + DBConnectRemoteConfig + DBRootCredentials,
 {
-	let cmd_args = config.get_cli_args();
+	let cmd_args = config.get_unescaped_cli_args();
 	let surreal_bin_path = which("surreal").expect("Couldn't find surreal binary");
 	trace!(
 		message = "Starting local surreal client with `surreal start`",
