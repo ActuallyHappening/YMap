@@ -24,7 +24,7 @@ impl From<Exp> for SessionInfo {
 }
 
 pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
-	config: &Config,
+	_config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
 	let exp: Option<Exp> = db.query("SELECT exp FROM $session").await?.take(0)?;
@@ -35,6 +35,5 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 
 	debug!(?session, message = "Found session", remove_me = true);
 
-	todo!()
-	// exp.into()
+	Ok(exp.unwrap().into())
 }

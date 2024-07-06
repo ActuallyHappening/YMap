@@ -1,5 +1,5 @@
 use yauth::{
-	signin::SignIn,
+	cmds::signin::SignIn,
 	types::{Email, Password},
 };
 use ymap::auth::config::ProductionConfig;
@@ -10,9 +10,13 @@ async fn login(credentials: &SignIn) -> Result<Jwt, AuthError> {
 	info!("Logging in ..");
 	let config = ProductionConfig::new();
 	let db = config.connect_ws().await?;
-	let (jwt, user_record) = config.control_db(&db).sign_in(credentials).await?;
+	let auth_conn = config.control_db(&db);
+	let (jwt, user_record) = auth_conn.sign_in(credentials).await?;
 
 	debug!("Logged in user {}", user_record.id());
+
+	let session_info = auth_conn.session_info().await?;
+	debug!("Session info: {:?}", session_info);
 
 	Ok(jwt)
 }

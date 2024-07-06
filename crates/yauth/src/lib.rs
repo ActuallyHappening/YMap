@@ -8,7 +8,7 @@ pub mod prelude {
 	pub(crate) use tracing::*;
 
 	// internal re-exports
-	pub(crate) use crate::auth_connection::AuthConnection;
+	pub(crate) use crate::auth_conn::AuthConnection;
 	pub(crate) use crate::types::{UserRecord, ValidatedType, ValidationError};
 
 	// public exports
@@ -19,8 +19,8 @@ pub mod prelude {
 	pub use ysurreal::prelude::*;
 }
 
-pub mod auth_connection;
-mod cmds;
+pub mod auth_conn;
+pub mod cmds;
 pub mod config;
 pub mod configs;
 pub mod error;
