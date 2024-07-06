@@ -13,6 +13,35 @@ mod test {
 	use yauth::{cmds::signup::SignUp, configs::TestingAuthConfig};
 
 	#[test_log::test(tokio::test)]
+	async fn db_sessions() -> Result<(), Report> {
+		let conn_config = TestingConfig::rand(INIT_SURQL.into());
+		let db = start_testing_db(&conn_config).await?;
+		conn_config.use_primary_ns_db(&db).await?;
+
+		// signs into root to initialize the server
+		// then immidiately signs out
+		conn_config.root_sign_in(&db).await?;
+		conn_config.init_query(&db).await?;
+		db.invalidate().await?;
+
+		let auth_config = TestingAuthConfig::new(&conn_config);
+		let auth_control = auth_config.control_db(&db);
+		// end setup
+
+		let session_info = auth_control.session_info().await?;
+		assert!(session_info.signed_out());
+
+		let credentials = SignUp::testing_rand();
+		auth_control.sign_up(&credentials).await?;
+		assert!(auth_control.session_info().await?.signed_in());
+
+		auth_control.invalidate().await?;
+		assert!(auth_control.session_info().await?.signed_out());
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
 	async fn db_sign_up() -> Result<(), Report> {
 		let conn_config = TestingConfig::rand(INIT_SURQL.into());
 		let db = start_testing_db(&conn_config).await?;

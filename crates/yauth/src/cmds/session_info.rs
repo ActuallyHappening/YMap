@@ -33,6 +33,16 @@ pub enum SessionInfo {
 	SignedIn,
 }
 
+impl SessionInfo {
+	pub fn signed_in(&self) -> bool {
+		matches!(self, Self::SignedIn)
+	}
+
+	pub fn signed_out(&self) -> bool {
+		matches!(self, Self::SignedOut)
+	}
+}
+
 /// There are more fields
 ///
 /// Example:
