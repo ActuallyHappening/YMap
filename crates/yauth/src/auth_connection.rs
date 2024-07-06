@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::commands::*;
+use crate::cmds::*;
 
 #[derive(Debug)]
 pub struct AuthConnection<'db, C: Connection, Config> {
@@ -55,6 +55,6 @@ where
 	where
 		Self: Sized,
 	{
-		signup::list_users(self.config, self.db).await
+		list_users::list_users(self.config, self.db).await
 	}
 }

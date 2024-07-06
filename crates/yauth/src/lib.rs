@@ -12,7 +12,6 @@ pub mod prelude {
 	pub(crate) use crate::types::{UserRecord, ValidatedType, ValidationError};
 
 	// public exports
-	pub use crate::commands::*;
 	pub use crate::config::DBAuthConfig;
 	pub use crate::error::AuthError;
 	pub use std::str::FromStr;
@@ -21,7 +20,7 @@ pub mod prelude {
 }
 
 pub mod auth_connection;
-pub(crate) mod commands;
+mod cmds;
 pub mod config;
 pub mod configs;
 pub mod error;

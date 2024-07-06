@@ -27,11 +27,11 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
-	let exp: Option<Exp> = db.query("SELECT exp FROM $session").await?;
+	let exp: Option<Exp> = db.query("SELECT exp FROM $session").await?.take(0)?;
 
 	trace!(?exp, message = "Found session expiration");
 
-	let session: serde_json::Value = db.query("SELECT * FROM $session").await?;
+	let session: Option<serde_json::Value> = db.query("SELECT * FROM $session").await?.take(0)?;
 
 	debug!(?session, message = "Found session", remove_me = true);
 

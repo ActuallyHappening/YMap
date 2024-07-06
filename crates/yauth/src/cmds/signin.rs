@@ -3,7 +3,7 @@ use surrealdb::opt::auth::{Jwt, Scope};
 use crate::{
 	error::InternalInvariantBroken,
 	prelude::*,
-	signup::SignUp,
+	cmds::signup::SignUp,
 	types::{Email, Password, UserRecord},
 };
 
