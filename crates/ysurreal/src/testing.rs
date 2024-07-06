@@ -6,6 +6,13 @@ pub struct TestingMemoryDB<C: Connection> {
 	cmd_handle: bossy::Handle,
 }
 
+impl<C: Connection> Drop for TestingMemoryDB<C> {
+	fn drop(&mut self) {
+		let cleanup = self.cmd_handle.kill();
+		info!(message = "Cleaning up testing database...", ?cleanup);
+	}
+}
+
 impl<C: Connection> std::ops::Deref for TestingMemoryDB<C> {
 	type Target = Surreal<C>;
 
@@ -22,9 +29,7 @@ impl<C: Connection> std::ops::DerefMut for TestingMemoryDB<C> {
 
 /// Start a new in-memory database for **testing only**.
 /// Switches to primary database and namespace implicitly.
-pub async fn start_testing_db<Config>(
-	config: &Config,
-) -> Result<TestingMemoryDB<Any>, Report>
+pub async fn start_testing_db<Config>(config: &Config) -> Result<TestingMemoryDB<Any>, Report>
 where
 	Config: DBStartConfig + DBConnectRemoteConfig + DBRootCredentials,
 {
@@ -44,18 +49,4 @@ where
 		.wrap_err("Couldn't connect to just-started CLI database")?;
 
 	Ok(TestingMemoryDB { db, cmd_handle })
-	// if config.db_type() != StartDBType::Mem {
-	// 	panic!("Cannot start testing db for non-memory configuration yet");
-	// }
-
-	// // uses default configuration of a new database
-	// // whether to use `mem://` or `memory` everywhere idk
-	// let db = match surrealdb::engine::any::connect("mem://".to_owned()).await {
-	// 	Ok(db) => db,
-	// 	Err(err) => return Err(err),
-	// };
-	// db.use_ns(config.primary_namespace())
-	// 	.use_db(config.primary_database())
-	// 	.await?;
-	// Ok(db)
 }
