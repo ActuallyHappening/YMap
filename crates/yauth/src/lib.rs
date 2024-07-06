@@ -9,6 +9,7 @@ pub mod prelude {
 
 	// internal re-exports
 	pub(crate) use crate::types::{ValidatedType, ValidationError, UserRecord};
+	pub(crate) use crate::auth_connection::AuthConnection;
 
 	// public exports
 	pub use crate::config::DBAuthConfig;

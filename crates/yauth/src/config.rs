@@ -1,8 +1,5 @@
-use crate::{prelude::*, types::UserRecord};
-use surrealdb::opt::auth::Jwt;
+use crate::prelude::*;
 use ysurreal::config::DBConnectRemoteConfig;
-
-
 
 pub trait DBAuthConfig: DBConnectRemoteConfig {
 	fn users_table(&self) -> String;

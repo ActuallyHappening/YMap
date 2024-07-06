@@ -2,8 +2,8 @@ use crate::prelude::*;
 
 #[derive(Debug)]
 pub struct AuthConnection<'db, C: Connection, Config> {
-	db: &'db Surreal<C>,
-	config: &'db Config,
+	pub(crate) db: &'db Surreal<C>,
+	pub(crate) config: &'db Config,
 }
 
 impl<'db, C: Connection, Config> AuthConnection<'db, C, Config>
