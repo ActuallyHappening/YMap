@@ -1,10 +1,5 @@
 use crate::prelude::*;
 
-#[derive(Clone, Debug, Error)]
-pub enum AppError {
-	#[error("Not Found")]
-	NotFound,
-}
 
 // A basic function to display errors served by the error boundaries.
 // Feel free to do more complicated things here than just displaying the error.

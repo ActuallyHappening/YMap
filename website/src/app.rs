@@ -19,7 +19,11 @@ pub struct AppState {
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
-    AuthError()
+	#[error("Not Found")]
+	NotFound,
+
+	#[error("There was an error authenticating: {0}")]
+	AuthError(#[from] yauth::error::AuthError),
 }
 
 impl AppState {
@@ -27,8 +31,8 @@ impl AppState {
 		&self.config
 	}
 
-	pub async fn db(&self) -> Result<&Surreal<Any>, yauth::Error> {
-		config.conn
+	pub async fn db(&self) -> Result<&Surreal<Any>, AppError> {
+		Ok(self.config().await.connect_ws().await?)
 	}
 }
 
