@@ -7,7 +7,7 @@ pub enum AuthCommand {
 	#[clap(alias = "signup")]
 	SignUp {
 		#[clap(flatten)]
-		signup_options: yauth::signup::SignUp,
+		signup_options: yauth::cmds::signup::SignUp,
 	},
 	/// Only available with production credentials
 	#[cfg(not(feature = "production"))]

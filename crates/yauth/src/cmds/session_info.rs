@@ -184,11 +184,9 @@ mod tests {
 
 	use super::*;
 
-	const INIT_SURQL: &str = "";
-
 	#[test_log::test(tokio::test)]
 	async fn db_no_session() -> Result<(), Report> {
-		let conn_config = TestingConfig::rand(INIT_SURQL.into());
+		let conn_config = TestingConfig::rand(String::default());
 		let db = start_testing_db(&conn_config).await?;
 		// conn_config.init_query(&db).await?;
 		conn_config.root_sign_in(&db).await?;
