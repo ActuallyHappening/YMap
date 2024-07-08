@@ -200,6 +200,8 @@ mod tests {
 	async fn db_no_session() -> Result<(), Report> {
 		let conn_config = TestingConfig::rand(String::default());
 		let db = start_testing_db(&conn_config).await?;
+		conn_config.use_primary_ns_db(&db);
+		
 		// conn_config.init_query(&db).await?;
 		conn_config.root_sign_in(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);

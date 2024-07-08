@@ -42,16 +42,16 @@ pub fn ErrorTemplate(
 				children=move |(_index, error)| {
 					match error {
 						AppError::NotFound => view! { <P>"404 - Not Found"</P> }.into_view(),
-						AppError::SurrealError { debug } => {
+						AppError::SurrealError(err) => {
 							view! {
 								<P>"A surreal error occurred:"</P>
-								<P>{debug}</P>
+								<P>{err.to_string()}</P>
 							}.into_view()
 						}
-						AppError::AuthError { debug } => {
+						AppError::AuthError(err) => {
 							view! {
 								<P>"An authentication error occurred:"</P>
-								<P>{debug}</P>
+								<P>{err.to_string()}</P>
 							}.into_view()
 						}
 

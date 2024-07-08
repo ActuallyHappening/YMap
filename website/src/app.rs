@@ -13,8 +13,8 @@ pub struct AppState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, thiserror::Error)]
-#[error("{ display: {:?display}, debug: {:?debug}, pretty_debug: {:?pretty_debug} }")]
-struct GenericError {
+#[error("{{ display: {display:?}, debug: {debug:?}, pretty_debug: {pretty_debug:?} }}")]
+pub struct GenericError {
 	display: String,
 	debug: String,
 	pretty_debug: String,

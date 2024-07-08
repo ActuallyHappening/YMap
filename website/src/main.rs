@@ -1,4 +1,5 @@
 pub mod prelude {
+    #![allow(unused_imports)]
 	pub(crate) use crate::app::{AppError, AppState};
 	pub(crate) use leptonic::prelude::*;
 	pub(crate) use leptos::*;
