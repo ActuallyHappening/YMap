@@ -127,6 +127,7 @@ pub fn App() -> impl IntoView {
 					<Routes>
 						<Route path="/login" view=|| view! { <Login/> }/>
 						<Route path="" view=|| view! { <LoggedIn/> }/>
+						<Route path="/logged-in" view=|| view! { <LoggedIn/> }/>
 					</Routes>
 				</main>
 			</Router>

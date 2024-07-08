@@ -34,11 +34,20 @@ pub fn Login() -> impl IntoView {
 
 	let (error, set_error) = create_signal(None);
 
-	let submit_action = create_action(|credentials: &SignIn| {
+	let submit_action = create_action(move |credentials: &SignIn| {
 		let credentials = credentials.clone();
 		async move {
+			let navigate = leptos_router::use_navigate();
 			let jwt = login(&credentials).await;
 			trace!(?jwt);
+
+			match jwt {
+				Err(err) => set_error.set(Some(err.to_string())),
+				Ok(jwt) => {
+					navigate("/logged-in", Default::default());
+					// todo: implement deep links in iOS app and open here
+				}
+			}
 		}
 	});
 
@@ -48,14 +57,14 @@ pub fn Login() -> impl IntoView {
 		let email = match email.get() {
 			Ok(email) => email,
 			Err(err) => {
-				set_error.set(Some(err));
+				set_error.set(Some(err.to_string()));
 				return;
 			}
 		};
 		let password = match password.get() {
 			Ok(password) => password,
 			Err(err) => {
-				set_error.set(Some(err));
+				set_error.set(Some(err.to_string()));
 				return;
 			}
 		};
