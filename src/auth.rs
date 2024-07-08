@@ -29,14 +29,14 @@ mod test {
 		// end setup
 
 		let session_info = auth_control.session_info().await?;
-		assert!(session_info.signed_out());
+		assert!(session_info.user_signed_out());
 
 		let credentials = SignUp::testing_rand();
 		auth_control.sign_up(&credentials).await?;
-		assert!(auth_control.session_info().await?.signed_in());
+		assert!(auth_control.session_info().await?.user_signed_in());
 
 		auth_control.invalidate().await?;
-		assert!(auth_control.session_info().await?.signed_out());
+		assert!(auth_control.session_info().await?.user_signed_out());
 
 		Ok(())
 	}

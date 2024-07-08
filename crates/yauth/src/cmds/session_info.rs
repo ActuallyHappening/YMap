@@ -21,25 +21,18 @@ pub enum SessionError {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum SessionInfo {
-	/// Not signed into any scope
-	///
-	/// Maybe still a root user?
-	SignedOut,
+	/// No session / no credentials
+	SignedOutCompletely,
 
-	/// Signed into the expected user scope.
-	///
-	/// This the session is signed into any other scope, [`session_info`] will
-	/// return an error instead of this variant.
-	SignedIn,
+	/// Root credentials
+	RootSignedIn,
+	/// Scoped user
+	UserSignedIn,
 }
 
 impl SessionInfo {
-	pub fn signed_in(&self) -> bool {
-		matches!(self, Self::SignedIn)
-	}
-
-	pub fn signed_out(&self) -> bool {
-		matches!(self, Self::SignedOut)
+	pub fn user_signed_in(&self) -> bool {
+		matches!(self, Self::UserSignedIn)
 	}
 }
 
