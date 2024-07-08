@@ -106,20 +106,34 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
+	// check if permissions to even read the session variable exist
+	let check_access: Result<surrealdb::Response, _> = db.query(QUERY).await;
+	if let Err(surrealdb::Error::Api(surrealdb::error::Api::Query(err))) = &check_access {
+		warn!(
+			message = "Assuming signed out when actually can't access the users table",
+			note = "This is expected behaviour if you are calling `session_info` expecting to be in a surreal session with absolutely no permissions",
+			?check_access,
+			error_message = ?err,
+		);
+		return Ok(SessionInfo::SignedOut);
+	}
+
 	/// Sometimes only an {exp: None} is returned, which means not signed in
 	///
 	/// idk the conditions for this, but i handle it with this struct
 	#[derive(Deserialize)]
 	struct NoSession {
-		exp: Option<()>,
+		exp: Option<u128>,
 	}
 	trace!(remove_me = true, "Querying for no-session info");
 	let no_session: Option<NoSession> = db.query(QUERY).await?.take(0)?;
 	match no_session {
-		Some(NoSession { exp: None }) => {
+		Some(NoSession { exp }) => {
 			debug!(
 				message = "No session was found at all, only the exp passed",
-				note = "IDK why this condition is every hit"
+				note = "IDK why this condition is every hit",
+				note = "exp is the expiration of the session, `None` meaning not in a session?",
+				?exp,
 			);
 			return Ok(SessionInfo::SignedOut);
 		}
@@ -200,15 +214,33 @@ mod tests {
 	async fn db_no_session() -> Result<(), Report> {
 		let conn_config = TestingConfig::rand(String::default());
 		let db = start_testing_db(&conn_config).await?;
-		conn_config.use_primary_ns_db(&db);
-		
+		conn_config.use_primary_ns_db(&db).await?;
+
 		// conn_config.init_query(&db).await?;
 		conn_config.root_sign_in(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
 		let session_info = auth_conn.session_info().await?;
+		assert_eq!(session_info, SessionInfo::SignedOut);
 
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
+	async fn db_no_session_signed_out() -> Result<(), Report> {
+		let conn_config = TestingConfig::rand(String::default());
+		let db = start_testing_db(&conn_config).await?;
+		conn_config.use_primary_ns_db(&db).await?;
+
+		// conn_config.init_query(&db).await?;
+		conn_config.root_sign_in(&db).await?;
+		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
+		let auth_conn = auth_config.control_db(&db);
+
+		// signs out first
+		db.invalidate().await?;
+		let session_info = auth_conn.session_info().await?;
 		assert_eq!(session_info, SessionInfo::SignedOut);
 
 		Ok(())
