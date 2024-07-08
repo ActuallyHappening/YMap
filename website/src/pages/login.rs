@@ -2,7 +2,6 @@ use yauth::{
 	cmds::signin::SignIn,
 	types::{Email, Password},
 };
-use ymap::auth::config::ProductionConfig;
 
 use crate::{app_state, prelude::*};
 

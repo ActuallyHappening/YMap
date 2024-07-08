@@ -28,7 +28,7 @@ fn main() {
 	Registry::default()
 		.with(
 			EnvFilter::try_from_default_env()
-				.or_else(|_| EnvFilter::try_new("info,ymap=debug,ysurreal=debug,yauth=debug"))
+				.or_else(|_| EnvFilter::try_new("info,ymap-website=trace,ymap=debug,ysurreal=debug,yauth=debug"))
 				.unwrap(),
 		)
 		.with(tracing_wasm::WASMLayer::new(
