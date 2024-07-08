@@ -113,6 +113,7 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	struct NoSession {
 		exp: Option<()>,
 	}
+	trace!(remove_me = true, "Querying for no-session info");
 	let no_session: Option<NoSession> = db.query(QUERY).await?.take(0)?;
 	match no_session {
 		Some(NoSession { exp: None }) => {
@@ -125,6 +126,7 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 		_ => {}
 	}
 
+	trace!(remove_me = true, "Querying for session info");
 	let session: Option<Session> = db.query(QUERY).await?.take(0)?;
 
 	// todo: rename to session when IDE kicks in

@@ -36,6 +36,7 @@ fn main() {
 		.init();
 
 	info!("Logging is setup");
+	trace!("Traces comming through");
 
 	// tracing_wasm::set_as_global_default_with_config(
 	//     tracing_wasm::WASMLayerConfigBuilder::default()
