@@ -117,20 +117,20 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 		return Ok(SessionInfo::SignedOutCompletely);
 	}
 
-	trace!(remove_me = true, "Querying for no-session info");
-	let no_session: Option<SignedOutSession> = db.query(QUERY).await?.take(0)?;
-	match no_session {
-		Some(SignedOutSession { exp }) => {
-			debug!(
-				message = "No session was found at all, only the exp passed",
-				note = "IDK why this condition is every hit",
-				note = "exp is the expiration of the session, `None` meaning not in a session?",
-				?exp,
-			);
-			return Ok(SessionInfo::SignedOutCompletely);
-		}
-		_ => {}
-	}
+	// trace!(remove_me = true, "Querying for no-session info");
+	// let no_session: Option<SignedOutSession> = db.query(QUERY).await?.take(0)?;
+	// match no_session {
+	// 	Some(SignedOutSession { exp }) => {
+	// 		debug!(
+	// 			message = "No session was found at all, only the exp passed",
+	// 			note = "IDK why this condition is every hit",
+	// 			note = "exp is the expiration of the session, `None` meaning not in a session?",
+	// 			?exp,
+	// 		);
+	// 		return Ok(SessionInfo::SignedOutCompletely);
+	// 	}
+	// 	_ => {}
+	// }
 
 	trace!(remove_me = true, "Querying for session info");
 	let session: Option<SignedInSession> = db.query(QUERY).await?.take(0)?;
