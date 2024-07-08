@@ -68,7 +68,7 @@ impl SessionInfo {
 /// });
 /// ```
 #[derive(Debug, Deserialize)]
-struct Session {
+struct SignedInSession {
 	/// UNIX timestamp
 	///
 	/// Should be [`None`] if [`Session::scope_data`] is [`None`] as well.
@@ -93,14 +93,20 @@ struct Session {
 	scope_data: Option<UserRecord>,
 }
 
-const QUERY: &str = "SELECT exp FROM $session FETCH sd";
+/// Sometimes only an {exp: None} is returned, which means not signed in at all
+#[derive(Deserialize)]
+struct SignedOutSession {
+	exp: Option<u128>,
+}
+
+const QUERY: &str = "SELECT * FROM $session FETCH sd";
 
 pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	config: &Config,
 	db: &Surreal<C>,
 ) -> Result<SessionInfo, AuthError> {
 	// check if permissions to even read the session variable exist
-	let check_access: Result<surrealdb::Response, _> = db.query(QUERY).await;
+	let check_access: Result<surrealdb::Response, _> = db.query("SELECT exp FROM $session").await;
 	if let Err(surrealdb::Error::Api(surrealdb::error::Api::Query(err))) = &check_access {
 		warn!(
 			message = "Assuming signed out when actually can't access the users table",
@@ -108,33 +114,26 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 			?check_access,
 			error_message = ?err,
 		);
-		return Ok(SessionInfo::SignedOut);
+		return Ok(SessionInfo::SignedOutCompletely);
 	}
 
-	/// Sometimes only an {exp: None} is returned, which means not signed in
-	///
-	/// idk the conditions for this, but i handle it with this struct
-	#[derive(Deserialize)]
-	struct NoSession {
-		exp: Option<u128>,
-	}
 	trace!(remove_me = true, "Querying for no-session info");
-	let no_session: Option<NoSession> = db.query(QUERY).await?.take(0)?;
+	let no_session: Option<SignedOutSession> = db.query(QUERY).await?.take(0)?;
 	match no_session {
-		Some(NoSession { exp }) => {
+		Some(SignedOutSession { exp }) => {
 			debug!(
 				message = "No session was found at all, only the exp passed",
 				note = "IDK why this condition is every hit",
 				note = "exp is the expiration of the session, `None` meaning not in a session?",
 				?exp,
 			);
-			return Ok(SessionInfo::SignedOut);
+			return Ok(SessionInfo::SignedOutCompletely);
 		}
 		_ => {}
 	}
 
 	trace!(remove_me = true, "Querying for session info");
-	let session: Option<Session> = db.query(QUERY).await?.take(0)?;
+	let session: Option<SignedInSession> = db.query(QUERY).await?.take(0)?;
 
 	// todo: rename to session when IDE kicks in
 	let Some(exp) = session else {
@@ -148,7 +147,8 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 				note = "You can safely ignore this, as it is an internal detail of `yauth`s implementation"
 			);
 		}
-		return Ok(SessionInfo::SignedOut);
+		// no scope data is provided if using root sign in
+		return Ok(SessionInfo::RootSignedIn);
 	}
 
 	if config.primary_database() != exp.database {
@@ -193,7 +193,7 @@ pub(crate) async fn session_info<Config: DBAuthConfig, C: Connection>(
 	}
 
 	// all checks pass, signed in yay!
-	Ok(SessionInfo::SignedIn)
+	Ok(SessionInfo::UserSignedIn)
 }
 
 #[cfg(test)]
@@ -209,13 +209,14 @@ mod tests {
 		let db = start_testing_db(&conn_config).await?;
 		conn_config.use_primary_ns_db(&db).await?;
 
+		// don't sign in, don't initialize anything
 		// conn_config.init_query(&db).await?;
-		conn_config.root_sign_in(&db).await?;
+		// conn_config.root_sign_in(&db).await?;
 		let auth_config = crate::configs::TestingAuthConfig::new(&conn_config);
 		let auth_conn = auth_config.control_db(&db);
 
 		let session_info = auth_conn.session_info().await?;
-		assert_eq!(session_info, SessionInfo::SignedOut);
+		assert_eq!(session_info, SessionInfo::SignedOutCompletely);
 
 		Ok(())
 	}
@@ -234,7 +235,7 @@ mod tests {
 		// signs out first
 		db.invalidate().await?;
 		let session_info = auth_conn.session_info().await?;
-		assert_eq!(session_info, SessionInfo::SignedOut);
+		assert_eq!(session_info, SessionInfo::SignedOutCompletely);
 
 		Ok(())
 	}

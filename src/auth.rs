@@ -10,7 +10,10 @@ mod test {
 	use ysurreal::prelude::*;
 
 	use super::init::INIT_SURQL;
-	use yauth::{cmds::signup::SignUp, configs::TestingAuthConfig};
+	use yauth::{
+		cmds::{session_info::SessionInfo, signup::SignUp},
+		configs::TestingAuthConfig,
+	};
 
 	#[test_log::test(tokio::test)]
 	async fn db_sessions() -> Result<(), Report> {
@@ -29,14 +32,20 @@ mod test {
 		// end setup
 
 		let session_info = auth_control.session_info().await?;
-		assert!(session_info.user_signed_out());
+		assert_eq!(session_info, SessionInfo::SignedOutCompletely);
 
 		let credentials = SignUp::testing_rand();
 		auth_control.sign_up(&credentials).await?;
-		assert!(auth_control.session_info().await?.user_signed_in());
+		assert_eq!(
+			auth_control.session_info().await?,
+			SessionInfo::UserSignedIn
+		);
 
 		auth_control.invalidate().await?;
-		assert!(auth_control.session_info().await?.user_signed_out());
+		assert_eq!(
+			auth_control.session_info().await?,
+			SessionInfo::SignedOutCompletely
+		);
 
 		Ok(())
 	}
