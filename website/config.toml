@@ -1,6 +1,10 @@
 # Config for static-web-server on the server
 # copied from https://static-web-server.net/configuration/config-file/
 
+# from ymap root directory
+# scp ./website/config.toml digitalocean1:/root/home/YMap/config.toml
+#
+
 [general]
 
 #### Address & Root dir
@@ -123,6 +127,11 @@ maintenance-mode = false
 # kind = 302
 
 ### URL Rewrites (examples only)
+
+[[advanced.rewrites]]
+source = "*"
+destination = "/"
+# redirect = 301
 
 # [[advanced.rewrites]]
 # source = "**/*.{png,ico,gif}"
