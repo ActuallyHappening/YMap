@@ -8,4 +8,5 @@
 !Cargo.lock
 !index.html
 !README.md
-!rust-toolchain.toml
+!.zed
+!rustfmt.toml

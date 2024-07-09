@@ -16,6 +16,10 @@ opt-level = 3
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+yauth = { path = "../crates/yauth" }
+ymap = { path = ".." }
+surrealdb = "1.5.3"
+
 axum = { version = "0.7.4", optional = true }
 axum-server = { version = "0.6.0", features = ["tls-rustls"], optional = true }
 cfg-if = "1.0.0"

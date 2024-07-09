@@ -6,75 +6,7 @@ use ymap::auth::config::ProductionConfig;
 
 use crate::{error_template::ErrorTemplate, pages::logged_in::LoggedIn, pages::login::Login};
 
-#[derive(Debug, Clone)]
-pub struct AppState {
-	config: ProductionConfig,
-	db: OnceCell<Surreal<Any>>,
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize, thiserror::Error)]
-#[error("{{ display: {display:?}, debug: {debug:?}, pretty_debug: {pretty_debug:?} }}")]
-pub struct GenericError {
-	display: String,
-	debug: String,
-	pretty_debug: String,
-}
-
-impl GenericError {
-	fn new<T: std::fmt::Debug + std::fmt::Display>(error: &T) -> Self {
-		Self {
-			display: error.to_string(),
-			debug: format!("{:?}", error),
-			pretty_debug: format!("{:#?}", error),
-		}
-	}
-}
-
-#[derive(Debug, thiserror::Error, Deserialize, Serialize, Clone)]
-pub enum AppError {
-	#[error("Page not found")]
-	NotFound,
-
-	#[error("There was a problem talking to the backend: {0}")]
-	SurrealError(GenericError),
-
-	#[error("There was an error authenticating: {0}")]
-	AuthError(GenericError),
-}
-
-impl From<yauth::error::AuthError> for AppError {
-	fn from(value: AuthError) -> Self {
-		AppError::AuthError(GenericError::new(&value))
-	}
-}
-
-impl From<surrealdb::Error> for AppError {
-	fn from(value: surrealdb::Error) -> Self {
-		AppError::SurrealError(GenericError::new(&value))
-	}
-}
-
-impl AppState {
-	/// Only async to force you to deal with db connection in async context
-	pub async fn config(&self) -> &ProductionConfig {
-		&self.config
-	}
-
-	pub async fn db(&self) -> Result<Surreal<Any>, AppError> {
-		match self.db.get() {
-			Some(db) => Ok(db.clone()),
-			None => {
-				let db = self.config().await.connect_ws().await?;
-				self.db.set(db.clone()).expect("Was just None");
-				Ok(db)
-			}
-		}
-	}
-}
-
-pub fn app_state() -> AppState {
-	use_context().expect("AppState not provided?")
-}
 
 #[component]
 pub fn App() -> impl IntoView {

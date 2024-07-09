@@ -1,5 +1,5 @@
-use crate::prelude::*;
 use crate::cmds::*;
+use crate::prelude::*;
 
 #[derive(Debug)]
 pub struct AuthConnection<'db, C: Connection, Config> {
@@ -46,7 +46,10 @@ where
 		signout::invalidate(self.config, self.db).await
 	}
 
-	pub async fn session_info(&self) -> Result<session_info::SessionInfo, AuthError> where Self: Sized {
+	pub async fn session_info(&self) -> Result<session_info::SessionInfo, AuthError>
+	where
+		Self: Sized,
+	{
 		session_info::session_info(&self.config, self.db).await
 	}
 

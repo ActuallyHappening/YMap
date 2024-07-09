@@ -53,33 +53,4 @@ async fn main() {
 }
 
 #[cfg(not(feature = "ssr"))]
-pub fn main() {
-	use tracing_subscriber::prelude::*;
-	use tracing_subscriber::{EnvFilter, Registry};
-	
-	console_error_panic_hook::set_once();
-
-	Registry::default()
-		.with(
-			EnvFilter::try_from_default_env()
-				.or_else(|_| EnvFilter::try_new("info,ymap-website=trace,ymap=debug,ysurreal=debug,yauth=debug"))
-				.unwrap(),
-		)
-		.with(tracing_wasm::WASMLayer::new(
-			tracing_wasm::WASMLayerConfig::default(),
-		))
-		.init();
-
-	info!("Logging is setup");
-	trace!("Traces comming through");
-
-	// tracing_wasm::set_as_global_default_with_config(
-	//     tracing_wasm::WASMLayerConfigBuilder::default()
-	//         .set_max_level(tracing::Level::DEBUG)
-	//         .build(),
-	// );
-
-	mount_to_body(|| {
-		view! { <App/> }
-	});
-}
+pub fn main() {}
