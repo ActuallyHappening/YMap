@@ -1,0 +1,86 @@
+[package]
+name = "ymap-website"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+## Use this when building for production
+production = ["ymap/production"]
+hydrate = [
+    "leptos/hydrate",
+    "leptos_meta/hydrate",
+    "leptos_router/hydrate",
+    "leptonic/hydrate"
+]
+ssr = [
+    "dep:axum",
+    "dep:axum-server",
+    "dep:tokio",
+    "dep:tower",
+    "dep:tower-http",
+    "dep:leptos_axum",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptonic/ssr",
+]
+
+[dependencies]
+yauth = { path = "../crates/yauth" }
+ymap = { path = ".." }
+surrealdb = "1.5.3"
+
+axum = { version = "0.7.4", optional = true }
+axum-server = { version = "0.6.0", features = ["tls-rustls"], optional = true }
+cfg-if = "1.0.0"
+console_error_panic_hook = "0.1.7"
+http = "1.0.0"
+leptonic = { version = "0.5.0", features = [] }
+leptos = { version = "0.6.5", features = [] }
+leptos_axum = { version = "0.6.5", optional = true }
+leptos_meta = { version = "0.6.5", features = [] }
+leptos_router = { version = "0.6.5", features = [] }
+serde = "1.0.196"
+serde_json = "1.0.113"
+thiserror = "1.0.56"
+time = { version = "=0.3.31", features = ["wasm-bindgen"] }
+tokio = { version = "1.36.0", features = ["rt-multi-thread"], optional = true }
+tower = { version = "0.4.13", optional = true }
+tower-http = { version = "0.5.1", features = ["fs"], optional = true }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+tracing-wasm = "0.2.1"
+
+[package.metadata.leptonic]
+# REQUIRED: Leptonic's build-script will copy the Leptonic themes to this directory. Relative to your project root.
+style-dir = "style"
+
+# REQUIRED: Leptonic's build-script will copy static JS dependencies to this directory. Relative to your project root.
+# Leptonic's `<Root>` component expects JS files to be available at a "js" directory at runtime (for dynamic script includes). Specify a different prop value if you choose a non-standard location here.
+js-dir = "public/js"
+
+# lints won't carry over
+# [lints]
+# workspace = true
+
+## Profiles, need to be root to actually apple though
+# [profile.dev]
+# # Potential to opt-in on higher optimization for our code. This may increase incremental compilation times, but will reduce binaty size.
+# opt-level = 0
+# [profile.dev.package."*"]
+# # High optimization for our dependencies. This should increase performance drastically without hitting our incremental compilation times.
+# # This will lead to obscure error messages from third party libraries. Comment this out when experiencing a tricky bug.
+# opt-level = 3
+
+# [profile.release]
+# opt-level = "z"
+# lto = "fat"
+# debug = 0
+# strip = true
+# # codegen-units = 1
+
+### Optimizations
+[profile.dev]
+debug = 0
+strip = "debuginfo"
