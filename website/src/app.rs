@@ -10,6 +10,7 @@ use crate::pages::logged_in::LoggedIn;
 #[component]
 pub fn App() -> impl IntoView {
 	provide_meta_context();
+	crate::state::provide_app_context();
 
 	view! {
 			<Meta name="charset" content="UTF-8"/>

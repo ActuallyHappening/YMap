@@ -31,3 +31,12 @@ impl AppState {
 pub fn app_state() -> AppState {
 	use_context().expect("AppState not provided?")
 }
+
+/// Call in root of application
+pub fn provide_app_context() {
+    let config = ProductionConfig::new();
+    provide_context(AppState {
+        config,
+        db: std::cell::OnceCell::new(),
+    })
+}
