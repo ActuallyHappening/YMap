@@ -4,6 +4,7 @@ pub mod prelude {
 	pub(crate) use std::marker::PhantomData;
 	pub(crate) use tracing::*;
 
+	pub(crate) use crate::secrets::*;
 	pub(crate) use yauth::prelude::*;
 	pub(crate) use ysurreal::prelude::*;
 
