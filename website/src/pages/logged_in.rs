@@ -2,6 +2,12 @@ use crate::prelude::*;
 use yauth::cmds::session_info::SessionInfo;
 
 pub async fn is_logged_in() -> Result<SessionInfo, AppError> {
+	if cfg!(feature = "ssr") {
+		return Err(AppError::InternalCodeError(
+			crate::error::GenericError::new(&"is_logged_in() called in SSR mode"),
+		));
+	}
+
 	let state = crate::state::app_state();
 	let config = state.config().await;
 	let db = state.db().await?;

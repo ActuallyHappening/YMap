@@ -12,6 +12,9 @@ pub enum AppError {
 
 	#[error("There was an error authenticating: {0}")]
 	AuthError(GenericError),
+
+	#[error("An unknown technical issue occured: {0}")]
+	InternalCodeError(GenericError),
 }
 
 impl From<yauth::error::AuthError> for AppError {
@@ -30,7 +33,9 @@ impl AppError {
 		match self {
 			AppError::NotFound => StatusCode::NOT_FOUND,
 			AppError::AuthError(_) => StatusCode::UNAUTHORIZED,
-			AppError::SurrealError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+			AppError::SurrealError(_) | AppError::InternalCodeError(_) => {
+				StatusCode::INTERNAL_SERVER_ERROR
+			}
 		}
 	}
 }
@@ -44,7 +49,7 @@ pub struct GenericError {
 }
 
 impl GenericError {
-	fn new<T: std::fmt::Debug + std::fmt::Display>(error: &T) -> Self {
+	pub(crate) fn new<T: std::fmt::Debug + std::fmt::Display>(error: &T) -> Self {
 		Self {
 			display: error.to_string(),
 			debug: format!("{:?}", error),

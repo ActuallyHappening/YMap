@@ -32,42 +32,39 @@ pub fn ErrorTemplate(
 	// Only the response code for the first error is actually sent from the server
 	// this may be customized by the specific application
 	cfg_if! { if #[cfg(feature="ssr")] {
-			let response = use_context::<ResponseOptions>();
-			if let Some(response) = response {
-					response.set_status(errors[0].status_code());
-			}
+		let response = use_context::<ResponseOptions>();
+		if let Some(response) = response {
+			response.set_status(errors[0].status_code());
+		}
 	}}
 
 	view! {
-			<Box style="display: flex; flex-direction: column; align-items:center;">
-					<H1>{match num_errors {
-							1 => "Error",
-							_ => "Errors",
-					}}</H1>
+		<Box style="display: flex; flex-direction: column; align-items:center;">
+			<H1>{match num_errors {
+				1 => "Error",
+				_ => "Errors",
+			}}</H1>
 
-					<For
-							each=move || { errors.clone().into_iter().enumerate() }
-							key=|(index, _error)| *index
-							children=move |(_index, error)| {
-									// let error_string = error.to_string();
-									// let error_code= error.status_code();
-									match error {
-											AppError::NotFound => view! {
-													<P>"404 - Not Found"</P>
-											}.into_view(),
-											AppError::AuthError(err) => view! {
-													<P> { err.to_string() } </P>
-											}.into_view(),
-											AppError::SurrealError(err) => view! {
-											 <P> {err.to_string()} </P>
-											}
-									}
-							}
-					/>
+			<For
+				each=move || { errors.clone().into_iter().enumerate() }
+				key=|(index, _error)| *index
+				children=move |(_index, error)| {
+					// let error_string = error.to_string();
+					// let error_code= error.status_code();
+					match error {
+						AppError::NotFound => view! {
+							<P>"404 - Not Found"</P>
+						}.into_view(),
+						AppError::AuthError(err) | AppError::SurrealError(err) | AppError::InternalCodeError(err) => view! {
+							<P> { err.to_string() } </P>
+						}.into_view(),
+					}
+				}
+			/>
 
-					<LinkButton href="/">
-							"Back"
-					</LinkButton>
-			</Box>
+			<LinkButton href="/">
+					"Back"
+			</LinkButton>
+		</Box>
 	}
 }
