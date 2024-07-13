@@ -1,5 +1,3 @@
-
-
 use crate::prelude::*;
 
 /// All necessary application state
@@ -10,9 +8,9 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn local_storage_key(&self) -> String {
-        String::from("db-jwt")
-    }
+	pub fn local_storage_key(&self) -> String {
+		String::from("db-jwt")
+	}
 
 	/// Only async to force you to deal with db connection in async context
 	pub async fn config(&self) -> &ProductionConfig {
@@ -28,7 +26,7 @@ impl AppState {
 				let db = self.config().await.connect_ws().await?;
 				self.db.set(db.clone()).expect("Was just None");
 
-				let (jwt_, _, _) =
+				// let (jwt_, _, _) =
 
 				Ok(db)
 			}
@@ -43,9 +41,9 @@ pub fn app_state() -> AppState {
 
 /// Call in root of application
 pub fn provide_app_context() {
-    let config = ProductionConfig::new();
-    provide_context(AppState {
-        config,
-        db: std::cell::OnceCell::new(),
-    })
+	let config = ProductionConfig::new();
+	provide_context(AppState {
+		config,
+		db: std::cell::OnceCell::new(),
+	})
 }
