@@ -11,7 +11,7 @@ pub async fn is_logged_in() -> Result<SessionInfo, AppError> {
 
 #[component]
 pub fn LoggedIn() -> impl IntoView {
-	let session_info = create_resource(|| (), |_| async move { is_logged_in().await });
+	let session_info = create_local_resource(|| (), |_| async move { is_logged_in().await });
 	let navigate = leptos_router::use_navigate();
 
 	let main_view = move || match session_info.get() {

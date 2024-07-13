@@ -44,7 +44,7 @@ pub fn Login() -> impl IntoView {
 			match jwt {
 				Err(err) => set_error.set(Some(err.to_string())),
 				Ok(jwt) => {
-					navigate("/logged-in", Default::default());
+					navigate("/loggedin", Default::default());
 					// todo: implement deep links in iOS app and open here
 				}
 			}

@@ -6,6 +6,7 @@ use leptos_router::*;
 use crate::error::AppError;
 use crate::error_template::ErrorTemplate;
 use crate::pages::logged_in::LoggedIn;
+use crate::pages::login::Login;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -33,6 +34,8 @@ pub fn App() -> impl IntoView {
 					}>
 							<Routes>
 									<Route path="" view=|| view! { <LoggedIn/> }/>
+									<Route path="/login" view=|| view! { <Login/> }/>
+									<Route path="/loggedin" view=|| view! { <LoggedIn/> }/>
 							</Routes>
 					</Router>
 			</Root>
