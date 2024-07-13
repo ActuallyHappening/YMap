@@ -7,6 +7,8 @@ use bevy_cosmic_edit::{CosmicEditPlugin, CosmicFontConfig};
 use tracing::Level;
 
 mod prelude {
+	#![allow(unused_imports)]
+
 	pub(crate) use crate::consts::pos;
 	pub(crate) use bevy::prelude::*;
 	pub use color_eyre::eyre::Context as _;
@@ -18,6 +20,7 @@ mod prelude {
 
 	pub use crate::secrets::*;
 	pub use yauth::prelude::*;
+	pub use ysurreal::prelude::*;
 }
 pub mod auth;
 mod camera;

@@ -16,7 +16,6 @@ pub mod prelude {
 	pub use crate::error::AuthError;
 	pub use std::str::FromStr;
 	pub use surrealdb::opt::auth::Jwt;
-	pub use ysurreal::prelude::*;
 }
 
 pub mod auth_conn;

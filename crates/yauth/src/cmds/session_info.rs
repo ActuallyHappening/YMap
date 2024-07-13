@@ -96,6 +96,7 @@ struct SignedInSession {
 /// Sometimes only an {exp: None} is returned, which means not signed in at all
 #[derive(Deserialize)]
 struct SignedOutSession {
+	#[allow(dead_code)]
 	exp: Option<u128>,
 }
 

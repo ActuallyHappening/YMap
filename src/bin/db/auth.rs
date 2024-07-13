@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use yauth::prelude::*;
 use ymap::auth::config::ProductionControllerConfig;
+use ysurreal::prelude::*;
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum AuthCommand {

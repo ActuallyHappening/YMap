@@ -64,10 +64,7 @@ where
 	Ok(TestingMemoryDB { db, cmd_handle })
 }
 
-use crate::{
-	config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig},
-	prelude::*,
-};
+use crate::config::{DBConnectRemoteConfig, DBRootCredentials, DBStartConfig};
 
 /// Constructs an in-memory database for testing purposes.
 pub struct TestingConfig {

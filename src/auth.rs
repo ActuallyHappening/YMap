@@ -3,14 +3,13 @@ mod init;
 
 // pub mod config;
 pub mod config {
-    pub use ymap_config::prelude::*;
+	pub use ymap_config::prelude::*;
 }
 
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
 	use color_eyre::eyre::Report;
-	use ysurreal::prelude::*;
 
 	use super::init::INIT_SURQL;
 	use yauth::{
