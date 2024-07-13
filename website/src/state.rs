@@ -8,7 +8,7 @@ pub struct AppState {
 }
 
 impl AppState {
-	pub fn local_storage_key(&self) -> String {
+	pub(crate) fn local_storage_key(&self) -> String {
 		String::from("db-jwt")
 	}
 
