@@ -10,17 +10,26 @@ pub struct AppState {
 }
 
 impl AppState {
+    pub fn local_storage_key(&self) -> String {
+        String::from("db-jwt")
+    }
+
 	/// Only async to force you to deal with db connection in async context
 	pub async fn config(&self) -> &ProductionConfig {
 		&self.config
 	}
 
+	/// Makes sure the database session is normalized,
+	/// i.e. pulls in from local storage
 	pub async fn db(&self) -> Result<Surreal<Any>, AppError> {
 		match self.db.get() {
 			Some(db) => Ok(db.clone()),
 			None => {
 				let db = self.config().await.connect_ws().await?;
 				self.db.set(db.clone()).expect("Was just None");
+
+				let (jwt_, _, _) =
+
 				Ok(db)
 			}
 		}

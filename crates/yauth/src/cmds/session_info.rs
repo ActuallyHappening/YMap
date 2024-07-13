@@ -1,3 +1,6 @@
+//! TODO: Look into guest usage --allow-guest
+//! <https://surrealdb.com/docs/surrealdb/security/capabilities#guest-access>
+
 use crate::prelude::*;
 
 #[derive(Debug, thiserror::Error, Serialize, Deserialize)]
