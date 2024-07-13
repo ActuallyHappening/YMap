@@ -2,10 +2,9 @@
 #[tokio::main]
 async fn main() {
 	use axum::Router;
-	use leptonic_template_ssr::app::*;
-	use leptonic_template_ssr::fileserv::file_and_error_handler;
 	use leptos::*;
 	use leptos_axum::{generate_route_list, LeptosRoutes};
+	use ymap_website::prelude::*;
 
 	use tracing_subscriber::{prelude::*, util::SubscriberInitExt, Layer};
 

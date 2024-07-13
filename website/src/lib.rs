@@ -19,16 +19,21 @@ pub mod prelude {
 
 	// internal re-exports
 	pub(crate) use crate::error::AppError;
+
+	// main.rs export
+	pub use crate::app::App;
+	#[cfg(feature = "ssr")]
+	pub use crate::fileserv::file_and_error_handler;
 }
 
-pub mod app;
-pub mod error;
-pub mod pages;
-pub mod state;
+mod app;
+mod error;
+mod pages;
+mod state;
 
-pub mod error_template;
+mod error_template;
 #[cfg(feature = "ssr")]
-pub mod fileserv;
+mod fileserv;
 
 /// Called only on client side in a browser, mounts to <body>
 #[cfg(feature = "hydrate")]
