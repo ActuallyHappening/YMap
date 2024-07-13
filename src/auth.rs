@@ -106,6 +106,39 @@ mod test {
 	}
 
 	#[test_log::test(tokio::test)]
+	async fn db_sign_in_timestamps_register() -> Result<(), Report> {
+		let conn_config = TestingConfig::rand(INIT_SURQL.into());
+		let db = start_testing_db(&conn_config).await?;
+		conn_config.use_primary_ns_db(&db).await?;
+
+		// signs into root to initialize the server
+		// then immidiately signs out
+		conn_config.root_sign_in(&db).await?;
+		conn_config.init_query(&db).await?;
+		db.invalidate().await?;
+
+		let auth_config = TestingAuthConfig::new(&conn_config);
+		let auth_control = auth_config.control_db(&db);
+		// end setup
+
+		let credentials = SignUp::testing_rand();
+
+		// signs in as a scoped user
+		let (_, user) = auth_control.sign_up(&credentials).await?;
+		assert_eq!(user.login_timestamps().len(), 1);
+		auth_control.invalidate().await?;
+
+		// signs into already signed up user
+		let (_, user2) = auth_config
+			.control_db(&db)
+			.sign_in(&credentials.into())
+			.await?;
+		assert_eq!(user2.login_timestamps().len(), 2);
+
+		Ok(())
+	}
+
+	#[test_log::test(tokio::test)]
 	async fn db_sign_up_twice_fails() -> Result<(), Report> {
 		let conn_config = TestingConfig::rand(INIT_SURQL.into());
 		let db = start_testing_db(&conn_config).await?;

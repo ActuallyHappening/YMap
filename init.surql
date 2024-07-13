@@ -11,6 +11,7 @@ DEFINE FIELD username ON user TYPE string ASSERT string::len($value) >= 2 AND st
 -- DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value);
 DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value) AND string::len($value) <= 50;
 DEFINE FIELD password ON user TYPE string; # stores a HASH not the actual password
+DEFINE FIELD login_timestamps ON user TYPE array<datetime> DEFAULT [];
 
 DEFINE INDEX email on user FIELDS email UNIQUE;
 
@@ -19,6 +20,9 @@ DEFINE FUNCTION fn::signin($email: string, $password: string) {
 	if !$user {
 		THROW "You either provided invalid credentials, or a user with the email " + <string> $email + " doesn't exist.";
 	};
+
+	UPDATE $user.id SET login_timestamps += time::now();
+
 	-- This doesn't actually break control flow, but here for clarity
 	RETURN $user;
 };
@@ -36,7 +40,8 @@ DEFINE FUNCTION fn::signup($username: string, $email: string, $password: string)
 	let $user = CREATE user CONTENT {
 		username: $username,
 		email: $email,
-		password: crypto::argon2::generate($password)
+		password: crypto::argon2::generate($password),
+		login_timestamps: [time::now()]
 	};
 	RETURN $user;
 };

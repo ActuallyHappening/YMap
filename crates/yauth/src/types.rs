@@ -247,6 +247,9 @@ impl std::fmt::Display for UserID {
 	}
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DateTime(#[serde(with = "time::serde::iso8601")] pub time::OffsetDateTime);
+
 /// What is stored in the [AuthConnection::users_table] table
 #[derive(Debug, Deserialize)]
 pub struct UserRecord {
@@ -254,6 +257,9 @@ pub struct UserRecord {
 	email: Email,
 	password: HashedPassword,
 	id: UserID,
+
+	#[serde(rename = "login_timestamps")]
+	logins: Vec<DateTime>,
 }
 
 impl UserRecord {
@@ -271,6 +277,10 @@ impl UserRecord {
 
 	pub fn id(&self) -> UserID {
 		self.id.clone()
+	}
+
+	pub fn login_timestamps(&self) -> Vec<&time::OffsetDateTime> {
+		self.logins.iter().map(|d| &d.0).collect()
 	}
 }
 
