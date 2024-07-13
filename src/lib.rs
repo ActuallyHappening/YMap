@@ -24,8 +24,8 @@ mod camera;
 mod consts;
 mod debug;
 mod scribble_pad;
-pub mod secrets;
 mod utils;
+pub use ymap_config::secrets;
 
 pub struct YMapPlugins;
 

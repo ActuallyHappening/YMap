@@ -1,0 +1,25 @@
+[package]
+name = "ymap-config"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+production = []
+
+[dependencies]
+yauth.workspace = true
+ysurreal.workspace = true
+camino = "1.1.7"
+clap = { version = "4.5.9", features = ["derive", "env"] }
+tracing = "0.1.40"
+
+# for non-wasm builds
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+openssh = { version = "0.10.4", features = [
+    "native-mux",
+    "openssh-mux-client",
+] }
+
+[lints]
+workspace = true

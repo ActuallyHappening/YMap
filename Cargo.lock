@@ -9537,7 +9537,10 @@ version = "0.1.0"
 dependencies = [
  "camino",
  "clap",
+ "openssh",
+ "tracing",
  "yauth",
+ "ysurreal",
 ]
 
 [[package]]
