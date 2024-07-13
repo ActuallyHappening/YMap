@@ -14,6 +14,8 @@ pub mod prelude {
 
 	// linked project exports
 	pub(crate) use yauth::prelude::*;
+	pub(crate) use ymap_config::prelude::ProductionConfig;
+	pub(crate) use ysurreal::prelude::*;
 
 	// internal re-exports
 	pub(crate) use crate::error::AppError;
