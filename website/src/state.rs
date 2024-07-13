@@ -6,7 +6,7 @@ use crate::prelude::*;
 #[derive(Debug, Clone)]
 pub struct AppState {
 	config: ProductionConfig,
-	db: OnceCell<Surreal<Any>>,
+	db: std::cell::OnceCell<Surreal<Any>>,
 }
 
 impl AppState {

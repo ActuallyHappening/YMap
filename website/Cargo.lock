@@ -10305,6 +10305,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
+ "wasm-bindgen",
  "yauth",
  "ymap",
 ]

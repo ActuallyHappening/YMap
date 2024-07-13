@@ -3,11 +3,11 @@ use yauth::{
 	types::{Email, Password},
 };
 
-use crate::{app_state, prelude::*};
+use crate::prelude::*;
 
 async fn login(credentials: &SignIn) -> Result<Jwt, AppError> {
 	info!("Logging in ..");
-	let state = app_state();
+	let state = crate::state::app_state();
 	let config = state.config().await;
 	let db = state.db().await?;
 
