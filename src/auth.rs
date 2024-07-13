@@ -1,7 +1,10 @@
 #[path = "../init.surql.rs"]
 mod init;
 
-pub mod config;
+// pub mod config;
+pub mod config {
+    pub use ymap_config::prelude::*;
+}
 
 #[cfg(test)]
 mod test {
