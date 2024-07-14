@@ -104,7 +104,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [features]
 ## If enabled, will not link in production secrets
 ## ENABLE THIS FOR PRODUCTION BUILDS
-production = []
+production = ["ymap-config/production"]
 default = ["debug"]
 ios = []
 ## Enabled bevy_yscribble_3d/debug

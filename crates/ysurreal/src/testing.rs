@@ -87,7 +87,9 @@ impl TestingConfig {
 	fn random_port() -> u16 {
 		let addr = std::net::TcpListener::bind((std::net::Ipv4Addr::from([127, 0, 0, 1]), 0))
 			.expect("Couldn't bind to random port");
-		addr.local_addr().unwrap().port()
+		let port = addr.local_addr().unwrap().port();
+		trace!(?port, "Random port chosen for testing");
+		port
 	}
 
 	/// Generates a [TestingMem] with a random port chosen by the OS to avoid conflicts

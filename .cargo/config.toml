@@ -1,6 +1,6 @@
 [alias]
 rs = "run-script"
-t = "test-all-features"
+t = "test-all-features --"
 db = "--quiet r -p ymap --bin db --"
 xcb = "xcode-build-rs --colour --manifest-dir . test"
 bw = "b --target wasm32-unknown-unknown"

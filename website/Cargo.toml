@@ -15,6 +15,10 @@ opt-level = 3
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+production = ["ymap-config/production"]
+
 [dependencies]
 yauth = { path = "../crates/yauth" }
 ymap-config = { path = "../crates/ymap-config" }

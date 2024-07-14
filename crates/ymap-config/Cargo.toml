@@ -5,6 +5,8 @@ edition = "2021"
 
 [features]
 default = []
+## Enable this for production
+## Dependencies should also enable this
 production = []
 
 [dependencies]
