@@ -15,10 +15,6 @@ opt-level = 3
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[features]
-default = []
-production = ["ymap-config/production"]
-
 [dependencies]
 yauth = { path = "../crates/yauth" }
 ymap-config = { path = "../crates/ymap-config" }
@@ -48,6 +44,8 @@ tracing-wasm = "0.2.1"
 wasm-bindgen = "0.2.92"
 
 [features]
+default = []
+production = ["ymap-config/production"]
 hydrate = [
     "leptos/hydrate",
     "leptos_meta/hydrate",
