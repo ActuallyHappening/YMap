@@ -4,7 +4,7 @@
 # FROM rustlang/rust:nightly-bullseye as builder
 
 # If you’re using stable, use this instead
-FROM rust:1-bullseye as builder
+FROM rust:1-bullseye as base
 
 # Install cargo-binstall, which makes it easier to install other
 # cargo extensions like cargo-leptos
@@ -14,38 +14,33 @@ RUN cp cargo-binstall /usr/local/cargo/bin
 
 # Install cargo-leptos
 RUN cargo binstall cargo-leptos -y
-
-RUN apt-get update -y && apt-get install -y build-essential clang curl
-# ENV NONINTERACTIVE=1
-# RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# RUN brew install sass/sass/sass
-
-# RUN apt install build-essential
-
-COPY rust-toolchain.toml .
-
-# Add the WASM target
-RUN rustup target add wasm32-unknown-unknown
-
-# empty project
-RUN mkdir -p /tmp-app
-COPY /crates/empty-project /tmp-app/empty-project
-WORKDIR /tmp-app/empty-project
-
-# for performance, forces rustup to download cargo and friends
-RUN cargo --help
-RUN cargo build
-RUN cargo build --target=wasm32-unknown-unknown
+RUN cargo binstall cargo-chef -y
 
 # Make an /app dir, which everything will eventually live in
 RUN mkdir -p /app
 WORKDIR /app
-# can probably de-duplicate this
+
+FROM base AS chef
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM base as builder
+
+RUN apt-get update -y && apt-get install -y build-essential clang
+# ENV NONINTERACTIVE=1
+# RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# RUN brew install sass/sass/sass
+# RUN apt install build-essential
+
+COPY --from=chef /app/recipe.json recipe.json
 COPY rust-toolchain.toml .
-# includes external dependencies that are in the parent directory
-# for some dumb reason docker doesn't copy files from outside the build context, so this can't be ..
-# COPY .. .
-# COPY . .
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json --target=wasm32-unknown-unknown
+
+# copies from the project root to include path dependencies
 # being explicit about all copies
 COPY Cargo.toml .
 COPY Cargo.lock .
