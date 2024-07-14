@@ -23,6 +23,14 @@ RUN apt-get update -y && apt-get install -y build-essential clang
 RUN mkdir -p /app
 WORKDIR /app
 
+COPY rust-toolchain.toml .
+
+# for performance, forces rustup to download cargo and friends
+RUN cargo --help
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
 # includes external dependencies that are in the parent directory
 # for some dumb reason docker doesn't copy files from outside the build context, so this can't be ..
 # COPY .. .
@@ -40,12 +48,6 @@ COPY website/ website/
 # doesn't copy secrets.rs
 
 WORKDIR /app/website
-
-# for performance, forces rustup to download cargo and friends
-RUN cargo --help
-
-# Add the WASM target
-RUN rustup target add wasm32-unknown-unknown
 
 # Build the app
 RUN cargo leptos build --release -vv --features production
