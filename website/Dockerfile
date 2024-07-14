@@ -16,8 +16,9 @@ RUN cp cargo-binstall /usr/local/cargo/bin
 RUN cargo binstall cargo-leptos -y
 
 RUN apt-get update -y && apt-get install -y build-essential clang curl
-RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-RUN brew install sass/sass/sass
+# ENV NONINTERACTIVE=1
+# RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# RUN brew install sass/sass/sass
 
 # RUN apt install build-essential
 
@@ -32,6 +33,7 @@ WORKDIR /tmp-app/empty-project
 RUN rustup target add wasm32-unknown-unknown
 
 # for performance, forces rustup to download cargo and friends
+RUN cargo --help
 RUN cargo build
 RUN cargo build --target=wasm32-unknown-unknown
 
