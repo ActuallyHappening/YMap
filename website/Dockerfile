@@ -49,6 +49,7 @@ COPY website/ website/
 
 WORKDIR /app/website
 
+ENV LEPTOS_SASS_VERSION=1.71.0
 # Build the app
 RUN cargo leptos build --release -vv --features production
 
