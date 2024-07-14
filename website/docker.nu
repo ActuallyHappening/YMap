@@ -1,1 +1,1 @@
-docker build -f Dockerfile .
+docker build -f Dockerfile ..

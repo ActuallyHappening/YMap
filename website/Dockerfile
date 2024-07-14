@@ -1,8 +1,10 @@
+# Starts blank
+
 # Get started with a build env with Rust nightly
-FROM rustlang/rust:nightly-bullseye as builder
+# FROM rustlang/rust:nightly-bullseye as builder
 
 # If you’re using stable, use this instead
-# FROM rust:1.74-bullseye as builder
+FROM rust:1.74-bullseye as builder
 
 # Install cargo-binstall, which makes it easier to install other
 # cargo extensions like cargo-leptos
@@ -19,7 +21,11 @@ RUN rustup target add wasm32-unknown-unknown
 # Make an /app dir, which everything will eventually live in
 RUN mkdir -p /app
 WORKDIR /app
+# includes external dependencies that are in the parent directory
+# for some dumb reason docker doesn't copy files from outside the build context, so this can't be ..
+# COPY .. .
 COPY . .
+WORKDIR /app/website
 
 # Build the app
 RUN cargo leptos build --release -vv
@@ -27,14 +33,14 @@ RUN cargo leptos build --release -vv
 FROM debian:bookworm-slim as runtime
 WORKDIR /app
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends openssl ca-certificates \
-  && apt-get autoremove -y \
-  && apt-get clean -y \
-  && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Copy the server binary to the /app directory
-COPY --from=builder /app/target/release/leptos_start /app/
+COPY --from=builder /app/target/release/ymap_website /app/
 
 # /target/site contains our JS/WASM/CSS, etc.
 COPY --from=builder /app/target/site /app/site
@@ -43,11 +49,11 @@ COPY --from=builder /app/target/site /app/site
 COPY --from=builder /app/Cargo.toml /app/
 
 # Set any required env variables and
-ENV RUST_LOG="info"
+ENV RUST_LOG="info,ymap=debug,yauth=debug,ysurreal=debug,ymap-website=debug"
 ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
 ENV LEPTOS_SITE_ROOT="site"
 EXPOSE 8080
 
 # -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Run the server
-CMD ["/app/leptos_start"]
+CMD ["/app/ymap_website"]
