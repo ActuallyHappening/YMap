@@ -1,3 +1,5 @@
 **/.git
 **/target
 **/.zed
+# allows web build artifacts to be copied to containers
+!website/target/site
