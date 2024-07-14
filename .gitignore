@@ -13,6 +13,7 @@
 !YMap.code-workspace
 !YMap-website.code-workspace
 !_typos.toml
+!rust-toolchain.toml
 
 ## YMap
 !init.surql
