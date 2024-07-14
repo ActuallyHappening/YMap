@@ -58,7 +58,7 @@ RUN apt-get update -y \
 
 # -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Copy the server binary to the /app directory
-COPY --from=builder /app/target/release/ymap_website /app/ymap_website
+COPY --from=builder /app/target/release/ymap-website /app/ymap-website
 
 # /target/site contains our JS/WASM/CSS, etc.
 COPY ./website/target/site /app/site
@@ -74,4 +74,4 @@ EXPOSE 8080
 
 # -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Run the server
-CMD ["/app/ymap_website"]
+CMD ["/app/ymap-website"]
