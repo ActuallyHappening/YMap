@@ -49,7 +49,8 @@ COPY website/ website/
 
 WORKDIR /app/website
 
-ENV LEPTOS_SASS_VERSION=1.71.0
+## TODO optimize for incremental builds, like copying the website/ dir after building dependencies and calling cargo directly before `cargo leptos build`
+ENV LEPTOS_SASS_VERSION=1.77.0
 # Build the app
 RUN cargo leptos build --release -vv --features production
 
