@@ -84,10 +84,18 @@ impl TestingConfig {
 		}
 	}
 
-	/// Generates a [TestingMem] with a random port between 10000 and 20000.
+	fn random_port() -> u16 {
+		let addr = std::net::TcpListener::bind((std::net::Ipv4Addr::from([127, 0, 0, 1]), 0))
+			.expect("Couldn't bind to random port");
+		addr.local_addr().unwrap().port()
+	}
+
+	/// Generates a [TestingMem] with a random port chosen by the OS to avoid conflicts
 	pub fn rand(init_surql: String) -> Self {
-		let mut rand = rand::thread_rng();
-		TestingConfig::new(rand.gen_range(10000..20000), init_surql)
+		// let mut rand = rand::thread_rng();
+		// TestingConfig::new(rand.gen_range(10000..20000), init_surql)
+		let port_num = TestingConfig::random_port();
+		TestingConfig::new(port_num, init_surql)
 	}
 }
 
