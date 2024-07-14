@@ -10,3 +10,6 @@
 !README.md
 !.zed
 !rustfmt.toml
+
+!Dockerfile
+!Dockerfile.dockerignore

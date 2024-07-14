@@ -52,4 +52,6 @@ async fn main() {
 }
 
 #[cfg(not(feature = "ssr"))]
-pub fn main() {}
+pub fn main() {
+	panic!("Running project binary without SSR doesn't make sense");
+}

@@ -2,3 +2,4 @@
 
 $env.RUST_LOG = "info,ymap=trace,yauth=trace,ysurreal=trace"
 cargo t
+cargo t --release
