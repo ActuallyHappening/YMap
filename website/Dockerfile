@@ -21,7 +21,8 @@ RUN mkdir -p /app
 WORKDIR /app
 
 FROM base AS chef
-COPY . .
+# only prepares the website
+COPY website .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM base as builder
