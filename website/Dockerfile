@@ -24,13 +24,13 @@ RUN apt-get update -y && apt-get install -y build-essential clang curl
 
 COPY rust-toolchain.toml .
 
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
 # empty project
 RUN mkdir -p /tmp-app
 COPY /crates/empty-project /tmp-app/empty-project
 WORKDIR /tmp-app/empty-project
-
-# Add the WASM target
-RUN rustup target add wasm32-unknown-unknown
 
 # for performance, forces rustup to download cargo and friends
 RUN cargo --help
