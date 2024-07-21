@@ -1,3 +1,4 @@
+use cargo_docker_build::{print_chunk, Cmd};
 use clap::Parser;
 use futures::StreamExt;
 
@@ -7,7 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let opts = cargo_docker_build::Opts::parse();
 	let docker = cargo_docker_build::new_docker()?;
 
-	match opts.subcmd {
+	match opts.subcommand() {
 		Cmd::Attach { id } => {
 			let container = docker.containers().get(&id);
 			let tty_multiplexer = container.attach().await?;

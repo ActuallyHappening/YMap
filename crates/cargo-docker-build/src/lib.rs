@@ -12,19 +12,33 @@ pub fn new_docker() -> Result<Docker> {
 	Docker::new("tcp://127.0.0.1:8080")
 }
 
-#[derive(Parser)]
+use docker_api::conn::TtyChunk;
+pub fn print_chunk(chunk: TtyChunk) {
+	use std::str;
+	match chunk {
+		TtyChunk::StdOut(bytes) => {
+			println!("Stdout: {}", str::from_utf8(&bytes).unwrap_or_default())
+		}
+		TtyChunk::StdErr(bytes) => {
+			eprintln!("Stdout: {}", str::from_utf8(&bytes).unwrap_or_default())
+		}
+		TtyChunk::StdIn(_) => unreachable!(),
+	}
+}
+
+#[derive(Parser, Debug)]
 pub struct Opts {
 	#[command(subcommand)]
 	subcommand: Cmd,
 }
 
 impl Opts {
-	pub fn subcommand(&self) -> &Cmd {
-		&self.subcommand
+	pub fn subcommand(&self) -> Cmd {
+		self.subcommand.clone()
 	}
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Debug)]
 pub enum Cmd {
 	/// Attach to a running containers TTY.
 	Attach { id: String },
