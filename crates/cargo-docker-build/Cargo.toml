@@ -1,0 +1,15 @@
+[package]
+name = "cargo-docker-build"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.9", features = ["derive", "env"] }
+docker-api = "0.14.0"
+futures = "0.3.30"
+tokio = { version = "1.38.1", features = ["full"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+
+[lints]
+workspace = true
