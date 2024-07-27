@@ -1,3 +1,5 @@
+#### Workspace Config
+# Note: this may need to be synced with ./website/Cargo.toml for reasons
 [workspace]
 members = ["crates/*", "crates/yscribble/bevy_*"]
 # exclude the website to avoid having to recompile for different targets
@@ -75,8 +77,6 @@ features = ["serialize"]
 # # git = "https://github.com/ActuallyHappening/bevy.git"
 # # branch = "add-ansi-log-option"
 
-
-## Workspace config
 [workspace.lints.clippy]
 type_complexity = "allow"
 
