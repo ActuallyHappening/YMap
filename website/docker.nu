@@ -4,5 +4,6 @@
 
 # TODO: setup a docker container with incremental compilation
 
-# cd ..
-cross build --package=ymap-website --bin=ymap-website --release --no-default-features --features=ssr,production --target x86_64-unknown-linux-gnu --manifest-path ./Cargo.toml
+cd ..
+cross build --package=ymap-website --bin=ymap-website --release --no-default-features --features=ssr,production --target x86_64-unknown-linux-gnu --manifest-path ./website/Cargo.toml
+# cargo build --package=ymap-website --bin=ymap-website --release --no-default-features --features=ssr,production --target x86_64-unknown-linux-gnu
