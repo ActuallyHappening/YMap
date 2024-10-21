@@ -81,6 +81,7 @@ pub mod elements {
     #[derive(Debug)]
     pub struct ValueNotAnElement;
 
+    /// Upholds the invariant that [self.value] is [contained](Set::contain) within [self.domain]
     pub struct SetElement<I, S: Set<I>> {
         value: I,
         domain: S,

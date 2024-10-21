@@ -81,6 +81,7 @@ name = "ymap-equations"
 version = "0.1.0"
 dependencies = [
  "ymap-functions",
+ "ymap-sets",
 ]
 
 [[package]]

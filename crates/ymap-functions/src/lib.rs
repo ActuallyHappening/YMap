@@ -24,6 +24,12 @@ pub mod identities {
         }
     }
 
+    impl<I: Clone> Constant<I> {
+        pub fn new(value: I) -> Self {
+            Self { value }
+        }
+    }
+
     pub struct FnFunction<F> {
         func: F,
     }
@@ -69,5 +75,11 @@ pub mod polynomial {
         m: I,
         c: I,
         variable: V,
+    }
+
+    impl<I, V> Linear<I, V> {
+        pub fn from_gradient_yint(m: I, c: I, variable: V) -> Self {
+            Self { m, c, variable }
+        }
     }
 }
