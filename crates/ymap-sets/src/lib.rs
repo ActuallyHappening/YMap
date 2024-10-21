@@ -44,17 +44,17 @@ pub mod elements {
     #[derive(Debug)]
     pub struct ValueNotAnElement;
 
-    pub struct SetElement<S: Set<I>, I> {
+    pub struct SetElement<I, S: Set<I>> {
         value: I,
         domain: S,
     }
 
-    impl<S: Set<I>, I> SetElement<S, I> {
-        pub unsafe fn new_unchecked(value: I, domain: S) -> SetElement<S, I> {
+    impl<I, S: Set<I>> SetElement<I, S> {
+        pub unsafe fn new_unchecked(value: I, domain: S) -> SetElement<I, S> {
             SetElement { value, domain }
         }
 
-        pub fn new(value: I, domain: S) -> Result<SetElement<S, I>> {
+        pub fn new(value: I, domain: S) -> Result<SetElement<I, S>> {
             // SAFETY: We immediately check and error otherwise
             let this = unsafe { Self::new_unchecked(value, domain) };
             if !this.check() {

@@ -1,17 +1,5 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
-<<<<<<< HEAD
-=======
+use ymap_sets::elements::SetElement;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub trait Function {
+    type Input: SetElement;
 }
->>>>>>> parent of 0d5b0ae (add: initial set trais)
