@@ -1,14 +1,17 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub trait Function {
+    type Input;
+    type Output;
+
+    fn evaluate(input: Self::Input) -> Self::Output;
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod values {
+    use ymap_sets::Set;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    pub struct SetElement<S: Set<I>, I> {
+        set: S,
+        item: I,
     }
+
+    impl<S: Set<I>, I> SetElement<S, I> {}
 }

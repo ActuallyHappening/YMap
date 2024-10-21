@@ -3,4 +3,11 @@ name = "ymap"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["crates/*"]
+
+[workspace.dependencies]
+ymap-sets = { path = "crates/ymap-sets" }
+
 [dependencies]
+derive_more = { version = "1.0.0", features = ["from"] }
