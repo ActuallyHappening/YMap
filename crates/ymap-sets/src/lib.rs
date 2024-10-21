@@ -1,12 +1,13 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub type Error = errors::Error;
+pub type Result<T> = core::result::Result<T, Error>;
+
+pub trait Set<Item> {
+    fn contains(&self, item: &Item) -> bool;
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod sets {
+    use crate::Set;
 
-<<<<<<< HEAD
     /// All the real numbers
     #[derive(Debug)]
     pub struct Real;
@@ -95,11 +96,5 @@ pub mod errors {
     #[derive(Debug, derive_more::From)]
     pub enum Error {
         SetElements(crate::elements::ValueNotAnElement),
-=======
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
->>>>>>> parent of 0d5b0ae (add: initial set trais)
     }
 }
