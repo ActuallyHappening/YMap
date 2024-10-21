@@ -5,6 +5,42 @@ pub trait Set<Item> {
     fn contains(&self, item: &Item) -> bool;
 }
 
+pub mod identities {
+    use crate::Set;
+
+    #[derive(Debug)]
+    pub struct Singleton<I> {
+        value: I,
+    }
+
+    impl<I: PartialEq> Set<I> for Singleton<I> {
+        fn contains(&self, item: &I) -> bool {
+            &self.value == item
+        }
+    }
+
+    impl<I> Singleton<I> {
+        pub fn new(value: I) -> Self {
+            Self { value }
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct NullSet;
+
+    impl<I> Set<I> for NullSet {
+        fn contains(&self, _item: &I) -> bool {
+            false
+        }
+    }
+
+    impl NullSet {
+        pub fn new() -> Self {
+            Self
+        }
+    }
+}
+
 pub mod sets {
     use crate::Set;
 
