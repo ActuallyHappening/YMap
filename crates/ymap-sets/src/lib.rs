@@ -45,18 +45,18 @@ pub mod elements {
     pub struct ValueNotAnElement;
 
     pub struct SetElement<S: Set<I>, I> {
-        item: I,
-        set: S,
+        value: I,
+        domain: S,
     }
 
     impl<S: Set<I>, I> SetElement<S, I> {
-        pub unsafe fn new_unchecked(item: I, set: S) -> SetElement<S, I> {
-            SetElement { item, set }
+        pub unsafe fn new_unchecked(value: I, domain: S) -> SetElement<S, I> {
+            SetElement { value, domain }
         }
 
-        pub fn new(item: I, set: S) -> Result<SetElement<S, I>> {
+        pub fn new(value: I, domain: S) -> Result<SetElement<S, I>> {
             // SAFETY: We immediately check and error otherwise
-            let this = unsafe { Self::new_unchecked(item, set) };
+            let this = unsafe { Self::new_unchecked(value, domain) };
             if !this.check() {
                 Err(ValueNotAnElement)?
             } else {
@@ -65,7 +65,29 @@ pub mod elements {
         }
 
         pub fn check(&self) -> bool {
-            self.set.contains(&self.item)
+            self.domain.contains(&self.value)
+        }
+
+        pub fn value(&self) -> &I {
+            &self.value
+        }
+
+        pub fn domain(&self) -> &S {
+            &self.domain
+        }
+
+        pub fn update_value(self, new_value: I) -> Result<Self> {
+            Self::new(new_value, self.domain)
+        }
+
+        // Tries to change the inner value, returning the old value if successful
+        pub fn try_set_value(&mut self, new_value: I) -> Result<I> {
+            if self.domain.contains(&new_value) {
+                let old_value = std::mem::replace(&mut self.value, new_value);
+                Ok(old_value)
+            } else {
+                Err(ValueNotAnElement)?
+            }
         }
     }
 }

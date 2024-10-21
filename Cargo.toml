@@ -10,4 +10,3 @@ members = ["crates/*"]
 ymap-sets = { path = "crates/ymap-sets" }
 
 [dependencies]
-derive_more = { version = "1.0.0", features = ["from"] }
