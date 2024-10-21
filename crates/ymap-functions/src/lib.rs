@@ -1,23 +1,73 @@
 use ymap_sets::{elements::SetElement, Set};
 
-pub trait Function {
-    type InputItem;
-    type InputSet: Set<Self::InputItem>;
+pub trait Function<InputDomain> {
+    type OutputDomain;
 
-    type OutputItem;
-    type OutputSet: Set<Self::OutputItem>;
-
-    fn evaluate(
-        input: SetElement<Self::InputItem, Self::InputSet>,
-    ) -> SetElement<Self::OutputItem, Self::OutputSet>;
+    fn evaluate(&self, input: InputDomain) -> Self::OutputDomain;
 }
 
 pub mod identities {
+    use ymap_sets::identities::Singleton;
+
     use crate::Function;
 
-    pub struct Constant<I> {
+    #[derive(Debug)]
+    pub struct Constant<I: Clone> {
         value: I,
     }
 
-    impl<I> Function for Constant<I> {}
+    impl<InputDomain, Item: Clone> Function<InputDomain> for Constant<Item> {
+        type OutputDomain = Item;
+
+        fn evaluate(&self, _input: InputDomain) -> Self::OutputDomain {
+            self.value.clone()
+        }
+    }
+
+    pub struct FnFunction<F> {
+        func: F,
+    }
+
+    impl<F, I, O> Function<I> for FnFunction<F>
+    where
+        F: Fn(I) -> O,
+    {
+        type OutputDomain = F::Output;
+
+        fn evaluate(&self, input: I) -> Self::OutputDomain {
+            (self.func)(input)
+        }
+    }
+
+    impl<F> FnFunction<F> {
+        pub fn new(func: F) -> FnFunction<F> {
+            FnFunction { func }
+        }
+    }
+}
+
+pub mod foundational {}
+
+pub mod polynomial {
+    #[derive(Debug)]
+    pub struct Polynomial<I, V> {
+        coefficients: Vec<I>,
+        variable: V,
+    }
+
+    #[derive(Debug)]
+    pub struct Quadratic<I, V> {
+        /// TODO: NonZero invariant
+        a: I,
+        b: I,
+        c: I,
+        variable: V,
+    }
+
+    #[derive(Debug)]
+    pub struct Linear<I, V> {
+        m: I,
+        c: I,
+        variable: V,
+    }
 }

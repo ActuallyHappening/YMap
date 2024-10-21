@@ -8,6 +8,7 @@ pub trait Set<Item> {
 pub mod identities {
     use crate::Set;
 
+    /// Set with only one valid element
     #[derive(Debug)]
     pub struct Singleton<I> {
         value: I,
@@ -116,7 +117,7 @@ pub mod elements {
             Self::new(new_value, self.domain)
         }
 
-        // Tries to change the inner value, returning the old value if successful
+        /// Tries to change the inner value, returning the old value if successful
         pub fn try_set_value(&mut self, new_value: I) -> Result<I> {
             if self.domain.contains(&new_value) {
                 let old_value = std::mem::replace(&mut self.value, new_value);

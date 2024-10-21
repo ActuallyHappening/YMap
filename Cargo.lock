@@ -79,6 +79,9 @@ version = "0.1.0"
 [[package]]
 name = "ymap-equations"
 version = "0.1.0"
+dependencies = [
+ "ymap-functions",
+]
 
 [[package]]
 name = "ymap-functions"
