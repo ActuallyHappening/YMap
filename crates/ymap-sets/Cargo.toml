@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bevy_reflect = "0.14.2"
 derive_more = { version = "1.0.0", features = ["from"] }
 num-traits = "0.2.19"
