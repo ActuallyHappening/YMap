@@ -33,30 +33,49 @@ impl Person {
 
     /// Should be followed by [Person::set_schoolbox_id]
     pub fn find_in_document(document: &scraper::Html, num: u32) -> Result<Person> {
+        let name = find_name(&document)?;
         let profile = find_profile_values(&document)?;
-        info!(?profile);
-        todo!();
-        // let mut person = Person {
-        //     name,
-        //     email,
-        //     schoolbox_id: num,
-        //     is_student: None,
-        //     teacher_department: None,
-        // };
 
-        // // applies email heuristic to determine if student or teacher
-        // if person.is_email_student() && !person.is_email_teacher() {
-        //     person.is_student = Some(true);
-        // }
-        // if person.is_email_teacher() && !person.is_email_student() {
-        //     person.is_student = Some(false);
-        // }
+        let email = {
+            match profile.get("Email") {
+                Some(email) => email,
+                None => match profile.get("Email:") {
+                    Some(email) => email,
+                    None => return Err(Error::msg("No email found")),
+                },
+            }
+        }
+        .child_elements()
+        .next()
+        .wrap_err("Child Email has no inner link")?
+        .text()
+        .collect::<String>()
+        .trim()
+        .to_string();
 
-        // if person.is_student == Some(false) {
-        //     person.teacher_department = find_department(&document).ok();
-        // }
+        let mut person = Person {
+            name,
+            email,
+            schoolbox_id: num,
+            is_student: None,
+            teacher_department: None,
+        };
 
-        // Ok(person)
+        // applies email heuristic to determine if student or teacher
+        if person.is_email_student() && !person.is_email_teacher() {
+            person.is_student = Some(true);
+        }
+        if person.is_email_teacher() && !person.is_email_student() {
+            person.is_student = Some(false);
+        }
+
+        if person.is_student == Some(false) {
+            person.teacher_department = profile
+                .get("Department:")
+                .map(|el| el.text().collect::<String>().trim().to_string());
+        }
+
+        Ok(person)
     }
 
     fn is_email_student(&self) -> bool {
@@ -95,7 +114,12 @@ fn find_profile_values(
 ) -> Result<HashMap<String, scraper::ElementRef<'_>>> {
     let selector =
         scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl"##).unwrap();
-    let mut profile = document.select(&selector).into_iter().tuples();
+    let profile = document
+        .select(&selector)
+        .next()
+        .wrap_err("No profile found")?;
+    trace!(?profile, "Raw profile");
+    let mut profile = profile.child_elements().tuples();
     let mut values = HashMap::new();
     while let Some((key, value)) = profile.next() {
         values.insert(key.text().collect::<String>(), value);
@@ -116,30 +140,5 @@ fn find_name(document: &scraper::Html) -> Result<String> {
             )),
             None => Ok(name.text().collect::<String>()),
         },
-    }
-}
-
-fn find_email(document: &scraper::Html) -> Result<String> {
-    let selector =
-        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl>dd>a[href]"##)
-            .unwrap();
-    let mut email = document.select(&selector);
-    match email.next() {
-        None => Err(color_eyre::eyre::eyre!("No email found")),
-        // if signed in, other similar links appear
-        Some(email) => Ok(email.text().collect::<String>()),
-    }
-}
-
-/// Will fail if not teachers
-fn find_department(document: &scraper::Html) -> Result<String> {
-    let selector =
-        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl"##).unwrap();
-    let mut profile = document.select(&selector);
-    profile.next().wrap_err("No email header")?;
-    profile.next().wrap_err("No email value")?;
-    match profile.next() {
-        None => Err(color_eyre::eyre::eyre!("No department found")),
-        Some(department) => Ok(department.text().collect::<String>().trim().into()),
     }
 }
