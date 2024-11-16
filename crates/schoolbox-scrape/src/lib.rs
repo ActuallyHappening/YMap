@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
+use color_eyre::eyre::{Context as _, ContextCompat};
 pub use errors::{Error, Result};
+use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 use tracing::*;
 mod errors {
@@ -13,7 +17,8 @@ pub struct Person {
     pub schoolbox_id: u32,
     /// If present, we know for sure
     pub is_student: Option<bool>,
-    /// Should be present on all teachers
+    /// Should be present on all teachers,
+    /// but the admin is an exception
     pub teacher_department: Option<String>,
 }
 
@@ -28,29 +33,30 @@ impl Person {
 
     /// Should be followed by [Person::set_schoolbox_id]
     pub fn find_in_document(document: &scraper::Html, num: u32) -> Result<Person> {
-        let name = find_name(document)?;
-        let email = find_email(document)?;
-        let mut person = Person {
-            name,
-            email,
-            schoolbox_id: num,
-            is_student: None,
-            teacher_department: None,
-        };
+        let profile = find_profile_values(&document)?;
+        info!(?profile);
+        todo!();
+        // let mut person = Person {
+        //     name,
+        //     email,
+        //     schoolbox_id: num,
+        //     is_student: None,
+        //     teacher_department: None,
+        // };
 
-        // applies email heuristic to determine if student or teacher
-        if person.is_email_student() && !person.is_email_teacher() {
-            person.is_student = Some(true);
-        }
-        if person.is_email_teacher() && !person.is_email_student() {
-            person.is_student = Some(false);
-        }
+        // // applies email heuristic to determine if student or teacher
+        // if person.is_email_student() && !person.is_email_teacher() {
+        //     person.is_student = Some(true);
+        // }
+        // if person.is_email_teacher() && !person.is_email_student() {
+        //     person.is_student = Some(false);
+        // }
 
-        if person.is_student == Some(true) {
-            person.teacher_department = Some(find_department(&document)?);
-        }
+        // if person.is_student == Some(false) {
+        //     person.teacher_department = find_department(&document).ok();
+        // }
 
-        Ok(person)
+        // Ok(person)
     }
 
     fn is_email_student(&self) -> bool {
@@ -84,6 +90,19 @@ pub async fn get_website(client: &reqwest::Client, num: u32) -> Result<String> {
         .map_err(Error::from)
 }
 
+fn find_profile_values(
+    document: &scraper::Html,
+) -> Result<HashMap<String, scraper::ElementRef<'_>>> {
+    let selector =
+        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl"##).unwrap();
+    let mut profile = document.select(&selector).into_iter().tuples();
+    let mut values = HashMap::new();
+    while let Some((key, value)) = profile.next() {
+        values.insert(key.text().collect::<String>(), value);
+    }
+    Ok(values)
+}
+
 fn find_name(document: &scraper::Html) -> Result<String> {
     let selector = scraper::Selector::parse(r##"h1[data-test="user-profile-name"]"##).unwrap();
     let mut names = document.select(&selector);
@@ -115,13 +134,12 @@ fn find_email(document: &scraper::Html) -> Result<String> {
 /// Will fail if not teachers
 fn find_department(document: &scraper::Html) -> Result<String> {
     let selector =
-        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl>dd:empty"##)
-            .unwrap();
-    let mut email = document.select(&selector);
-    match email.next() {
-        None => Err(color_eyre::eyre::eyre!("No email found")),
-        // in general the department only appears for teachers,
-        // and many similar fields exist that we ignore
-        Some(email) => Ok(email.text().collect::<String>()),
+        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl"##).unwrap();
+    let mut profile = document.select(&selector);
+    profile.next().wrap_err("No email header")?;
+    profile.next().wrap_err("No email value")?;
+    match profile.next() {
+        None => Err(color_eyre::eyre::eyre!("No department found")),
+        Some(department) => Ok(department.text().collect::<String>().trim().into()),
     }
 }

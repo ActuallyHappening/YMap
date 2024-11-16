@@ -1,8 +1,22 @@
+use clap::{Parser, Subcommand};
 use schoolbox_scrape::{get_website, Person, Result};
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
 use tracing::*;
+
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    Single { num: u32 },
+    StartingFrom { num: u32 },
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,7 +34,11 @@ async fn main() -> Result<()> {
 
     info!("Starting scraping ...");
 
-    for num in 0..=2000 {
+    let range = match Cli::parse().command {
+        Command::Single { num } => num..=num,
+        Command::StartingFrom { num } => num..=2000,
+    };
+    for num in range {
         let result = scrape_user(&client, &db, num).await;
         match result {
             Ok(person) => info!(?person, "Successfully scraped person {num}",),
