@@ -20,11 +20,11 @@ async fn main() -> Result<()> {
 
     info!("Starting scraping ...");
 
-    for num in 101..=2000 {
+    for num in 468..=2000 {
         let result = scrape_user(&client, &db, num).await;
         match result {
-            Ok(person) => info!(message = "Successfully scraped person {num}", ?person),
-            Err(e) => warn!("Failed to scrape person {num}: {:?}", e),
+            Ok(person) => info!(?person, "Successfully scraped person {num}",),
+            Err(e) => warn!("Failed to scrape person {num}: {}", e),
         }
     }
 
