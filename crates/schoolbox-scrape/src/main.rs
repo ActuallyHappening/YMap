@@ -107,7 +107,6 @@ async fn main() -> Result<()> {
 
             results
         };
-        // tokio::task::spawn_local(f)
         join_set.spawn(f);
     }
 
