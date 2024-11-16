@@ -6,9 +6,12 @@ edition = "2021"
 [workspace]
 members = ["crates/*"]
 
+[workspace.lints.rust]
+rust-2018-idioms = "deny"
+
 [workspace.dependencies]
 ymap-sets = { path = "crates/ymap-sets" }
-ymap-functions = { path = "crates/ymap-functions"}
+ymap-functions = { path = "crates/ymap-functions" }
 
 
 [dependencies]
