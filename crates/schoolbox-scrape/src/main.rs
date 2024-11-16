@@ -1,8 +1,8 @@
-use schoolbox_scrape::{find_email, find_name, get_website, Person, Result};
+use schoolbox_scrape::{get_website, Person, Result};
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
-use tracing::info;
+use tracing::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,14 +18,28 @@ async fn main() -> Result<()> {
     .await?;
     db.use_ns("primary").use_db("primary").await?;
 
-    let num = 1133;
+    info!("Starting scraping ...");
+
+    for num in 101..=2000 {
+        let result = scrape_user(&client, &db, num).await;
+        match result {
+            Ok(person) => info!(message = "Successfully scraped person {num}", ?person),
+            Err(e) => warn!("Failed to scrape person {num}: {:?}", e),
+        }
+    }
+
+    info!("Finished scraping");
+    Ok(())
+}
+
+async fn scrape_user<C: surrealdb::Connection>(
+    client: &reqwest::Client,
+    db: &surrealdb::Surreal<C>,
+    num: u32,
+) -> Result<Person> {
     let website = get_website(&client, num).await?;
     let document = scraper::Html::parse_document(&website);
 
-    let name = find_name(&document)?;
-    let email = find_email(&document)?;
-    let person = Person { name, email };
-    person.save_to_db(&db).await?;
-
-    Ok(())
+    let person = Person::find_in_document(&document)?;
+    person.save_to_db(&db).await
 }

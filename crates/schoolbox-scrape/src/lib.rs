@@ -1,6 +1,6 @@
 pub use errors::{Error, Result};
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::*;
 mod errors {
     pub type Result<T> = color_eyre::eyre::Result<T>;
     pub type Error = color_eyre::eyre::Report;
@@ -17,8 +17,14 @@ impl Person {
         self,
         db: &surrealdb::Surreal<C>,
     ) -> Result<Person> {
-        info!(message = "Saving person to db", ?self);
+        debug!(message = "Saving person to db", ?self);
         Ok(db.create("people").content(self).await?.unwrap())
+    }
+
+    pub fn find_in_document(document: &scraper::Html) -> Result<Person> {
+        let name = find_name(document)?;
+        let email = find_email(document)?;
+        Ok(Person { name, email })
     }
 }
 
@@ -28,7 +34,7 @@ fn cookie() -> String {
 }
 
 pub async fn get_website(client: &reqwest::Client, num: u32) -> Result<String> {
-    info!(message = "Getting student", %num);
+    debug!(message = "Getting student", %num);
     let url = format!(
         "https://schoolbox.emmanuel.qld.edu.au/search/user/{num}",
         num = num
@@ -44,7 +50,7 @@ pub async fn get_website(client: &reqwest::Client, num: u32) -> Result<String> {
         .map_err(Error::from)
 }
 
-pub fn find_name(document: &scraper::Html) -> Result<String> {
+fn find_name(document: &scraper::Html) -> Result<String> {
     let selector = scraper::Selector::parse(r##"h1[data-test="user-profile-name"]"##).unwrap();
     let mut names = document.select(&selector);
     match names.next() {
@@ -60,7 +66,7 @@ pub fn find_name(document: &scraper::Html) -> Result<String> {
     }
 }
 
-pub fn find_email(document: &scraper::Html) -> Result<String> {
+fn find_email(document: &scraper::Html) -> Result<String> {
     let selector =
         scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl>dd>a[href]"##)
             .unwrap();
