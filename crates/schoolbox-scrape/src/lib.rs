@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use color_eyre::eyre::{Context as _, ContextCompat};
+use color_eyre::eyre::ContextCompat;
 pub use errors::{Error, Result};
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ mod errors {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Person {
     pub name: String,
-    pub email: String,
+    pub email: Option<String>,
     pub schoolbox_id: u32,
     /// If present, we know for sure
     pub is_student: Option<bool>,
@@ -31,27 +31,26 @@ impl Person {
         Ok(db.create("people").content(self).await?.unwrap())
     }
 
-    /// Should be followed by [Person::set_schoolbox_id]
     pub fn find_in_document(document: &scraper::Html, num: u32) -> Result<Person> {
         let name = find_name(&document)?;
         let profile = find_profile_values(&document)?;
 
-        let email = {
-            match profile.get("Email") {
-                Some(email) => email,
-                None => match profile.get("Email:") {
-                    Some(email) => email,
-                    None => return Err(Error::msg("No email found")),
-                },
+        let email = match (profile.get("Email"), profile.get("Email:")) {
+            (Some(_), Some(_)) => {
+                return Err(Error::msg("Both Email and Email: are present?"));
             }
-        }
-        .child_elements()
-        .next()
-        .wrap_err("Child Email has no inner link")?
-        .text()
-        .collect::<String>()
-        .trim()
-        .to_string();
+            (Some(email), None) | (None, Some(email)) => Some(
+                email
+                    .child_elements()
+                    .next()
+                    .wrap_err("Child Email has no inner link")?
+                    .text()
+                    .collect::<String>()
+                    .trim()
+                    .to_string(),
+            ),
+            (None, None) => None,
+        };
 
         let mut person = Person {
             name,
@@ -78,12 +77,18 @@ impl Person {
         Ok(person)
     }
 
+    /// Conservative
     fn is_email_student(&self) -> bool {
-        self.email.ends_with("@students.emmanuel.qld.edu.au")
+        self.email
+            .as_ref()
+            .is_some_and(|email| email.ends_with("@students.emmanuel.qld.edu.au"))
     }
 
+    /// Conservative
     fn is_email_teacher(&self) -> bool {
-        self.email.ends_with("@emmanuel.qld.edu.au")
+        self.email
+            .as_ref()
+            .is_some_and(|email| email.ends_with("@emmanuel.qld.edu.au"))
     }
 }
 
