@@ -32,3 +32,4 @@ pub async fn get_website(client: &reqwest::Client, num: u32) -> Result<String> {
         .await
         .map_err(Error::from)
 }
+
