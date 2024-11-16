@@ -20,7 +20,7 @@ async fn main() -> Result<()> {
 
     info!("Starting scraping ...");
 
-    for num in 468..=2000 {
+    for num in 0..=2000 {
         let result = scrape_user(&client, &db, num).await;
         match result {
             Ok(person) => info!(?person, "Successfully scraped person {num}",),
@@ -40,6 +40,6 @@ async fn scrape_user<C: surrealdb::Connection>(
     let website = get_website(&client, num).await?;
     let document = scraper::Html::parse_document(&website);
 
-    let person = Person::find_in_document(&document)?;
+    let person = Person::find_in_document(&document, num)?;
     person.save_to_db(&db).await
 }

@@ -10,6 +10,11 @@ mod errors {
 pub struct Person {
     pub name: String,
     pub email: String,
+    pub schoolbox_id: u32,
+    /// If present, we know for sure
+    pub is_student: Option<bool>,
+    /// Should be present on all teachers
+    pub teacher_department: Option<String>,
 }
 
 impl Person {
@@ -21,10 +26,39 @@ impl Person {
         Ok(db.create("people").content(self).await?.unwrap())
     }
 
-    pub fn find_in_document(document: &scraper::Html) -> Result<Person> {
+    /// Should be followed by [Person::set_schoolbox_id]
+    pub fn find_in_document(document: &scraper::Html, num: u32) -> Result<Person> {
         let name = find_name(document)?;
         let email = find_email(document)?;
-        Ok(Person { name, email })
+        let mut person = Person {
+            name,
+            email,
+            schoolbox_id: num,
+            is_student: None,
+            teacher_department: None,
+        };
+
+        // applies email heuristic to determine if student or teacher
+        if person.is_email_student() && !person.is_email_teacher() {
+            person.is_student = Some(true);
+        }
+        if person.is_email_teacher() && !person.is_email_student() {
+            person.is_student = Some(false);
+        }
+
+        if person.is_student == Some(true) {
+            person.teacher_department = Some(find_department(&document)?);
+        }
+
+        Ok(person)
+    }
+
+    fn is_email_student(&self) -> bool {
+        self.email.ends_with("@students.emmanuel.qld.edu.au")
+    }
+
+    fn is_email_teacher(&self) -> bool {
+        self.email.ends_with("@emmanuel.qld.edu.au")
     }
 }
 
@@ -74,6 +108,20 @@ fn find_email(document: &scraper::Html) -> Result<String> {
     match email.next() {
         None => Err(color_eyre::eyre::eyre!("No email found")),
         // if signed in, other similar links appear
+        Some(email) => Ok(email.text().collect::<String>()),
+    }
+}
+
+/// Will fail if not teachers
+fn find_department(document: &scraper::Html) -> Result<String> {
+    let selector =
+        scraper::Selector::parse(r##"div.profile.content>div.row>div.columns>dl>dd:empty"##)
+            .unwrap();
+    let mut email = document.select(&selector);
+    match email.next() {
+        None => Err(color_eyre::eyre::eyre!("No email found")),
+        // in general the department only appears for teachers,
+        // and many similar fields exist that we ignore
         Some(email) => Ok(email.text().collect::<String>()),
     }
 }
