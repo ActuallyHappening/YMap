@@ -16,4 +16,5 @@ ymap-functions = { path = "crates/ymap-functions" }
 
 
 [dependencies]
-bevy = "0.14.2"
+bevy = { version = "0.14.2", features = ["dynamic_linking"] }
+bevy_cosmic_edit = "0.25.0"

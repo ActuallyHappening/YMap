@@ -1,10 +1,12 @@
 [unstable]
 codegen-backend = true
 
+# Fast high-level
 [profile.dev]
 codegen-backend = "cranelift"
 opt-level = 1
 
 # Optimize deps
 [profile.dev.package."*"]
+codegen-backend = "llvm"
 opt-level = 3
