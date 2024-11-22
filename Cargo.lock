@@ -9255,21 +9255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ymap-equations"
-version = "0.1.0"
-dependencies = [
- "ymap-functions",
- "ymap-sets",
-]
-
-[[package]]
-name = "ymap-functions"
-version = "0.1.0"
-dependencies = [
- "ymap-sets",
-]
-
-[[package]]
 name = "ymap-sets"
 version = "0.1.0"
 dependencies = [

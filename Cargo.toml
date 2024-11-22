@@ -12,7 +12,6 @@ rust-2018-idioms = "deny"
 
 [workspace.dependencies]
 ymap-sets = { path = "crates/ymap-sets" }
-ymap-functions = { path = "crates/ymap-functions" }
 
 
 [dependencies]

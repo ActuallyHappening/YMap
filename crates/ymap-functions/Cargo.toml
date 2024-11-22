@@ -1,7 +1,0 @@
-[package]
-name = "ymap-functions"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-ymap-sets.workspace = true

@@ -1,8 +1,0 @@
-[package]
-name = "ymap-equations"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-ymap-functions.workspace = true
-ymap-sets.workspace = true
