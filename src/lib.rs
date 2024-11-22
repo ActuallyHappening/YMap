@@ -11,12 +11,14 @@ pub mod std {
 pub mod assets;
 pub mod cam;
 pub mod pastebin;
+pub mod text;
 
 pub fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(bevy_editor_pls::EditorPlugin::default())
-        .add_plugins(cam::plugin)
         .add_plugins(pastebin::plugin)
+        // .add_plugins(cam::plugin)
+        // .add_plugins(text::plugin)
         .run();
 }

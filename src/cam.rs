@@ -11,7 +11,7 @@ pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         CameraMarker,
         bevy_cosmic_edit::CosmicPrimaryCamera,
-        Camera2dBundle {
+        Camera3dBundle {
             camera: Camera {
                 clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
