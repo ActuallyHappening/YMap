@@ -7,6 +7,7 @@ use bevy::{
     render::{
         render_resource::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+            TextureViewDescriptor,
         },
         view::RenderLayers,
     },
@@ -14,8 +15,28 @@ use bevy::{
 };
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, setup)
-        .add_systems(Update, cube_rotator_system);
+    let font_bytes: &[u8] = crate::assets::fonts::VICTOR_MONO_REFULAR_TTF;
+    let font_config = CosmicFontConfig {
+        fonts_dir_path: None,
+        font_bytes: Some(vec![font_bytes]),
+        load_system_fonts: true,
+    };
+
+    app.add_plugins(CosmicEditPlugin {
+        font_config,
+        ..default()
+    })
+    .add_systems(
+        Update,
+        (
+            print_editor_text,
+            // bevy_cosmic_edit::change_active_editor_sprite,
+            deselect_editor_on_esc,
+        ),
+    );
+
+    app.add_systems(Startup, setup);
+    // .add_systems(Update, cube_rotator_system);
 }
 
 // Marks the first pass cube (rendered to a texture.)
@@ -30,9 +51,32 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut materials_2d: ResMut<Assets<ColorMaterial>>,
+    // mut materials_2d: ResMut<Assets<ColorMaterial>>,
     mut images: ResMut<Assets<Image>>,
+    mut font_system: ResMut<CosmicFontSystem>,
 ) {
+    // let primary_window = windows.single();
+
+    let mut attrs = Attrs::new();
+    attrs = attrs.family(Family::Name("Victor Mono"));
+    attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
+
+    let cosmic_edit = (CosmicEditBundle {
+        buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
+            &mut font_system,
+            "😀😀😀 x => y",
+            attrs,
+        ),
+        sprite_bundle: SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(400.0, 450.0)),
+                ..default()
+            },
+            ..default()
+        },
+        ..default()
+    },);
+
     let size = Extent3d {
         width: 512,
         height: 512,
@@ -42,7 +86,7 @@ fn setup(
     // This is the texture that will be rendered to.
     let mut image = Image {
         texture_descriptor: TextureDescriptor {
-            label: None,
+            label: Some("Testing texture"),
             size,
             dimension: TextureDimension::D2,
             format: TextureFormat::Bgra8UnormSrgb,
@@ -61,32 +105,19 @@ fn setup(
 
     let image_handle = images.add(image);
 
-    // let cube_handle = meshes.add(Cuboid::new(4.0, 4.0, 4.0));
-    let square_handle = bevy::sprite::Mesh2dHandle(meshes.add(Rectangle::new(40.0, 50.0)));
-    // let cube_material_handle = materials.add(StandardMaterial {
-    //     base_color: Color::srgb(0.8, 0.7, 0.6),
-    //     reflectance: 0.02,
-    //     unlit: false,
-    //     ..default()
-    // });
-    let square_material_handle = materials_2d.add(Color::srgb(0.8, 0.7, 0.6));
-
-    // This specifies the layer used for the first pass, which will be attached to the first pass camera and cube.
     let first_pass_layer = RenderLayers::layer(1);
-    // let first_pass_layer = RenderLayers::layer(0);
 
     // The cube that will be rendered to the texture.
-    commands.spawn((
-        MaterialMesh2dBundle {
-            mesh: square_handle,
-            material: square_material_handle,
-            // transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
-            ..default()
-        },
-        FirstPassCube,
-        first_pass_layer.clone(),
-        Name::new("Hidden square"),
-    ));
+    let cosmic_edit = commands
+        .spawn((
+            cosmic_edit,
+            FirstPassCube,
+            first_pass_layer.clone(),
+            Name::new("Hidden square"),
+        ))
+        .id();
+
+    commands.insert_resource(FocusedWidget(Some(cosmic_edit)));
 
     // Light
     // NOTE: we add the light to both layers so it affects both the rendered-to-texture cube, and the cube on which we display the texture
@@ -101,6 +132,7 @@ fn setup(
         Name::new("Light"),
     ));
 
+    // hidden camera
     commands.spawn((
         Camera2dBundle {
             camera: Camera {
@@ -116,6 +148,8 @@ fn setup(
         },
         first_pass_layer,
         Name::new("Hidden camera"),
+        crate::cam::CameraMarker,
+        bevy_cosmic_edit::CosmicPrimaryCamera,
     ));
 
     let cube_size = 4.0;
@@ -135,8 +169,8 @@ fn setup(
         PbrBundle {
             mesh: cube_handle,
             material: material_handle,
-            transform: Transform::from_xyz(0.0, 0.0, 1.5)
-                .with_rotation(Quat::from_rotation_x(-PI / 5.0)),
+            transform: Transform::from_xyz(0.0, 0.0, 1.5),
+                // .with_rotation(Quat::from_rotation_x(-PI / 5.0)),
             ..default()
         },
         MainPassCube,
@@ -168,3 +202,19 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Ma
         transform.rotate_y(0.7 * time.delta_seconds() * 0.1);
     }
 }
+
+use bevy::window::PrimaryWindow;
+
+use bevy_cosmic_edit::{
+    cosmic_text::{Attrs, Family, Metrics},
+    deselect_editor_on_esc, print_editor_text, CosmicBuffer, CosmicColor, CosmicEditBundle,
+    CosmicEditPlugin, CosmicFontConfig, CosmicFontSystem, FocusedWidget,
+};
+
+// fn setup(
+//     mut commands: Commands,
+//     windows: Query<&Window, With<PrimaryWindow>>,
+
+// ) {
+
+// }

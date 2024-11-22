@@ -9,14 +9,14 @@ pub fn plugin(app: &mut App) {
 
 pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
-        CameraMarker,
-        bevy_cosmic_edit::CosmicPrimaryCamera,
-        Camera3dBundle {
+        Camera2dBundle {
             camera: Camera {
                 clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
             },
             ..default()
         },
+        CameraMarker,
+        bevy_cosmic_edit::CosmicPrimaryCamera,
     ));
 }
