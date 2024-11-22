@@ -3,3 +3,8 @@ codegen-backend = true
 
 [profile.dev]
 codegen-backend = "cranelift"
+opt-level = 1
+
+# Optimize deps
+[profile.dev.package."*"]
+opt-level = 3

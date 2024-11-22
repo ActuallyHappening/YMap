@@ -5,6 +5,7 @@ edition = "2021"
 
 [workspace]
 members = ["crates/*"]
+resolver = "2"
 
 [workspace.lints.rust]
 rust-2018-idioms = "deny"
@@ -15,3 +16,4 @@ ymap-functions = { path = "crates/ymap-functions" }
 
 
 [dependencies]
+bevy = "0.14.2"
