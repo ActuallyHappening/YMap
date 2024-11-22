@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use color_eyre::eyre::ContextCompat;
 pub use errors::{Error, Result};
-use itertools::Itertools as _;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tracing::*;
 mod errors {
@@ -89,6 +89,53 @@ impl Person {
         self.email
             .as_ref()
             .is_some_and(|email| email.ends_with("@emmanuel.qld.edu.au"))
+    }
+}
+
+#[derive(Debug, clap::Subcommand)]
+pub enum ScrapeChunk {
+    Single {
+        num: u32,
+    },
+    Range {
+        #[arg(long)]
+        start: u32,
+        #[arg(long)]
+        end: u32,
+    },
+}
+
+impl ScrapeChunk {
+    pub fn split_into_chunks(self, chunk_size: usize) -> Vec<ScrapeChunk> {
+        match self {
+            ScrapeChunk::Single { num } => vec![ScrapeChunk::Single { num }],
+            ScrapeChunk::Range { start, end } => (start..=end)
+                .chunks(chunk_size)
+                .into_iter()
+                .map(|mut chunk| {
+                    let first = chunk.next().unwrap();
+                    match chunk.last() {
+                        None => ScrapeChunk::Single { num: first },
+                        Some(last) => ScrapeChunk::Range {
+                            start: first,
+                            end: last,
+                        },
+                    }
+                })
+                .collect(),
+        }
+    }
+}
+
+impl IntoIterator for ScrapeChunk {
+    type Item = u32;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            ScrapeChunk::Single { num } => vec![num].into_iter(),
+            ScrapeChunk::Range { start, end } => (start..=end).collect::<Vec<_>>().into_iter(),
+        }
     }
 }
 
