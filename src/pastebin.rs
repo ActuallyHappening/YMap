@@ -62,7 +62,7 @@ fn setup(
     let image_handle = images.add(image);
 
     // let cube_handle = meshes.add(Cuboid::new(4.0, 4.0, 4.0));
-    let square_handle = bevy::sprite::Mesh2dHandle(meshes.add(Rectangle::new(4.0, 5.0)));
+    let square_handle = bevy::sprite::Mesh2dHandle(meshes.add(Rectangle::new(40.0, 50.0)));
     // let cube_material_handle = materials.add(StandardMaterial {
     //     base_color: Color::srgb(0.8, 0.7, 0.6),
     //     reflectance: 0.02,
@@ -73,13 +73,14 @@ fn setup(
 
     // This specifies the layer used for the first pass, which will be attached to the first pass camera and cube.
     let first_pass_layer = RenderLayers::layer(1);
+    // let first_pass_layer = RenderLayers::layer(0);
 
     // The cube that will be rendered to the texture.
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: square_handle,
             material: square_material_handle,
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            // transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
             ..default()
         },
         FirstPassCube,
@@ -125,6 +126,7 @@ fn setup(
         base_color_texture: Some(image_handle),
         reflectance: 0.02,
         unlit: false,
+        // cull_mode: Some(bevy::render::render_resource::Face::Back),
         ..default()
     });
 
