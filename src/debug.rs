@@ -9,3 +9,7 @@ pub fn plugin(app: &mut App) {
 pub fn is_debug_active(editor: Res<bevy_editor_pls_core::Editor>) -> bool {
     editor.active()
 }
+
+pub fn is_debug_inactive(editor: Res<bevy_editor_pls_core::Editor>) -> bool {
+    !editor.active()
+}
