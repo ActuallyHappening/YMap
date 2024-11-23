@@ -5,41 +5,6 @@ use bevy_cosmic_edit::{
     CosmicEditPlugin, CosmicFontConfig, CosmicFontSystem, FocusedWidget,
 };
 
-fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
-    let mut attrs = Attrs::new();
-    attrs = attrs.family(Family::Name("Victor Mono"));
-    attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
-
-    let cosmic_edit = commands
-        .spawn((
-            CosmicEditBundle {
-                buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
-                    &mut font_system,
-                    "😀😀😀 x => y",
-                    attrs,
-                ),
-                sprite_bundle: SpriteBundle {
-                    sprite: Sprite {
-                        // custom_size: Some(Vec2::new(
-                        //     primary_window.width() / 2.,
-                        //     primary_window.height() / 2.,
-                        // )),
-                        custom_size: Some(Vec2::ZERO),
-                        anchor: bevy::sprite::Anchor::TopLeft,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ..default()
-            },
-            crate::app::Application::default(),
-            Name::new("Cosmic text"),
-        ))
-        .id();
-
-    commands.insert_resource(FocusedWidget(Some(cosmic_edit)));
-}
-
 pub fn plugin(app: &mut App) {
     let font_bytes: &[u8] = crate::assets::fonts::VICTOR_MONO_REFULAR_TTF;
     let font_config = CosmicFontConfig {
@@ -61,4 +26,70 @@ pub fn plugin(app: &mut App) {
             deselect_editor_on_esc,
         ),
     );
+}
+
+#[derive(Component)]
+struct TextApplicationMarker;
+
+fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
+    let mut attrs = Attrs::new();
+    attrs = attrs.family(Family::Name("Victor Mono"));
+    attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
+
+    let cosmic_edit = commands
+        .spawn((
+            CosmicEditBundle {
+                buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
+                    &mut font_system,
+                    "😀😀😀 x => y",
+                    attrs,
+                ),
+                sprite_bundle: SpriteBundle {
+                    sprite: Sprite {
+                        // custom_size: Some(Vec2::new(
+                        //     primary_window.width() / 2.,
+                        //     primary_window.height() / 2.,
+                        // )),
+                        custom_size: Some(Vec2::ONE),
+                        anchor: bevy::sprite::Anchor::TopLeft,
+                        ..default()
+                    },
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                ..default()
+            },
+            crate::app::Application::default(),
+            TextApplicationMarker,
+            Name::new("Cosmic text"),
+        ))
+        .id();
+
+    commands.insert_resource(FocusedWidget(Some(cosmic_edit)));
+}
+
+fn update_text_application(
+    mut this: Query<
+        (
+            &crate::app::Application,
+            &mut Visibility,
+            &mut Sprite,
+            &mut Transform,
+        ),
+        With<TextApplicationMarker>,
+    >,
+    mut focussed_text_input: ResMut<FocusedWidget>,
+) {
+    for (app, mut vis, sprite, transform) in this.iter_mut() {
+        match app.render_rect() {
+            None => {
+                *vis = Visibility::Hidden;
+                // MARK: multiple apps using bevy_cosmic_edit will not be happy about this every frame
+                focussed_text_input.0 = None;
+            }
+            Some(render_rect) => {
+                todo!()
+            }
+        }
+    }
 }

@@ -5,7 +5,10 @@ use crate::prelude::*;
 pub fn plugin(app: &mut App) {
     app.init_resource::<ApplicationsState>()
         .register_type::<ApplicationsState>()
-        .add_systems(Update, update_applications_state);
+        .add_systems(
+            Update,
+            update_applications_state.in_set(crate::UpdateSystemSet::Application),
+        );
 }
 
 /// Marks the entity that represents the primary application
@@ -22,6 +25,17 @@ pub struct Application {
     ///
     /// In screen pixel coordinates
     render_rect: Option<Rect>,
+}
+
+impl Application {
+    /// For optimization purposes really
+    pub fn is_active(&self) -> bool {
+        self.render_rect.is_some()
+    }
+    
+    pub fn render_rect(&self) -> Option<Rect> {
+        self.render_rect
+    }
 }
 
 #[derive(Resource, Reflect, Default)]
