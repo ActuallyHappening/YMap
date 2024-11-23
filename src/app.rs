@@ -5,6 +5,7 @@ use crate::prelude::*;
 pub fn plugin(app: &mut App) {
     app.init_resource::<ApplicationsState>()
         .register_type::<ApplicationsState>()
+        .register_type::<Application>()
         .add_systems(
             Update,
             update_applications_state.in_set(crate::UpdateSystemSet::Application),
@@ -32,7 +33,7 @@ impl Application {
     pub fn is_active(&self) -> bool {
         self.render_rect.is_some()
     }
-    
+
     pub fn render_rect(&self) -> Option<Rect> {
         self.render_rect
     }

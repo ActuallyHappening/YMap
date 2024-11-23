@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use crate::prelude::*;
 use bevy_cosmic_edit::{
     cosmic_text::{Attrs, Family, Metrics},
     deselect_editor_on_esc, print_editor_text, CosmicBuffer, CosmicColor, CosmicEditBundle,
@@ -18,6 +18,10 @@ pub fn plugin(app: &mut App) {
         ..default()
     })
     .add_systems(Startup, setup)
+    .add_systems(
+        Update,
+        update_text_application.after(crate::UpdateSystemSet::Application),
+    )
     .add_systems(
         Update,
         (
@@ -71,6 +75,7 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 fn update_text_application(
     mut this: Query<
         (
+            Entity,
             &crate::app::Application,
             &mut Visibility,
             &mut Sprite,
@@ -80,7 +85,7 @@ fn update_text_application(
     >,
     mut focussed_text_input: ResMut<FocusedWidget>,
 ) {
-    for (app, mut vis, sprite, transform) in this.iter_mut() {
+    for (app_entity, app, mut vis, mut sprite, mut transform) in this.iter_mut() {
         match app.render_rect() {
             None => {
                 *vis = Visibility::Hidden;
@@ -88,7 +93,15 @@ fn update_text_application(
                 focussed_text_input.0 = None;
             }
             Some(render_rect) => {
-                todo!()
+                debug_once!(
+                    message = "Text Application is showing itself for the first time",
+                    once = ONCE_MESSAGE
+                );
+                *vis = Visibility::Visible;
+                focussed_text_input.0 = Some(app_entity);
+                sprite.custom_size = Some(render_rect.size());
+                let translation = -render_rect.min;
+                // transform.translation = Vec3::new(translation.x, translation.y, 0.0);
             }
         }
     }
