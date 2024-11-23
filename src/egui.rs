@@ -3,8 +3,12 @@ use bevy_egui::EguiContexts;
 use crate::prelude::*;
 
 pub fn plugin(app: &mut App) {
-    app.add_plugins(bevy_egui::EguiPlugin)
-        .add_systems(Update, (bottom_switcher, left_sidebar, right_sidebar));
+    app.add_plugins(bevy_egui::EguiPlugin).add_systems(
+        Update,
+        (bottom_switcher, left_sidebar, right_sidebar)
+            .after(bevy_editor_pls_core::EditorSet::UI)
+            .run_if(crate::debug::is_debug_active),
+    );
 }
 
 fn bottom_switcher(mut contexts: EguiContexts) {

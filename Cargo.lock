@@ -9252,6 +9252,7 @@ dependencies = [
  "bevy",
  "bevy_cosmic_edit",
  "bevy_editor_pls",
+ "bevy_editor_pls_core",
  "bevy_egui",
  "egui",
 ]
