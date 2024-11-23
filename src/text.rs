@@ -27,16 +27,19 @@ fn setup(
             ),
             sprite_bundle: SpriteBundle {
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(
-                        primary_window.width() / 2.,
-                        primary_window.height() / 2.,
-                    )),
+                    // custom_size: Some(Vec2::new(
+                    //     primary_window.width() / 2.,
+                    //     primary_window.height() / 2.,
+                    // )),
+                    custom_size: Some(Vec2::ONE),
+                    anchor: bevy::sprite::Anchor::TopLeft,
                     ..default()
                 },
                 ..default()
             },
             ..default()
         },
+        crate::app::utils::KeepSpriteSurfaceSized,
         Name::new("Cosmic text"),
     );
 

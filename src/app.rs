@@ -1,156 +1,125 @@
 //! Manages 'applications' running, for example sizing
 
+use obstructions::UiObstruction;
+
 use crate::prelude::*;
 
-#[derive(Resource, Reflect, Default, Debug)]
-#[reflect(Resource, Default, Debug)]
-pub enum ApplicationSurface {
-    /// Application cannot render anything (yet)
+pub fn plugin(app: &mut App) {}
+
+/// Marks the entity that represents the primary application
+#[derive(Component, Reflect, Default)]
+pub struct Application {
+    /// The rectangle of the application that is being shown to the user at the moment.
+    ///
+    /// Not mutable to the application itself.
+    /// Computed from all [UiObstructions].
+    ///
+    /// If [None], shouldn't render anything / won't be displayed to user anyway.
+    /// This is eventually in preperation for multi-app support where multiple [Application]s
+    /// could be rendering side-by-side, and use this property to only render where the user can see.
+    ///
+    /// In screen pixel coordinates
+    render_rect: Option<Rect>,
+}
+
+#[derive(Resource, Reflect, Default)]
+#[reflect(Resource)]
+pub enum ApplicationsState {
+    /// todo: add other states
     #[default]
-    None,
-    Collecting {
-        obstructions: Vec<UiObstruction>,
+    HomeScreen,
+
+    /// Deal out most of the available space to the one application
+    SingleApplicationFocussed {
+        /// All available screen space not obstructed by ui.
+        ///
+        /// Most of this will be given to the appliation, except for a small margin.
+        ///
+        /// This value should not be zero.
+        available_space: Rect,
+
+        #[reflect(@0.0..50.0)]
+        margin: f32,
+
+        app: Entity,
     },
-    Computed {
-        /// In screen pixel coordinates
-        screen_pixels: Rect,
-    },
 }
 
-pub fn plugin(app: &mut App) {
-    app.init_resource::<ApplicationSurface>()
-        .init_resource::<obstruction::CanRegisterObstruction>()
-        .register_type::<ApplicationSurface>()
-        .register_type::<obstruction::CanRegisterObstruction>()
-        .configure_sets(
-            Update,
-            (
-                ObstructionStage::RegistrationsOpen.after(bevy_editor_pls_core::EditorSet::UI),
-                ObstructionStage::CollectingObstructions,
-                ObstructionStage::RegistrationsClose,
-                ObstructionStage::Computed,
-            )
-                .chain(),
-        )
-        .add_systems(
-            Update,
-            (
-                CanRegisterObstruction::set_true.in_set(ObstructionStage::RegistrationsOpen),
-                update_application_surface.in_set(ObstructionStage::Computed),
-                CanRegisterObstruction::set_false.in_set(ObstructionStage::RegistrationsClose),
-            ),
-        );
-}
-
-/// In `Update`
-/// Should be after egui computes sizes
-#[derive(SystemSet, Reflect, Debug, Clone, Hash, PartialEq, Eq)]
-pub enum ObstructionStage {
-    RegistrationsOpen,
-    /// Contains [crate::egui::UISet::UI]
-    CollectingObstructions,
-    RegistrationsClose,
-    /// During this set, [upadte_application_surface] runs,
-    /// so after this set, the application surface is updated
-    Computed,
-}
-
-fn update_application_surface(
-    mut surface: ResMut<ApplicationSurface>,
-    windows: Query<&bevy::window::Window, With<bevy::window::PrimaryWindow>>,
+/// If there is space, will focus one application
+fn update_application_state(
+    window: Query<&bevy::window::Window, With<bevy::window::PrimaryWindow>>,
+    obstructions: Query<&UiObstruction>,
+    mut state: ResMut<ApplicationsState>,
+    mut applications: Query<(Entity, &mut Application)>,
 ) {
-    // MARK: Multi-window support
-    let window = windows.single();
-    let max_bounds = Rect::from_corners(Vec2::ZERO, Vec2::new(window.width(), window.height()));
-    let computed_surface = match surface.deref() {
-        ApplicationSurface::None => {
-            warn_once!(
-                message = "Application surface is still None",
-                once = ONCE_MESSAGE
-            );
-            ApplicationSurface::None
+    let window_size = window.single().size();
+    let max_bounds = Rect::from_corners(Vec2::ZERO, window_size);
+    let obstructions = obstructions.iter().collect::<Vec<_>>();
+    let available_space = obstructions::apply_obstructions(max_bounds, obstructions);
+    match (
+        available_space.size().length() > 100.0,
+        applications.get_single_mut(),
+    ) {
+        (false, _) | (true, Err(_)) => {
+            *state = ApplicationsState::HomeScreen;
         }
-        ApplicationSurface::Collecting { obstructions } => ApplicationSurface::Computed {
-            screen_pixels: obstruction::condense_obstructions(max_bounds, obstructions),
-        },
-        ApplicationSurface::Computed { .. } => {
-            // if no obstructions were registered, reset to max bounds
-            debug_once!(message = "Application surface is assumed to be able to expand to max since no obstructions were registered", once=ONCE_MESSAGE);
-            ApplicationSurface::Computed {
-                screen_pixels: max_bounds,
-            }
-        }
-    };
-    *surface = computed_surface;
-}
-
-impl ApplicationSurface {
-    /// Will forcefully convert into [ApplicationSurface::Collecting] if not already
-    fn register_obstruction(&mut self, obstruction: UiObstruction) {
-        match self {
-            ApplicationSurface::None | ApplicationSurface::Computed { .. } => {
-                *self = ApplicationSurface::Collecting {
-                    obstructions: vec![obstruction],
-                }
-            }
-            ApplicationSurface::Collecting { obstructions } => obstructions.push(obstruction),
+        (true, Ok((app_entity, mut app))) => {
+            let margin = 10.0;
+            *state = ApplicationsState::SingleApplicationFocussed {
+                available_space,
+                margin,
+                app: app_entity,
+            };
+            app.render_rect = Some(available_space.inflate(-margin));
         }
     }
 }
 
-pub use obstruction::*;
-mod obstruction {
+pub mod obstructions {
     use crate::prelude::*;
 
-    use super::ApplicationSurface;
-
     /// Information built up from other parts of the program to inform
-    /// the application state manager how much space the application can render to
-    #[derive(Reflect, Debug)]
+    /// the application state manager how much space their is to primarily render to
+    #[derive(Component, Reflect, Debug, Default)]
     pub enum UiObstruction {
-        LeftBounded { left_edge_offset: f32 },
-        RightBounded { right_edge_offset: f32 },
-        BottomBounded { bottom_edge_offset: f32 },
-        TopBounded { top_edge_offset: f32 },
+        #[default]
+        None,
+        LeftBounded {
+            left_edge_offset: f32,
+        },
+        RightBounded {
+            right_edge_offset: f32,
+        },
+        BottomBounded {
+            bottom_edge_offset: f32,
+        },
+        TopBounded {
+            top_edge_offset: f32,
+        },
     }
 
-    /// Should only be [true] in [super::ObstructionStage::CollectingObstructions]
-    #[derive(Resource, Reflect, Default)]
-    pub struct CanRegisterObstruction(bool);
-
-    pub fn register_obstruction(
-        In(obstruction): In<UiObstruction>,
-        can_regsiter: Res<CanRegisterObstruction>,
-        mut surface: ResMut<ApplicationSurface>,
-    ) {
-        if can_regsiter.0 {
-            surface.register_obstruction(obstruction);
-        } else {
-            warn_once!(message = "Cannot register obstruction outside of ObstructionStage::CollectingObstructions, ignoring", once=ONCE_MESSAGE, ?obstruction, ?surface);
-        }
-    }
-
-    pub(super) fn condense_obstructions(
-        max_bounds: Rect,
-        obstructions: &Vec<UiObstruction>,
-    ) -> Rect {
+    pub(super) fn apply_obstructions(max_bounds: Rect, obstructions: Vec<&UiObstruction>) -> Rect {
         let left_bound: f32 = obstructions
             .iter()
+            .cloned()
             .filter_map(UiObstruction::left_bound)
             .reduce(f32::max)
             .unwrap_or(0.0);
         let right_bound: f32 = obstructions
             .iter()
+            .cloned()
             .filter_map(UiObstruction::right_bound)
             .reduce(f32::min)
             .unwrap_or(max_bounds.max.x);
         let top_bound: f32 = obstructions
             .iter()
+            .cloned()
             .filter_map(UiObstruction::top_bound)
             .reduce(f32::max)
             .unwrap_or(0.0);
         let bottom_bound = obstructions
             .iter()
+            .cloned()
             .filter_map(UiObstruction::bottom_bound)
             .reduce(f32::min)
             .unwrap_or(max_bounds.max.y);
@@ -159,16 +128,6 @@ mod obstruction {
             Vec2::new(left_bound, top_bound),
             Vec2::new(right_bound, bottom_bound),
         )
-    }
-
-    impl CanRegisterObstruction {
-        pub(super) fn set_true(mut res: ResMut<Self>) {
-            res.0 = true
-        }
-
-        pub(super) fn set_false(mut res: ResMut<Self>) {
-            res.0 = false
-        }
     }
 
     impl UiObstruction {
