@@ -1,8 +1,17 @@
 use bevy::prelude::*;
 
 pub mod prelude {
+    #![allow(unused_imports)]
+    // external re-exports
     pub use crate::std;
     pub use bevy::prelude::*;
+    pub use core::ops::Deref as _;
+
+    // internal reexports
+    // ext-tratis
+    pub use crate::app::ObstructionSource;
+
+    pub const ONCE_MESSAGE: &str = "This message will only log once";
 }
 pub mod std {
     pub use std::*;

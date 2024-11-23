@@ -1,6 +1,6 @@
 use bevy_egui::EguiContexts;
 
-use crate::prelude::*;
+use crate::{app::UiObstruction, prelude::*};
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(bevy_egui::EguiPlugin).add_systems(
@@ -11,16 +11,25 @@ pub fn plugin(app: &mut App) {
     );
 }
 
-fn bottom_switcher(mut contexts: EguiContexts) {
-    egui::TopBottomPanel::bottom("Home Controls").show(contexts.ctx_mut(), |ui| {
-        ui.button("Home").clicked();
-    });
+fn bottom_switcher(mut contexts: EguiContexts) -> UiObstruction {
+    egui::TopBottomPanel::bottom("Home Controls")
+        .show(contexts.ctx_mut(), |ui| {
+            ui.button("Home").clicked();
+        })
+        .response
+        .obstruction_bottom()
 }
 
-fn left_sidebar(mut contexts: EguiContexts) {
-    egui::SidePanel::left("Context").show(contexts.ctx_mut(), |ui| ui.label("Text Editor"));
+fn left_sidebar(mut contexts: EguiContexts) -> UiObstruction {
+    egui::SidePanel::left("Context")
+        .show(contexts.ctx_mut(), |ui| ui.label("Text Editor"))
+        .response
+        .obstruction_left()
 }
 
-fn right_sidebar(mut contexts: EguiContexts) {
-    egui::SidePanel::right("Inspector").show(contexts.ctx_mut(), |ui| ui.label("Text"));
+fn right_sidebar(mut contexts: EguiContexts) -> UiObstruction {
+    egui::SidePanel::right("Inspector")
+        .show(contexts.ctx_mut(), |ui| ui.label("Text"))
+        .response
+        .obstruction_right()
 }
