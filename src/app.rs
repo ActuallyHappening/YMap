@@ -1,10 +1,12 @@
 //! Manages 'applications' running, for example sizing
 
-use obstructions::UiObstruction;
-
 use crate::prelude::*;
 
-pub fn plugin(app: &mut App) {}
+pub fn plugin(app: &mut App) {
+    app.init_resource::<ApplicationsState>()
+        .register_type::<ApplicationsState>()
+        .add_systems(Update, update_applications_state);
+}
 
 /// Marks the entity that represents the primary application
 #[derive(Component, Reflect, Default)]
@@ -46,9 +48,9 @@ pub enum ApplicationsState {
 }
 
 /// If there is space, will focus one application
-fn update_application_state(
+fn update_applications_state(
     window: Query<&bevy::window::Window, With<bevy::window::PrimaryWindow>>,
-    obstructions: Query<&UiObstruction>,
+    obstructions: Query<&obstructions::UiObstruction>,
     mut state: ResMut<ApplicationsState>,
     mut applications: Query<(Entity, &mut Application)>,
 ) {
