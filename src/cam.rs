@@ -11,7 +11,7 @@ pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera2dBundle {
             camera: Camera {
-                clear_color: ClearColorConfig::Custom(Color::WHITE),
+                // clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
             },
             ..default()

@@ -18,21 +18,27 @@ fn setup(
     attrs = attrs.family(Family::Name("Victor Mono"));
     attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
 
-    let cosmic_edit = (CosmicEditBundle {
-        buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
-            &mut font_system,
-            "😀😀😀 x => y",
-            attrs,
-        ),
-        sprite_bundle: SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(primary_window.width(), primary_window.height())),
+    let cosmic_edit = (
+        CosmicEditBundle {
+            buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
+                &mut font_system,
+                "😀😀😀 x => y",
+                attrs,
+            ),
+            sprite_bundle: SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(
+                        primary_window.width() / 2.,
+                        primary_window.height() / 2.,
+                    )),
+                    ..default()
+                },
                 ..default()
             },
             ..default()
         },
-        ..default()
-    },);
+        Name::new("Cosmic text"),
+    );
 
     let cosmic_edit = commands.spawn(cosmic_edit).id();
 

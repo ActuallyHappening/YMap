@@ -12,6 +12,7 @@ pub mod assets;
 pub mod cam;
 pub mod egui;
 // pub mod pastebin;
+pub mod app;
 pub mod debug;
 pub mod text;
 
