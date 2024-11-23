@@ -1,10 +1,9 @@
 //! Manages 'applications' running, for example sizing
 
-use bevy::math::bounding::Aabb2d;
-
 use crate::prelude::*;
 
 #[derive(Resource, Reflect, Default, Debug)]
+#[reflect(Resource, Default, Debug)]
 pub enum ApplicationSurface {
     /// Application cannot render anything (yet)
     #[default]
@@ -23,13 +22,36 @@ pub fn plugin(app: &mut App) {
         .init_resource::<obstruction::CanRegisterObstruction>()
         .register_type::<ApplicationSurface>()
         .register_type::<obstruction::CanRegisterObstruction>()
-        .add_systems(PreUpdate, update_application_surface);
+        .configure_sets(
+            Update,
+            (
+                ObstructionStage::RegistrationsOpen.after(bevy_editor_pls_core::EditorSet::UI),
+                ObstructionStage::CollectingObstructions,
+                ObstructionStage::RegistrationsClose,
+                ObstructionStage::Computed,
+            )
+                .chain(),
+        )
+        .add_systems(
+            Update,
+            (
+                CanRegisterObstruction::set_true.in_set(ObstructionStage::RegistrationsOpen),
+                update_application_surface.in_set(ObstructionStage::Computed),
+                CanRegisterObstruction::set_false.in_set(ObstructionStage::RegistrationsClose),
+            ),
+        );
 }
 
-/// In `Update`? Should be after egui computes sizes
+/// In `Update`
+/// Should be after egui computes sizes
 #[derive(SystemSet, Reflect, Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ObstructionStage {
+    RegistrationsOpen,
+    /// Contains [crate::egui::UISet::UI]
     CollectingObstructions,
+    RegistrationsClose,
+    /// During this set, [upadte_application_surface] runs,
+    /// so after this set, the application surface is updated
     Computed,
 }
 
@@ -137,6 +159,16 @@ mod obstruction {
             Vec2::new(left_bound, top_bound),
             Vec2::new(right_bound, bottom_bound),
         )
+    }
+
+    impl CanRegisterObstruction {
+        pub(super) fn set_true(mut res: ResMut<Self>) {
+            res.0 = true
+        }
+
+        pub(super) fn set_false(mut res: ResMut<Self>) {
+            res.0 = false
+        }
     }
 
     impl UiObstruction {

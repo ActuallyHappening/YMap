@@ -29,6 +29,7 @@ pub fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(egui::plugin)
+        .add_plugins(app::plugin)
         .add_plugins(debug::plugin)
         // .add_plugins(pastebin::plugin)
         .add_plugins(cam::plugin)
