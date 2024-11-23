@@ -1,11 +1,18 @@
 use bevy_egui::EguiContexts;
 
-use crate::{app::UiObstruction, prelude::*};
+use crate::{
+    app::{self, UiObstruction},
+    prelude::*,
+};
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(bevy_egui::EguiPlugin).add_systems(
         Update,
-        (bottom_switcher, left_sidebar, right_sidebar)
+        (
+            bottom_switcher.pipe(app::register_obstruction),
+            left_sidebar.pipe(app::register_obstruction),
+            right_sidebar.pipe(app::register_obstruction),
+        )
             .after(bevy_editor_pls_core::EditorSet::UI)
             .run_if(crate::debug::is_debug_inactive),
     );

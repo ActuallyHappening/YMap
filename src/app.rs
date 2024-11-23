@@ -20,7 +20,9 @@ pub enum ApplicationSurface {
 
 pub fn plugin(app: &mut App) {
     app.init_resource::<ApplicationSurface>()
+        .init_resource::<obstruction::CanRegisterObstruction>()
         .register_type::<ApplicationSurface>()
+        .register_type::<obstruction::CanRegisterObstruction>()
         .add_systems(PreUpdate, update_application_surface);
 }
 
@@ -92,12 +94,7 @@ mod obstruction {
 
     /// Should only be [true] in [super::ObstructionStage::CollectingObstructions]
     #[derive(Resource, Reflect, Default)]
-    pub(super) struct CanRegisterObstruction(bool);
-
-    pub(super) fn plugin(app: &mut App) {
-        app.init_resource::<CanRegisterObstruction>()
-            .register_type::<CanRegisterObstruction>();
-    }
+    pub struct CanRegisterObstruction(bool);
 
     pub fn register_obstruction(
         In(obstruction): In<UiObstruction>,
