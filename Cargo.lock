@@ -909,8 +909,6 @@ dependencies = [
 [[package]]
 name = "bevy_cosmic_edit"
 version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb5343a3fa3aa4cff81da908ce42211708853087783367eb89da081bf99b8490"
 dependencies = [
  "arboard",
  "bevy",
