@@ -11,7 +11,7 @@ pub mod std {
 pub mod assets;
 pub mod cam;
 pub mod egui;
-pub mod pastebin;
+// pub mod pastebin;
 pub mod text;
 
 pub fn main() {
