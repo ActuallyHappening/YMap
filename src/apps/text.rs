@@ -27,7 +27,7 @@ pub fn plugin(app: &mut App) {
         (
             print_editor_text,
             // change_active_editor_sprite,
-            deselect_editor_on_esc,
+            // deselect_editor_on_esc,
         ),
     );
 }
@@ -54,11 +54,11 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
                         //     primary_window.width() / 2.,
                         //     primary_window.height() / 2.,
                         // )),
-                        custom_size: Some(Vec2::ONE),
-                        anchor: bevy::sprite::Anchor::TopLeft,
+                        custom_size: Some(Vec2::ONE * 500.0),
+                        // anchor: bevy::sprite::Anchor::TopLeft,
                         ..default()
                     },
-                    visibility: Visibility::Hidden,
+                    // visibility: Visibility::Hidden,
                     ..default()
                 },
                 ..default()
@@ -88,18 +88,27 @@ fn update_text_application(
     for (app_entity, app, mut vis, mut sprite, mut transform) in this.iter_mut() {
         match app.render_rect() {
             None => {
-                *vis = Visibility::Hidden;
+                if *vis != Visibility::Hidden {
+                    *vis = Visibility::Hidden;
+                }
                 // MARK: multiple apps using bevy_cosmic_edit will not be happy about this every frame
-                focussed_text_input.0 = None;
+                if focussed_text_input.0 != None {
+                    focussed_text_input.0 = None;
+                }
             }
             Some(render_rect) => {
                 debug_once!(
                     message = "Text Application is showing itself for the first time",
                     once = ONCE_MESSAGE
                 );
-                *vis = Visibility::Visible;
-                focussed_text_input.0 = Some(app_entity);
-                sprite.custom_size = Some(render_rect.size());
+                if *vis != Visibility::Visible {
+                    *vis = Visibility::Visible;
+                }
+
+                if focussed_text_input.0 != Some(app_entity) {
+                    focussed_text_input.0 = Some(app_entity);
+                }
+                // sprite.custom_size = Some(render_rect.size());
                 let translation = -render_rect.min;
                 // transform.translation = Vec3::new(translation.x, translation.y, 0.0);
             }

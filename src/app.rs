@@ -6,6 +6,7 @@ pub fn plugin(app: &mut App) {
     app.init_resource::<ApplicationsState>()
         .register_type::<ApplicationsState>()
         .register_type::<Application>()
+        .register_type::<obstructions::UiObstruction>()
         .add_systems(
             Update,
             update_applications_state.in_set(crate::UpdateSystemSet::Application),
