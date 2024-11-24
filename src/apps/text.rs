@@ -1,9 +1,14 @@
 use crate::prelude::*;
+use bevy::render::view::RenderLayers;
 use bevy_cosmic_edit::{
     cosmic_text::{Attrs, Family, Metrics},
     deselect_editor_on_esc, print_editor_text, CosmicBuffer, CosmicColor, CosmicEditBundle,
-    CosmicEditPlugin, CosmicFontConfig, CosmicFontSystem, FocusedWidget,
+    CosmicEditPlugin, CosmicEditor, CosmicFontConfig, CosmicFontSystem, FocusedWidget,
 };
+
+const fn render_layer() -> RenderLayers {
+    RenderLayers::layer(1)
+}
 
 pub fn plugin(app: &mut App) {
     let font_bytes: &[u8] = crate::assets::fonts::VICTOR_MONO_REFULAR_TTF;
@@ -17,7 +22,7 @@ pub fn plugin(app: &mut App) {
         font_config,
         ..default()
     })
-    .add_systems(Startup, setup)
+    .add_systems(Startup, (setup, setup_text))
     .add_systems(
         Update,
         update_text_application.after(crate::UpdateSystemSet::Application),
@@ -35,7 +40,35 @@ pub fn plugin(app: &mut App) {
 #[derive(Component)]
 struct TextApplicationMarker;
 
-fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
+#[derive(Component)]
+struct AppCameraMarker;
+
+/// Spawns the [TextApplicationMarker] and [Application] main entity
+/// and accompanying [AppCameraMarker] camera
+fn setup(mut commands: Commands) {
+    commands.spawn((
+        Camera2dBundle {
+            camera: Camera {
+                viewport: None,
+                // todo: generalize for many applications
+                order: -1,
+                ..default()
+            },
+            ..default()
+        },
+        Name::new("Text Application Camera"),
+        render_layer(),
+        AppCameraMarker,
+    ));
+}
+
+/// Spawns the [CosmicEditBundle]
+fn setup_text(
+    app: Query<Entity, With<TextApplicationMarker>>,
+    mut commands: Commands,
+    mut font_system: ResMut<CosmicFontSystem>,
+) {
+    let parent = app.single();
     let mut attrs = Attrs::new();
     attrs = attrs.family(Family::Name("Victor Mono"));
     attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
@@ -45,7 +78,7 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
             CosmicEditBundle {
                 buffer: CosmicBuffer::new(&mut font_system, Metrics::new(14., 18.)).with_text(
                     &mut font_system,
-                    "😀😀😀 x => y",
+                    "😀😀😀 x => y π∫",
                     attrs,
                 ),
                 sprite_bundle: SpriteBundle {
@@ -64,29 +97,34 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
                 ..default()
             },
             crate::app::Application::default(),
-            TextApplicationMarker,
             Name::new("Cosmic text"),
         ))
         .id();
 
+    commands.entity(parent).push_children(&[cosmic_edit]);
     commands.insert_resource(FocusedWidget(Some(cosmic_edit)));
 }
 
 fn update_text_application(
-    mut this: Query<
-        (
-            Entity,
-            &crate::app::Application,
-            &mut Visibility,
-            &mut Sprite,
-            &mut Transform,
-        ),
+    mut application_config: Query<
+        (&crate::app::Application, &Children),
         With<TextApplicationMarker>,
+    >,
+    mut text_editor: Query<
+        (Entity, &mut Visibility, &mut Sprite, &mut Transform),
+        With<CosmicEditor>,
     >,
     mut focussed_text_input: ResMut<FocusedWidget>,
 ) {
-    for (app_entity, app, mut vis, mut sprite, mut transform) in this.iter_mut() {
-        match app.render_rect() {
+    for (text_application, app_children) in application_config.iter() {
+        let (text_entity, mut vis, mut sprite, mut transform) = app_children
+            .iter()
+            .cloned()
+            .filter_map(|child| text_editor.get_mut(child).ok())
+            .next()
+            .expect("Entity structure");
+
+        match text_application.render_rect() {
             None => {
                 if *vis != Visibility::Hidden {
                     *vis = Visibility::Hidden;
@@ -105,10 +143,11 @@ fn update_text_application(
                     *vis = Visibility::Visible;
                 }
 
-                if focussed_text_input.0 != Some(app_entity) {
-                    focussed_text_input.0 = Some(app_entity);
+                if focussed_text_input.0 != Some(text_entity) {
+                    focussed_text_input.0 = Some(text_entity);
                 }
-                // sprite.custom_size = Some(render_rect.size());
+                // todo: proper system
+                sprite.custom_size = Some(render_rect.size());
                 let translation = -render_rect.min;
                 // transform.translation = Vec3::new(translation.x, translation.y, 0.0);
             }

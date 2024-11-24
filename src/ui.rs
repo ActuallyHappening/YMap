@@ -54,6 +54,7 @@ fn bottom_switcher(
     mut this: Query<&mut UiObstruction, With<HomeControlsMarker>>,
 ) {
     let obstruction = egui::TopBottomPanel::bottom("Home Controls")
+        .resizable(false)
         .show(contexts.ctx_mut(), |ui| {
             ui.button("Home").clicked();
         })
@@ -76,6 +77,7 @@ fn left_sidebar(
     mut this: Query<&mut UiObstruction, With<ContextControlsMarker>>,
 ) {
     let obstruction = egui::SidePanel::left("Context")
+        .resizable(false)
         .show(contexts.ctx_mut(), |ui| ui.label("Text Editor"))
         .response
         .obstruction_left();
@@ -96,6 +98,7 @@ fn right_sidebar(
     mut this: Query<&mut UiObstruction, With<InspectorControlsMarker>>,
 ) {
     let obstruction = egui::SidePanel::right("Inspector")
+        .resizable(false)
         .show(contexts.ctx_mut(), |ui| ui.label("Text"))
         .response
         .obstruction_right();
