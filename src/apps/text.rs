@@ -22,7 +22,7 @@ pub fn plugin(app: &mut App) {
         font_config,
         ..default()
     })
-    .add_systems(Startup, (setup, setup_text))
+    .add_systems(Startup, (setup, setup_text).chain())
     .add_systems(
         Update,
         update_text_application.after(crate::UpdateSystemSet::Application),
@@ -59,6 +59,11 @@ fn setup(mut commands: Commands) {
         Name::new("Text Application Camera"),
         render_layer(),
         AppCameraMarker,
+    ));
+    commands.spawn((
+        TextApplicationMarker,
+        Name::new("Text Application Parent"),
+        render_layer(),
     ));
 }
 
@@ -98,6 +103,7 @@ fn setup_text(
             },
             crate::app::Application::default(),
             Name::new("Cosmic text"),
+            render_layer(),
         ))
         .id();
 
@@ -106,23 +112,18 @@ fn setup_text(
 }
 
 fn update_text_application(
-    mut application_config: Query<
-        (&crate::app::Application, &Children),
-        With<TextApplicationMarker>,
-    >,
-    mut text_editor: Query<
-        (Entity, &mut Visibility, &mut Sprite, &mut Transform),
-        With<CosmicEditor>,
-    >,
+    application_config: Query<(&crate::app::Application, &Children), With<TextApplicationMarker>>,
+    mut text_editor: Query<(&mut Visibility, &mut Sprite, &mut Transform), With<CosmicEditor>>,
     mut focussed_text_input: ResMut<FocusedWidget>,
 ) {
     for (text_application, app_children) in application_config.iter() {
-        let (text_entity, mut vis, mut sprite, mut transform) = app_children
+        let text_entity = app_children
             .iter()
             .cloned()
-            .filter_map(|child| text_editor.get_mut(child).ok())
+            .filter(|child| text_editor.get_mut(*child).is_ok())
             .next()
             .expect("Entity structure");
+        let (mut vis, mut sprite, mut transform) = text_editor.get_mut(text_entity).unwrap();
 
         match text_application.render_rect() {
             None => {
