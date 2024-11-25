@@ -1,0 +1,12 @@
+[package]
+name = "bevy_hints"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy_color = "0.14.3"
+bevy_ecs = "0.14.2"
+bevy_reflect = "0.14.2"
+
+[lints]
+workspace = true

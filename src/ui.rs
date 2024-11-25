@@ -98,7 +98,7 @@ fn right_sidebar(
     mut this: Query<&mut UiObstruction, With<InspectorControlsMarker>>,
 ) {
     let obstruction = egui::SidePanel::right("Inspector")
-        .resizable(false)
+        .resizable(true)
         .show(contexts.ctx_mut(), |ui| ui.label("Text"))
         .response
         .obstruction_right();

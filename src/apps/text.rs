@@ -1,5 +1,13 @@
+use ::std::any::type_name;
+
 use crate::prelude::*;
-use bevy::render::view::RenderLayers;
+use bevy::{
+    ecs::{
+        query::{QueryData, QueryFilter, QueryIter, WorldQuery},
+        system::SystemParam,
+    },
+    render::{camera::Viewport, view::RenderLayers},
+};
 use bevy_cosmic_edit::{
     cosmic_text::{Attrs, Family, Metrics},
     deselect_editor_on_esc, print_editor_text, CosmicBuffer, CosmicColor, CosmicEditBundle,
@@ -25,7 +33,7 @@ pub fn plugin(app: &mut App) {
     .add_systems(Startup, (setup, setup_text).chain())
     .add_systems(
         Update,
-        update_text_application.after(crate::UpdateSystemSet::Application),
+        (update_text_application, update_camera).after(crate::UpdateSystemSet::Application),
     )
     .add_systems(
         Update,
@@ -37,34 +45,100 @@ pub fn plugin(app: &mut App) {
     );
 }
 
+/// Component to specify from [crate::app::Application] to this specific application
 #[derive(Component)]
 struct TextApplicationMarker;
 
 #[derive(Component)]
 struct AppCameraMarker;
 
+type TextQuery<'w, 's, D, F = ()> = ChildQuery<'w, 's, TextApplicationMarker, CosmicEditor, D, F>;
+type CameraQuery<'w, 's, D, F = ()> =
+    ChildQuery<'w, 's, TextApplicationMarker, AppCameraMarker, D, F>;
+
+/// Will filter out children who are not a parent of [ParentMarker] and who don't have [ChildMarker].
+/// This saves a few annoying loop iterations and [With] usages.
+///
+/// No restrictions placed on query data or filter
+#[derive(SystemParam, Debug)]
+pub struct ChildQuery<'w, 's, ParentMarker, ChildMarker, D, F = ()>
+where
+    D: QueryData + 'static,
+    F: QueryFilter + 'static,
+    ParentMarker: Component,
+    ChildMarker: Component,
+{
+    children: Query<'w, 's, (Entity, D), (F, With<ChildMarker>)>,
+    parents: Query<'w, 's, &'static Children, With<ParentMarker>>,
+}
+
+impl<'w, 's, ParentMarker, ChildMarker, D, F> ChildQuery<'w, 's, ParentMarker, ChildMarker, D, F>
+where
+    D: QueryData + 'static,
+    F: QueryFilter + 'static,
+    ParentMarker: Component,
+    ChildMarker: Component,
+{
+    pub fn iter(
+        &self,
+    ) -> impl Iterator<Item = <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
+        let valid_children: Vec<&Entity> = self.parents.iter().flatten().collect();
+        self.children
+            .iter()
+            .filter(move |(child_entity, _)| {
+                let contains = valid_children.contains(&child_entity);
+                if !contains {
+                    let parent_marker = type_name::<ParentMarker>();
+                    warn_once!(message = "An entity was filtered out of an .iter() because it was not a child of the correct parent", ?parent_marker, ?child_entity, once = ONCE_MESSAGE);
+                }
+                contains
+            })
+            .map(move |(_, d)| d)
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = <D as WorldQuery>::Item<'_>> {
+        let valid_children: Vec<&Entity> = self.parents.iter().flatten().collect();
+        self.children
+            .iter_mut()
+            .filter(move |(child_entity, _)| {
+                let contains = valid_children.contains(&child_entity);
+                if !contains {
+                    let parent_marker = type_name::<ParentMarker>();
+                    warn_once!(message = "An entity was filtered out of an .iter_mut() because it was not a child of the correct parent", ?parent_marker, ?child_entity, once = ONCE_MESSAGE);
+                }
+                contains
+            })
+            .map(move |(_, d)| d)
+    }
+}
+
 /// Spawns the [TextApplicationMarker] and [Application] main entity
 /// and accompanying [AppCameraMarker] camera
 fn setup(mut commands: Commands) {
-    commands.spawn((
-        Camera2dBundle {
-            camera: Camera {
-                viewport: None,
-                // todo: generalize for many applications
-                order: -1,
-                ..default()
-            },
-            ..default()
-        },
-        Name::new("Text Application Camera"),
-        render_layer(),
-        AppCameraMarker,
-    ));
-    commands.spawn((
-        TextApplicationMarker,
-        Name::new("Text Application Parent"),
-        render_layer(),
-    ));
+    commands
+        .spawn((
+            TextApplicationMarker,
+            Name::new("Text Application Parent"),
+            VisibilityBundle::default(),
+            TransformBundle::default(),
+            render_layer(),
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                Camera2dBundle {
+                    camera: Camera {
+                        viewport: None,
+                        // todo: generalize for many applications
+                        order: -1,
+                        ..default()
+                    },
+                    ..default()
+                },
+                Name::new("Text Application Camera"),
+                render_layer(),
+                AppCameraMarker,
+            ));
+        });
 }
 
 /// Spawns the [CosmicEditBundle]
@@ -111,6 +185,29 @@ fn setup_text(
     commands.insert_resource(FocusedWidget(Some(cosmic_edit)));
 }
 
+fn update_camera(
+    mut cam: CameraQuery<(Entity, &mut Camera)>,
+    parent_app: Query<&crate::app::Application>,
+) {
+    for (cam_entity, mut cam) in cam.iter_mut() {
+        // let app = parent_app.get(cam_entity).unwrap();
+        // match app.render_rect() {
+        //     None => {
+        //         cam.is_active = false;
+        //     }
+        //     Some(bounds) => {
+        //         cam.is_active = true;
+        //         // update camera viewport to match render rect
+        //         cam.viewport = Some(Viewport {
+        //             physical_position: bounds.min.as_uvec2(),
+        //             physical_size: bounds.size().as_uvec2(),
+        //             depth: Viewport::default().depth,
+        //         });
+        //     }
+        // }
+    }
+}
+
 fn update_text_application(
     application_config: Query<(&crate::app::Application, &Children), With<TextApplicationMarker>>,
     mut text_editor: Query<(&mut Visibility, &mut Sprite, &mut Transform), With<CosmicEditor>>,
@@ -147,9 +244,8 @@ fn update_text_application(
                 if focussed_text_input.0 != Some(text_entity) {
                     focussed_text_input.0 = Some(text_entity);
                 }
-                // todo: proper system
                 sprite.custom_size = Some(render_rect.size());
-                let translation = -render_rect.min;
+                // let translation = -render_rect.min;
                 // transform.translation = Vec3::new(translation.x, translation.y, 0.0);
             }
         }

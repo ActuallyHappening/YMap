@@ -1164,6 +1164,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_hints"
+version = "0.1.0"
+dependencies = [
+ "bevy_color",
+ "bevy_ecs",
+ "bevy_reflect",
+]
+
+[[package]]
 name = "bevy_input"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
