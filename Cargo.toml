@@ -6,6 +6,7 @@ publish = false
 
 [workspace]
 members = ["crates/*"]
+repository = "https://github.com/ActuallyHappening/YMap"
 resolver = "2"
 
 [workspace.lints.rust]
