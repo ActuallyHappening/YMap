@@ -7,6 +7,7 @@ homepage = "docs.rs/bevy_hints"
 repository = "github.com/ActuallyHappening/YMap"
 version = "0.1.0"
 edition = "2021"
+publish = true
 
 [dependencies]
 bevy_color = "0.14.3"
