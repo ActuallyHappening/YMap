@@ -2,7 +2,7 @@
 name = "bevy_hints"
 description = "Hints for future bevy editors to improve usability"
 license = "MIT"
-documentation = "docs.rs/bevy_hints"
+documentation = "https://docs.rs/bevy_hints"
 homepage = "https://docs.rs/bevy_hints"
 version = "0.1.0"
 edition = "2021"
