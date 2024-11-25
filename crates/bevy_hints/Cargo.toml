@@ -1,5 +1,10 @@
 [package]
 name = "bevy_hints"
+description = "Hints for future bevy editors to improve usability"
+license = "MIT"
+documentation = "docs.rs/bevy_hints"
+homepage = "docs.rs/bevy_hints"
+repository = "github.com/ActuallyHappening/YMap"
 version = "0.1.0"
 edition = "2021"
 
