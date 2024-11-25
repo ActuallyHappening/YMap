@@ -26,4 +26,4 @@ pub struct ReadOnly;
 #[doc = this_is_only_a_hint!()]
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
-pub struct DebugColor(pub Option<Color>);
+pub struct DebugColor(pub Color);
