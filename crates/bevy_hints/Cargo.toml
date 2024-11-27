@@ -4,6 +4,7 @@ description = "Hints for future bevy editors to improve usability"
 license = "MIT"
 documentation = "https://docs.rs/bevy_hints"
 homepage = "https://docs.rs/bevy_hints"
+repository.workspace = true
 version = "0.1.0"
 edition = "2021"
 publish = true
