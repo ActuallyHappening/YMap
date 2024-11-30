@@ -15,6 +15,8 @@ pub enum Commands {
 
 #[derive(Subcommand, Debug)]
 pub enum ServerCommands {
-	Check,
+	Scan,
 	Start,
+	Kill,
+	Clean,
 }

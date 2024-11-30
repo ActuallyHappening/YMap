@@ -14,11 +14,30 @@ async fn main() -> Result<()> {
         cli::Commands::Server(server_command) => {
             let server = ServerSession::connect_to_server().await?;
             match server_command {
-                cli::ServerCommands::Check => match server.is_surreal_running().await? {
+                cli::ServerCommands::Scan => match server.scan().await? {
                     true => info!("Database is running"),
                     false => info!("Database is not running"),
                 },
-                cli::ServerCommands::Start => {}
+                cli::ServerCommands::Start => {
+                    server.start().await?;
+                    if server.scan().await? == false {
+                        warn!("Started surreal, but surreal is not running?");
+                    } else {
+                        info!("Started surreal successfully");
+                    }
+                }
+                cli::ServerCommands::Kill => {
+                    server.kill().await?;
+                    if server.scan().await? == true {
+                        warn!("Killed surreal, but surreal is still running?");
+                    } else {
+                        info!("Killed surreal successfully");
+                    }
+                }
+                cli::ServerCommands::Clean => {
+                    server.clean().await?;
+                    info!("Cleaned surreal successfully");
+                }
             }
         }
     }
