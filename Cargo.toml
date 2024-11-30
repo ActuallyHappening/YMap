@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [workspace]
-members = ["crates/*"]
+members = ["crates/*", "xtask"]
 resolver = "2"
 
 [workspace.package]
