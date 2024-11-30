@@ -1,0 +1,10 @@
+# To compile db-credentials, you will need to make a file db.toml
+# in the root of the project
+
+username = "root"
+password = "password"
+namespace = "prod"
+database = "prod"
+start-command = "surreal start surrealkv:///home/ah/surreal.db --bind 0.0.0.0:8000"
+clean-command = "rm -rf /home/surreal.db"
+external-connect-endpoint = "192.168.0.63:8000"

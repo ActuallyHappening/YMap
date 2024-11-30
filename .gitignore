@@ -11,3 +11,4 @@
 !.gitignore
 !rust-toolchain.toml
 !README.md
+!db.template.toml
