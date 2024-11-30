@@ -3,7 +3,7 @@
 !crates
 !src
 !assets
-!k
+!xtask
 !Cargo.toml
 !Cargo.lock
 !.cargo
