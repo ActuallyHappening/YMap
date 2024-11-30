@@ -1,0 +1,13 @@
+[package]
+name = "db-credentials"
+version = "0.1.0"
+edition = "2024"
+publish = false
+repository.workspace = true
+
+[dependencies]
+static-toml = "1.2.0"
+
+
+[lints]
+workspace = true
