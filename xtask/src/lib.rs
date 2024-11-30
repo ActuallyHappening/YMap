@@ -29,12 +29,27 @@ impl ServerSession {
 		})
 	}
 
+	/// Passes
+	fn convenience_parse_command<'s>(str: &'s str) -> (&'s str, Vec<String>) {
+		let mut iter = str.split_whitespace();
+		let cmd = iter.next().unwrap();
+		// let args = iter.collect::<Vec<&str>>();
+		let args = vec![iter.collect::<Vec<&str>>().join(" ")];
+		(cmd, args)
+	}
+
 	async fn cmd(&self, cmd: &str) -> Result<String> {
-		let cmd = self.session.command(cmd).output().await?;
+		info!(message = "Executing on server", ?cmd);
+		let (cmd, args) = Self::convenience_parse_command(cmd);
+		let mut cmd_builder = self.session.command(cmd);
+		cmd_builder.args(args);
+		debug!(?cmd_builder);
+		let cmd = cmd_builder.output().await?;
 		let stdout = String::from_utf8(cmd.stdout)
 			.wrap_err("Command executed on server didn't return valid UTF8 in its standard out")?;
 		let stderr = String::from_utf8(cmd.stderr)
 			.wrap_err("Command executed on server didn't return valid UTF8 in its standard error")?;
+		debug!(?stdout, ?stderr);
 		if !cmd.status.success() {
 			return Err(
 				eyre!("Executing command on server failed")
@@ -47,11 +62,15 @@ impl ServerSession {
 	}
 
 	async fn cmd_num(&self, cmd: &str, task: &'static str) -> Result<bool> {
-		match self.cmd(cmd).await?.parse::<u8>() {
+		let output = self.cmd(cmd).await?;
+		match output.parse::<u8>() {
 			Ok(num) => Ok(Self::status_from_num(num, task)),
-			Err(e) => Err(e).wrap_err(format!(
-				"Expected a number from command output but failed to parse as integer"
-			)),
+			Err(e) => Err(e)
+				.wrap_err(format!(
+					"Expected a number from command {} output but failed to parse as integer",
+					task
+				))
+				.with_note(|| output.header("Command output:")),
 		}
 	}
 
