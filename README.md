@@ -9,7 +9,7 @@ Eventually, an application for doing everything I do daily in one.
 ```nu
 # if you wanna edit cosmic edit manually
 z Desktop
-git clone https://github.com/Dimchikkk/bevy_cosmic_edit.git
+gix clone https://github.com/Dimchikkk/bevy_cosmic_edit.git
 z YMap
 ln -s ../bevy_cosmic_edit .
 
