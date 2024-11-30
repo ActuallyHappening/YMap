@@ -4,6 +4,7 @@
 !src
 !assets
 !xtask
+!rustfmt.toml
 !Cargo.toml
 !Cargo.lock
 !.cargo
