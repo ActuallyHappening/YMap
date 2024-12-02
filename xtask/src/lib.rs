@@ -1,4 +1,6 @@
-use cli::ServerCommands;
+use std::process::{ExitStatus, Output};
+
+use cli::{CommandSpawnOptions, ServerCommands};
 use color_eyre::eyre::eyre;
 use openssh::{KnownHosts, OwningCommand, Session, Stdio};
 
@@ -42,10 +44,16 @@ impl ServerSession {
 		Ok(cmd_builder)
 	}
 
-	async fn cmd(&self, cmd: Vec<&str>) -> Result<String> {
-		info!(message = "Executing on server", ?cmd);
-		let mut cmd = self.parse_into_command(cmd)?;
-		let cmd = cmd.output().await?;
+	fn handle_status_errors(status: ExitStatus) -> Result<()> {
+		if !status.success() {
+			return Err(eyre!("Command executed on server exited badly"));
+		}
+		Ok(())
+	}
+
+	/// Raises an error if it exited badly,
+	/// else returns the stdout
+	fn handle_output_errors(cmd: Output) -> Result<String> {
 		let stdout = String::from_utf8(cmd.stdout)
 			.wrap_err("Command executed on server didn't return valid UTF8 in its standard out")?;
 		let stderr = String::from_utf8(cmd.stderr)
@@ -62,9 +70,15 @@ impl ServerSession {
 		Ok(stdout.to_string())
 	}
 
+	async fn cmd(&self, cmd: Vec<&str>) -> Result<String> {
+		info!(message = "Executing on server", ?cmd);
+		let cmd = self.parse_into_command(cmd)?.output().await?;
+		Self::handle_output_errors(cmd)
+	}
+
 	async fn cmd_num(&self, cmd: Vec<&str>, task: ServerCommands) -> Result<bool> {
 		let output = self.cmd(cmd).await?;
-		match output.parse::<u8>() {
+		match output.trim().parse::<u8>() {
 			Ok(num) => Ok(Self::status_from_num(num, task)),
 			Err(e) => Err(e)
 				.wrap_err(format!(
@@ -75,15 +89,36 @@ impl ServerSession {
 		}
 	}
 
-	async fn background_cmd(&self, cmd: Vec<&str>) -> Result<()> {
-		self
-			.parse_into_command(cmd)?
-			.stdin(Stdio::null())
-			.stdout(Stdio::null())
-			.stderr(Stdio::null())
-			.spawn()
-			.await?;
-		Ok(())
+	async fn cmd_persistent(&self, cmd: Vec<&str>, options: CommandSpawnOptions) -> Result<()> {
+		match options.in_background() {
+			true => {
+				info!(
+					message = "Executing on server in the background",
+					?cmd,
+					note = "Errors will not be reported by default"
+				);
+				self
+					.parse_into_command(cmd)?
+					.stdin(Stdio::null())
+					.stdout(Stdio::null())
+					.stderr(Stdio::null())
+					.spawn()
+					.await?;
+				Ok(())
+			}
+			false => {
+				info!(
+					message = "Executing on the server piping output to current terminal session",
+					note = "The server process will continue to run on the server even when this connection is closed",
+					note = "You will have to manually kill this process however",
+					?cmd
+				);
+				let cmd = self.parse_into_command(cmd)?.spawn().await?;
+				let exit_status = cmd.wait().await?;
+				Self::handle_status_errors(exit_status)?;
+				Ok(())
+			}
+		}
 	}
 
 	fn status_from_num(num: u8, task: ServerCommands) -> bool {
@@ -110,12 +145,10 @@ impl ServerSession {
 			.await
 	}
 
-	pub async fn start(&self) -> Result<()> {
+	pub async fn start(&self, args: CommandSpawnOptions) -> Result<()> {
 		self
-			.background_cmd(db_credentials::start_command().collect())
+			.cmd_persistent(db_credentials::start_command().collect(), args)
 			.await
-			.wrap_err("Couldn't start surreal server")?;
-		Ok(())
 	}
 
 	pub async fn clean(&self) -> Result<()> {

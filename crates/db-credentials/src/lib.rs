@@ -5,9 +5,8 @@ pub const DB_PASSWORD: &str = DB_TOML.password;
 pub const DB_NAMESPACE: &str = DB_TOML.namespace;
 pub const DB_DATABASE: &str = DB_TOML.database;
 
-const START_COMMAND: [&str; 3] = DB_TOML.start_command;
 pub fn start_command() -> impl Iterator<Item = &'static str> {
-	START_COMMAND.iter().cloned()
+	DB_TOML.start_command.iter().cloned()
 }
 
 const SEARCH_COMMAND: [&str; 3] = DB_TOML.search_command;
