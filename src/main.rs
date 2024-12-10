@@ -1,3 +1,3 @@
 fn main() {
-     ymap::main();
+	ymap::main::main();
 }

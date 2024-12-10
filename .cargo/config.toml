@@ -11,7 +11,7 @@ opt-level = 1
 
 # Optimize deps
 [profile.dev.package."*"]
-codegen-backend = "llvm"
+# codegen-backend = "llvm"
 opt-level = 3
 
 [target.x86_64-unknown-linux-gnu]

@@ -20,13 +20,16 @@ db-credentials = { path = "crates/db-credentials" }
 
 
 [dependencies]
-bevy = { version = "0.14.2", features = [] }
-bevy_editor_pls = "0.10.0"
-bevy_editor_pls_core = "0.10.0"
-bevy_egui = "0.29"                           # Old to keep up with bevy_editor_pls
-egui = "0.28"                                # Old to keep up with bevy_editor_pls
+bevy_egui = "0.31"                                                                                     # Old to keep up with bevy_editor_pls
+egui = "0.29"                                                                                          # Old to keep up with bevy_editor_pls
+bevy = "0.15.0"
+bevy_editor_pls = { version = "0.11.0", git = "https://github.com/ActuallyHappening/bevy_editor_pls" }
+
+[patch.crates-io]
+# for bevy_editor_pls dep
+transform-gizmo-bevy = { git = "https://github.com/ActuallyHappening/transform-gizmo" }
 
 [dependencies.bevy_cosmic_edit]
-version = "0.25.0"
-features = ["multicam"]
-path = "bevy_cosmic_edit"
+version = "0.26.0"
+# git = "https://github.com/ActuallyHappening/bevy_cosmic_edit"
+path = "../bevy_cosmic_edit"
