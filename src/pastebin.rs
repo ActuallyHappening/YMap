@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use bevy_cosmic_edit::{
 	cosmic_text::{Attrs, Family, Metrics},
-	prelude::*, CosmicTextAlign,
+	prelude::*,
 };
 
 fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 	let camera_bundle = (
-		Camera2d,
-		IsDefaultUiCamera,
+		Camera3d::default(),
+		Transform::from_translation(Vec3::new(0., 0., 50.)).looking_at(Vec3::ZERO, Vec3::Y),
 		Camera {
 			clear_color: ClearColorConfig::Custom(bevy::color::palettes::css::PINK.into()),
 			..default()
@@ -17,24 +17,17 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 
 	let mut attrs = Attrs::new();
 	attrs = attrs.family(Family::Name("Victor Mono"));
-	attrs = attrs.color(CosmicColor::rgb(0x94, 0x00, 0xD3));
+	attrs = attrs.color(CosmicColor::rgb(0, 0, 255));
 
 	let cosmic_edit = commands
 		.spawn((
-			TextEdit,
+			TextEdit3d::new(Vec2::new(15., 8.)),
+			Transform::from_translation(Vec3::ZERO),
 			CosmicEditBuffer::new(&mut font_system, Metrics::new(20., 20.)).with_rich_text(
 				&mut font_system,
-				vec![("12345698 12345698", attrs); 10],
+				vec![("Banana", attrs)],
 				attrs,
 			),
-			CosmicTextAlign::bottom_center(),
-			Node {
-				width: Val::Percent(30.),
-				height: Val::Percent(40.),
-				left: Val::Percent(40.),
-				top: Val::Percent(20.),
-				..default()
-			},
 		))
 		.observe(focus_on_click)
 		.id();
