@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_cosmic_edit::{
 	cosmic_text::{Attrs, Family, Metrics},
 	prelude::*,
+	WorldPixelRatio,
 };
 
 fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
@@ -24,6 +25,7 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 		.spawn((
 			TextEdit3d::new(Vec2::new(50., 50.)),
 			Transform::from_scale(Vec3::splat(0.2)),
+			WorldPixelRatio::from_one_world_pixel_equals(2.),
 			CosmicEditBuffer::new(&mut font_system, Metrics::new(20., 20.)).with_rich_text(
 				&mut font_system,
 				vec![("Banana", attrs)],
