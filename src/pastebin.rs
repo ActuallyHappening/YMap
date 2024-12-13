@@ -7,7 +7,7 @@ use bevy_cosmic_edit::{
 fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 	let camera_bundle = (
 		Camera3d::default(),
-		Transform::from_translation(Vec3::new(0., 0., 50.)).looking_at(Vec3::ZERO, Vec3::Y),
+		Transform::from_translation(Vec3::new(0., 0., 100.)).looking_at(Vec3::ZERO, Vec3::Y),
 		Camera {
 			clear_color: ClearColorConfig::Custom(bevy::color::palettes::css::PINK.into()),
 			..default()
@@ -17,12 +17,13 @@ fn setup(mut commands: Commands, mut font_system: ResMut<CosmicFontSystem>) {
 
 	let mut attrs = Attrs::new();
 	attrs = attrs.family(Family::Name("Victor Mono"));
-	attrs = attrs.color(CosmicColor::rgb(0, 0, 255));
+	// attrs = attrs.color(CosmicColor::rgb(0, 0, 255));
+	attrs.color(CosmicColor::rgb(0, 0, 0));
 
 	let cosmic_edit = commands
 		.spawn((
-			TextEdit3d::new(Vec2::new(15., 8.)),
-			Transform::from_translation(Vec3::ZERO),
+			TextEdit3d::new(Vec2::new(50., 50.)),
+			Transform::from_scale(Vec3::splat(0.2)),
 			CosmicEditBuffer::new(&mut font_system, Metrics::new(20., 20.)).with_rich_text(
 				&mut font_system,
 				vec![("Banana", attrs)],
