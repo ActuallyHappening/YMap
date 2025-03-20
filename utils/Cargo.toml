@@ -1,0 +1,20 @@
+[package]
+name = "utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+camino = "1.1.9"
+time = { version = "0.3.40", features = ["local-offset", "macros"] }
+tracing = "0.1.41"
+tracing-error = "0.2.1"
+tracing-subscriber = { version = "0.3.19", features = [
+    "fmt",
+    "env-filter",
+    "time",
+] }
+clap = { version = "4.5.31", features = ["derive"], optional = true }
+color-eyre = "0.6.3"
+extension-traits = "2.0.0"
+rustls = { version = "0.23.23", features = ["aws-lc-rs"] }
+thiserror = "2.0.11"

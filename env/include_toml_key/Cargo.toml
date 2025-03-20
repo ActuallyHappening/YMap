@@ -1,0 +1,17 @@
+[package]
+name = "include_toml_key"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+load-through-env = []
+
+[lib]
+proc-macro = true
+
+[dependencies]
+camino = "1.1.9"
+proc-macro2 = "1.0.93"
+quote = "1.0.38"
+syn = "2.0.98"
+toml = "0.8.19"

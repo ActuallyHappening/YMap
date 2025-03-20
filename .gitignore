@@ -1,0 +1,13 @@
+/*
+
+# Rust project folders
+!server
+!utils
+!web
+!env
+
+# Filesk
+!.gitignore
+!.rustfmt.toml
+!Cargo.toml
+!Cargo.lock

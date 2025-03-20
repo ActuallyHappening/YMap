@@ -1,0 +1,38 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+prod = ["web/prod"]
+
+[dependencies.web]
+workspace = true
+default-features = false
+features = ["ssr"]
+
+[dependencies]
+env = { workspace = true, default-features = false }
+utils = { workspace = true, default-features = false }
+
+leptos = { version = "0.7", features = ["ssr"] }
+leptos_router = { version = "0.7.0" }
+axum = { version = "0.7" }
+leptos_axum = { version = "0.7.0" }
+tokio = { version = "1", features = ["full", "rt-multi-thread"] }
+tower = { version = "0.4" }
+tower-http = { version = "0.5", features = ["decompression-full", "fs"] }
+http = "1"
+camino = "1.1.9"
+axum-server = { version = "0.7.1", features = ["tls-rustls"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt"] }
+rustls = { version = "0.23.21", default-features = false }
+toml = "0.8.19"
+color-eyre = "0.6.3"
+thiserror = "1"
+
+[dependencies.axum-csp]
+git = "https://github.com/yaleman/axum-csp.git"
+# Uses axum 0.7 instead of newer 0.8, upgrade once leptos does
+rev = "13f0168e8cc5fc8229bdd9d9a56ae216b79bcb63"

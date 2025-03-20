@@ -1,0 +1,12 @@
+[package]
+name = "env"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+db = []
+db-root-creds = []
+
+[dependencies]
+cfg-if = "1.0.0"
+include_toml_key = { workspace = true }
