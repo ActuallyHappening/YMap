@@ -6,8 +6,9 @@
 !web
 !env
 
-# Filesk
+# Files
 !.gitignore
 !.rustfmt.toml
 !Cargo.toml
 !Cargo.lock
+!.cargo

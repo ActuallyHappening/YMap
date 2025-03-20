@@ -17,12 +17,8 @@ impl Cli {
 
 #[derive(clap::Subcommand, Debug, Clone)]
 pub enum Command {
-  Show {
+  Serve {
     #[arg(last = true, action = ArgAction::Set)]
     extra_args: Vec<String>,
-  },
-  Publish {
-    #[arg(long)]
-    prod: bool,
   },
 }

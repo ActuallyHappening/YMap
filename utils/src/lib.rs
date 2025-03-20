@@ -4,7 +4,11 @@ pub mod prelude {
 
   pub use color_eyre;
   pub use thiserror;
+  pub use tokio;
   pub use tracing_subscriber;
+
+  #[cfg(feature = "cli")]
+  pub use clap::{self, Parser};
 }
 
 pub mod tracing;

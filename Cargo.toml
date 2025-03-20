@@ -1,6 +1,12 @@
 [workspace]
-version = "0.1.0"
-members = ["web", "server", "utils", "env", "env/include_toml_key"]
+members = [
+    "web",
+    "server",
+    "server/cli",
+    "utils",
+    "env",
+    "env/include_toml_key",
+]
 resolver = "3"
 
 [workspace.dependencies]
@@ -9,6 +15,7 @@ web = { path = "web", default-features = false }
 server = { path = "server", default-features = false }
 env = { path = "env", default-features = false }
 include_toml_key = { path = "env/include_toml_key", default-features = false }
+xserver = { path = "server/cli", default-features = false }
 
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]
@@ -36,7 +43,7 @@ debug-assertions = true
 name = "ymap"
 bin-package = "server"
 bin-target = "server"
-lib-package = "app"
+lib-package = "web"
 
 # blocked by https://github.com/rust-lang/rustc_codegen_cranelift/issues/1520
 # bin-cargo-args = [

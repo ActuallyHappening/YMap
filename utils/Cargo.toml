@@ -3,6 +3,9 @@ name = "utils"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+cli = ["dep:clap", "dep:tokio"]
+
 [dependencies]
 camino = "1.1.9"
 time = { version = "0.3.40", features = ["local-offset", "macros"] }
@@ -18,3 +21,5 @@ color-eyre = "0.6.3"
 extension-traits = "2.0.0"
 rustls = { version = "0.23.23", features = ["aws-lc-rs"] }
 thiserror = "2.0.11"
+tokio = { version = "1.43.0", features = ["full"], optional = true }
+aws-lc-rs = { version = "*", features = ["bindgen"] }
