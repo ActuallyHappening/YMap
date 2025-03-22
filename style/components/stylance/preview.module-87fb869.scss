@@ -1,0 +1,22 @@
+.preview-87fb869 {
+  margin: 1rem;
+  padding: 1rem;
+  max-width: var(--listing-max-width);
+
+  border: 1px solid var(--colour-black);
+  border-radius: var(--border-radius);
+
+  user-select: none;
+  cursor: pointer;
+
+  & > * {
+    margin: 0.5rem;
+  }
+
+  & > h3 {
+    user-select: text;
+
+    font-size: 1rem;
+    font-weight: bold;
+  }
+}

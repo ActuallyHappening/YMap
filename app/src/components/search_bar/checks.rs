@@ -1,0 +1,1 @@
+../../../xtask/src/checks/search_bar.rs

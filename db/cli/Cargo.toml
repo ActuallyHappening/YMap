@@ -1,0 +1,8 @@
+[package]
+edition = "2024"
+version = "0.1.0"
+name = "xdb"
+
+[dependencies]
+utils = { workspace = true, features = ["cli-support"] }
+db = { workspace = true, features = ["root-creds"], default-features = false }

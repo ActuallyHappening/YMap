@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 db = []
 db-root-creds = []
+load-through-env = ["include_toml_key/load-through-env"]
 
 [dependencies]
 cfg-if = "1.0.0"

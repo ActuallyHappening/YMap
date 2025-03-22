@@ -1,0 +1,79 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["hydrate"]
+hydrate = ["leptos/hydrate", "leptoaster/hydrate"]
+ssr = [
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptos-use/ssr",
+    "leptos-use/axum",
+    "dep:axum",
+    "leptoaster/ssr",
+]
+prod = []
+
+[dependencies.db]
+workspace = true
+default-features = false
+
+[package.metadata.stylance]
+# output_file = "../style/components-bundled.scss"
+output_dir = "/home/ah/Desktop/JYD/style/components/"
+folders = ["./src/components"]
+
+[dependencies]
+env = { workspace = true, features = [] }
+routes.workspace = true
+leptos = { version = "0.7.0", features = ["delegation"] }
+leptos_router = { version = "0.7.0" }
+console_error_panic_hook = "0.1"
+leptos_meta = { version = "0.7.0" }
+wasm-bindgen = "=0.2.100"
+camino = "1.1.9"
+tracing = "0.1.41"
+serde = { version = "1.0.217", features = ["derive"] }
+surrealdb.workspace = true
+reactive_stores = "0.1.3"
+tracing-wasm = "0.2.1"
+leptos-use = { version = "0.15.5", features = ["use_window_scroll"] }
+stylance = "0.5.3"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+strum = { version = "0.26.3", features = ["derive"] }
+extension-traits = "2.0.0"
+send_wrapper = "0.6.0"
+convert_case = "0.7.1"
+static-toml = "1.3.0"
+web-sys = { version = "0.3.77", features = [
+    "HtmlDocument",
+    "Location",
+    "Window",
+] }
+thiserror = "2.0.11"
+wasm-bindgen-futures = "0.4.50"
+js-sys = "0.3.77"
+axum = { version = "0.7.9", optional = true, features = ["macros"] }
+serde-wasm-bindgen = "0.6.5"
+url = "2.5.4"
+codee = { version = "0.2.0", features = [
+    "json_serde",
+    "base64",
+    "msgpack_serde",
+] } # update in sync with leptos-use
+icondata = { version = "0.5.0", default-features = false, features = [
+    "font-awesome",
+    "ant-design-icons",
+    "box-icons",
+    "material-design-icons",
+] }
+nonzero_lit = "0.1.2"
+color-eyre = "0.6.3"
+serde_json = "1.0.139"
+email_address = "0.2.9"
+leptoaster = "0.2.1"

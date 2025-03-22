@@ -1,7 +1,15 @@
 mod prelude {
   #![allow(unused_imports)]
 
-  pub(crate) use utils::prelude::*;
+  pub(crate) use crate::errors::*;
+  pub(crate) use tracing::*;
+}
+
+mod errors {
+  pub type Error = color_eyre::Report;
+  pub type Result<T> = core::result::Result<T, Error>;
+
+  pub use color_eyre::eyre::Context as _;
 }
 
 // mod api;
@@ -12,9 +20,22 @@ pub use main::main;
 mod main {
   use crate::prelude::*;
 
+  use app::server_state::ServerAxumState;
   use axum::middleware::from_fn;
+  use db::{Db, auth};
+  use leptos::prelude::provide_context;
+  use utils::prelude::bail;
 
-  fn check_site_dir(site_dir: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
+  async fn connect_to_db() -> Result<Db<auth::Root>> {
+    db::Db::connect_wss()
+      .root(db::creds::Root::new())
+      .finish()
+      .await
+      .inspect_err(|err| error!("Error connecting to db (debug error impl): {err:?}"))
+      .wrap_err("Couldn't connect to db")
+  }
+
+  fn check_site_dir(site_dir: &camino::Utf8PathBuf) -> Result<()> {
     debug!(?site_dir);
     if !site_dir.exists() {
       bail!("Site directory does not exist");
@@ -25,7 +46,7 @@ mod main {
     Ok(())
   }
 
-  pub async fn main() -> color_eyre::Result<()> {
+  pub async fn main() -> Result<()> {
     use axum::Router;
     use leptos_axum::{LeptosRoutes, generate_route_list};
 
@@ -37,9 +58,30 @@ mod main {
     let addr = conf.leptos_options.site_addr;
     let leptos_options = conf.leptos_options;
     // Generate the list of routes in your Leptos App
-    let routes = generate_route_list(web::App);
+    let routes = generate_route_list(app::App);
     let site_dir = camino::Utf8PathBuf::from(leptos_options.site_root.as_ref());
     check_site_dir(&site_dir)?;
+
+    let db = connect_to_db().await?;
+    let state = {
+      let stripe_api_key = env::stripe::AMPIDEXTEROUS_API_KEY;
+      if stripe_api_key.contains("prod") {
+        info!("Server is using a live Stripe API key for server fns");
+        #[cfg(not(feature = "prod"))]
+        color_eyre::eyre::bail!("Shouldn't be using a live Stripe API key if not in production!!");
+      } else {
+        info!(
+          ?stripe_api_key,
+          "Server is using a test Stripe API key for server fns"
+        );
+      }
+      app::server_state::ServerAxumState {
+        leptos_options: leptos_options.clone(),
+        db: db.clone(),
+        stripe: payments::server::ServerStripeController::new(stripe_api_key.into(), db),
+      }
+    };
+    let state2 = state.clone();
 
     let dev_serve = std::env::var("JYD_DEV_SERVE").ok().is_some();
     let serve_dir = match dev_serve {
@@ -55,16 +97,16 @@ mod main {
       }
     };
 
-    let app = Router::new()
+    let app = Router::<ServerAxumState>::new()
       // .nest(TopLevelRoutes::Api.get_path().as_ref(), api::router())
       // .with_state(api::ApiState::init().await?)
-      .leptos_routes(&leptos_options, routes, {
+      .leptos_routes_with_context(&state, routes, move || provide_context(state2.clone()), {
         let leptos_options = leptos_options.clone();
-        move || web::shell(leptos_options.clone())
+        move || app::shell(leptos_options.clone())
       })
+      .with_state(state)
       .fallback_service(serve_dir)
-      .layer(from_fn(crate::csp::csp_headers))
-      .with_state(leptos_options);
+      .layer(from_fn(crate::csp::csp_headers));
 
     let certs = crate::https::Certs::get().wrap_err("Error getting certs")?;
     match certs {

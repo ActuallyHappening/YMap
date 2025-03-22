@@ -1,0 +1,17 @@
+[package]
+name = "xapp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+utils = { workspace = true, features = ["cli-support"] }
+grass = "0.13.4"
+
+# stylance-cli = "0.5.4"
+# stylance-core = "0.5.4"
+# [dependencies.stylance-cli]
+# path = "/home/ah/Desktop/stylance-rs/stylance-cli"
+# [dependencies.stylance-core]
+# path = "/home/ah/Desktop/stylance-rs/internal/stylance-core"
+stylance-cli = { git = "https://github.com/ActuallyHappening/stylance-rs.git", branch = "tracing-eyre-upgrade" }
+stylance-core = { git = "https://github.com/ActuallyHappening/stylance-rs.git", branch = "tracing-eyre-upgrade" }

@@ -1,0 +1,28 @@
+.footer-887877b {
+  align-items: stretch;
+
+  .upper-887877b {
+    flex-direction: row;
+    margin-bottom: 0.1rem;
+
+    & > .section-887877b {
+      flex-direction: column;
+      align-self: flex-start;
+
+      & > h3 {
+      }
+
+      & > .socials-887877b {
+        flex-direction: row;
+
+        & > * {
+          margin: 0.1rem;
+        }
+      }
+    }
+  }
+
+  .lower-887877b {
+    flex-direction: row;
+  }
+}

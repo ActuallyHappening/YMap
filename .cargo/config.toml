@@ -5,8 +5,11 @@ r = [
   # "--config",
   # "profile.dev.codegen-backend = \"cranelift\"",
 ]
+xdb = ["r", "-p", "xdb", "--"]
 xserver = ["r", "-p", "xserver", "--"]
 xapp = ["r", "-p", "xapp", "--"]
+xdiscord = ["r", "-p", "xdiscord", "--"]
+xpueue = ["r", "-p", "xpueue", "--"]
 t = ["test-all-features"]
 
 

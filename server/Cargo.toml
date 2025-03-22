@@ -4,16 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-prod = ["web/prod"]
+prod = ["app/prod"]
 
-[dependencies.web]
+[dependencies.app]
 workspace = true
 default-features = false
 features = ["ssr"]
 
 [dependencies]
-env = { workspace = true, default-features = false }
+env = { workspace = true, features = [], default-features = false }
 utils = { workspace = true, default-features = false }
+db = { workspace = true, features = ["root-creds"], default-features = false }
+routes = { workspace = true, default-features = false }
 
 leptos = { version = "0.7", features = ["ssr"] }
 leptos_router = { version = "0.7.0" }

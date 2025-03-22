@@ -1,0 +1,19 @@
+html {
+  --listing-max-width: 24rem;
+}
+
+.listing-parent-87bd2e8 {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+
+  /* TODO: transitions for drop-shadow */
+  /* transition-duration: 1.3s;
+  transition-property: filter;
+  transition-timing-function: ease; */
+  transition: filter 250ms ease;
+  filter: none;
+  & :hover {
+    filter: drop-shadow(4px 4px 5px var(--section-primary));
+  }
+}

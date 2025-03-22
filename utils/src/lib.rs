@@ -1,18 +1,6 @@
-pub mod prelude {
-  pub use color_eyre::eyre::{WrapErr, bail, eyre};
-  pub use tracing::{debug, error, info, trace, warn};
+pub mod prelude;
 
-  pub use color_eyre;
-  pub use thiserror;
-  pub use tokio;
-  pub use tracing_subscriber;
-
-  #[cfg(feature = "cli")]
-  pub use clap::{self, Parser};
-}
-
-pub mod tracing;
-
+#[cfg(feature = "cli-support")]
 pub fn install_crypto() -> color_eyre::Result<()> {
   use crate::prelude::*;
 
@@ -20,3 +8,10 @@ pub fn install_crypto() -> color_eyre::Result<()> {
     .install_default()
     .map_err(|_| eyre!("Couldn't install aws-lc-rs default crypto provider"))
 }
+
+pub mod background;
+pub mod cmds;
+pub mod paths;
+pub mod project_paths;
+pub mod tools;
+pub mod tracing;

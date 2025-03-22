@@ -1,0 +1,28 @@
+.footer {
+  align-items: stretch;
+
+  .upper {
+    flex-direction: row;
+    margin-bottom: 0.1rem;
+
+    & > .section {
+      flex-direction: column;
+      align-self: flex-start;
+
+      & > h3 {
+      }
+
+      & > .socials {
+        flex-direction: row;
+
+        & > * {
+          margin: 0.1rem;
+        }
+      }
+    }
+  }
+
+  .lower {
+    flex-direction: row;
+  }
+}

@@ -1,0 +1,54 @@
+.split {
+  flex-direction: row;
+  align-items: stretch;
+
+  padding: 1rem;
+  $responsive-width: 742px;
+
+  /* @media screen and (max-width: $responsive-width) {
+    flex-wrap: wrap;
+  }
+
+  @media screen and (min-width: $responsive-width) {
+    flex-wrap: nowrap;
+  }
+
+  @mixin smaller {
+    @media screen and (max-width: $responsive-width) {
+      min-width: 95vw;
+    }
+
+    @media screen and (min-width: $responsive-width) {
+      max-width: 48vw;
+    }
+  } */
+
+  & > .left {
+    /* @include smaller;
+
+    @media screen and (max-width: $responsive-width) {
+      margin-bottom: 2rem;
+    } */
+  }
+  & > .right {
+    /* @include smaller; */
+
+    justify-content: center;
+    /* padding: 1rem; */
+  }
+}
+
+.line-items {
+  flex-direction: column;
+}
+
+.line-item {
+  flex-direction: row;
+
+  & > .quantity {
+    flex-direction: column;
+
+    & > button {
+    }
+  }
+}

@@ -1,0 +1,23 @@
+.price {
+  width: 100%;
+
+  font: var(--font-accent);
+  font-size: 2rem;
+  user-select: text;
+
+  display: block !important;
+
+  background-color: var(--colour-black);
+  border-radius: var(--border-radius);
+  border: 0.2rem solid var(--colour-brand-primary);
+
+  /* & > .preamble {
+    display: inline-block !important;
+    color: var(--colour-white);
+  } */
+
+  & > .number {
+    display: inline-block !important;
+    color: var(--colour-accent-red);
+  }
+}

@@ -1,0 +1,39 @@
+[package]
+name = "db"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+root-creds = ["env/db-root-creds"]
+
+[dependencies]
+env = { workspace = true, features = ["db"] }
+routes.workspace = true
+convert_case = "0.7.1"
+extension-traits = "2.0.0"
+serde = "1.0.217"
+surrealdb.workspace = true
+url = { version = "2.5.4", features = ["serde"] }
+tracing = "0.1.41"
+strum = { version = "0.26.3", features = ["derive"] }
+tokio = "1.43.0"
+time = { version = "0.3.37", features = ["macros", "local-offset", "serde"] }
+thiserror = "2.0.11"
+email_address = "0.2.9"
+nonzero_lit = "0.1.2"
+camino = "1.1.9"
+tokio-stream = "0.1.17"
+async-stream = "0.3.6"
+
+[[test]]
+name = "orders"
+required-features = ["root-creds"]
+
+[[test]]
+name = "reviews"
+required-features = ["root-creds"]
+
+[dev-dependencies]
+color-eyre = "0.6.3"
+serde_json = "1.0.139"
+utils = { workspace = true, features = ["cli-support"] }

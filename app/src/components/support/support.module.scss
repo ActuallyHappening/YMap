@@ -1,0 +1,19 @@
+.support {
+  & > h1 {
+  }
+  & > p > a {
+    display: inline-block;
+  }
+
+  & > .form {
+    & > input,
+    textarea,
+    select {
+      width: 100%;
+
+      & :invalid {
+        background-color: red;
+      }
+    }
+  }
+}

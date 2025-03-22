@@ -1,0 +1,25 @@
+.div {
+  justify-content: center;
+}
+
+.policy-list > li > a {
+  &:not(:hover) {
+    color: var(--secondary);
+  }
+
+  &:hover {
+    color: var(--accent-secondary);
+  }
+}
+
+.parent {
+  --policies-back-height: 36px;
+
+  & > #policies-back-button {
+    align-self: flex-start;
+    padding-left: 3rem;
+
+    position: sticky;
+    height: var(--policies-back-height);
+  }
+}

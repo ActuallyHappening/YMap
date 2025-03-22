@@ -1,0 +1,62 @@
+/* @use "../../../app/src/components/store/store.shared.scss" as store; */
+
+.div {
+  padding: 1rem;
+
+  h1 {
+    color: var(--text-primary);
+    font-size: var(--size-h1);
+  }
+  & > .split {
+    flex-direction: row;
+    align-items: stretch;
+
+    padding: 1rem;
+    $responsive-width: 742px;
+
+    @media screen and (max-width: $responsive-width) {
+      flex-wrap: wrap;
+    }
+
+    @media screen and (min-width: $responsive-width) {
+      flex-wrap: nowrap;
+    }
+
+    @mixin smaller {
+      @media screen and (max-width: $responsive-width) {
+        min-width: 95vw;
+      }
+
+      @media screen and (min-width: $responsive-width) {
+        max-width: 48vw;
+      }
+    }
+
+    & > .left {
+      @include smaller;
+
+      /* & > img {
+        max-width: 48vw;
+      } */
+
+      @media screen and (max-width: $responsive-width) {
+        margin-bottom: 2rem;
+      }
+    }
+    & > .right {
+      @include smaller;
+
+      justify-content: center;
+      padding: 1rem;
+
+      & > .brand {
+        align-items: start;
+        width: 100%;
+
+        & > .brand {
+          height: 7rem;
+        }
+      }
+    }
+  }
+}

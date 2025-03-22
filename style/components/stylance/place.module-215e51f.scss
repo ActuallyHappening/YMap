@@ -1,0 +1,19 @@
+.review-215e51f {
+  & > h1 {
+  }
+  & > p > a {
+    display: inline-block;
+  }
+
+  & > .form-215e51f {
+    & > input,
+    textarea,
+    select {
+      width: 100%;
+
+      & :invalid {
+        background-color: red;
+      }
+    }
+  }
+}

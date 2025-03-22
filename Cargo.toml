@@ -1,21 +1,32 @@
 [workspace]
 members = [
-    "web",
-    "server",
-    "server/cli",
-    "utils",
-    "env",
-    "env/include_toml_key",
+  "server",
+  "server/cli",
+  "app",
+  "app/cli",
+  "db",
+  "db/cli",
+  "routes",
+  "env",
+  "env/include_toml_key",
+  "utils",
 ]
 resolver = "3"
 
 [workspace.dependencies]
-utils = { path = "utils", default-features = false }
-web = { path = "web", default-features = false }
-server = { path = "server", default-features = false }
 env = { path = "env", default-features = false }
+utils = { path = "utils", default-features = false }
+routes = { path = "routes", default-features = false }
+db = { path = "db", default-features = false }
+app = { path = "app", default-features = false }
 include_toml_key = { path = "env/include_toml_key", default-features = false }
+stripe-js = { path = "stripe-js", default-features = false }
+
+xdiscord = { path = "discord/cli", default-features = false }
 xserver = { path = "server/cli", default-features = false }
+xdb = { path = "db/cli", default-features = false }
+
+surrealdb = { version = "2.1.4", features = ["protocol-http"] }
 
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]
@@ -38,12 +49,11 @@ opt-level = 's'
 # debug = "line-tables-only"
 debug-assertions = true
 
-
 [[workspace.metadata.leptos]]
-name = "ymap"
+name = "jyd-website"
 bin-package = "server"
 bin-target = "server"
-lib-package = "web"
+lib-package = "app"
 
 # blocked by https://github.com/rust-lang/rustc_codegen_cranelift/issues/1520
 # bin-cargo-args = [
@@ -53,7 +63,7 @@ lib-package = "web"
 # ]
 
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "ymap"
+output-name = "jyd-website"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"

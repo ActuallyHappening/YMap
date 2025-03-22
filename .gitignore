@@ -1,14 +1,14 @@
 /*
 
-# Rust project folders
-!server
-!utils
-!web
-!env
-
-# Files
-!.gitignore
 !.rustfmt.toml
 !Cargo.toml
 !Cargo.lock
 !.cargo
+
+!app
+!db
+!env
+!routes
+!server
+!style
+!utils

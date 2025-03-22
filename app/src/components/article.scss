@@ -1,0 +1,26 @@
+/* Useful for .md imported HTML formatting */
+
+.article {
+  overflow-y: scroll;
+  display: block !important;
+
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  & > p,
+  & > h1,
+  & > h2,
+  & > h3,
+  & > strong {
+    display: block !important;
+  }
+
+  & > p {
+    text-align: justify;
+    margin-top: 1rem;
+
+    & > a {
+      display: inline-block !important;
+    }
+  }
+}

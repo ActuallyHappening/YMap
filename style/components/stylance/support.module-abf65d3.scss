@@ -1,0 +1,19 @@
+.support-abf65d3 {
+  & > h1 {
+  }
+  & > p > a {
+    display: inline-block;
+  }
+
+  & > .form-abf65d3 {
+    & > input,
+    textarea,
+    select {
+      width: 100%;
+
+      & :invalid {
+        background-color: red;
+      }
+    }
+  }
+}

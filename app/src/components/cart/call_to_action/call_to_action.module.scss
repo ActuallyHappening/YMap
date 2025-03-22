@@ -1,0 +1,11 @@
+.btn {
+  background-color: var(--colour-brand-primary);
+  border-radius: var(--border-radius);
+  border: var(--border-width) solid var(--colour-black);
+
+  padding: 0.2rem;
+  width: 100%;
+
+  font-size: 2rem;
+  font-family: var(--font-accent);
+}
