@@ -1,0 +1,109 @@
+@layer baseline-resets;
+@layer aggressive-resets;
+@layer standard-colours, hovered-colours, brand-themed;
+@layer baseline-resets {
+  /* Set core body defaults */
+  body {
+    min-height: 100vh;
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    line-height: 1.5;
+  }
+  /* A elements that don't have a class get default styles */
+  a:not([class]) {
+    text-decoration-skip-ink: auto;
+  }
+  /* Make images easier to work with */
+  img {
+    max-width: 100%;
+    display: block;
+  }
+  /* Remove all animations and transitions for people that prefer not to see them */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+html {
+  --colour-black: black;
+  --colour-white: white;
+  --colour-brand-primary: #ff69b4;
+  --colour-accent-red: #ff0000;
+  --colour-background: var(--colour-white);
+  --colour-text-black: var(--colour-black);
+  --colour-link-black: var(--color-text-black);
+  --colour-link-black-hovered: var(--colour-brand-primary);
+  --colour-link-black-current: var(--colour-brand-primary);
+  --border-radius: 0.5rem;
+  --border-width: 0.2rem;
+  --padding: 0.2rem;
+  --margin: 0.2rem;
+  --size-h1: 3rem;
+  --icon-width: 2rem;
+  --font-standard: "League Spartan";
+  --font-accent: "Archivo Black";
+}
+
+@layer standard-colour {
+  hr {
+    width: 100%;
+    border-top: 1px solid var(--colour-black);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  html,
+  body {
+    background-color: var(--colour-background);
+  }
+  html,
+  body,
+  p,
+  li,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span {
+    font-family: var(--font-standard);
+    color: var(--colour-text-black);
+  }
+}
+@layer hovered-colours {
+  a {
+    font-family: var(--font-standard);
+  }
+  a:not(:hover) {
+    color: var(--colour-link-black) !important;
+  }
+  a:hover {
+    color: var(--colour-link-black-hovered) !important;
+  }
+  a[aria-current=page] {
+    color: var(--colour-link-black-current) !important;
+  }
+}
+@layer brand-themed {
+  * {
+    border-radius: var(--border-radius);
+    border: 0px solid black;
+  }
+  button {
+    padding: var(--padding);
+    margin: var(--margin);
+  }
+  h1 {
+    font-size: var(--size-h1);
+  }
+  input,
+  textarea {
+    outline: none;
+  }
+}
+
+/*# sourceMappingURL=data:application/json;charset=utf-8,%7B%22version%22:3,%22sourceRoot%22:%22%22,%22sources%22:%5B%22../../styles/prio.scss%22,%22../../styles/reset.scss%22,%22../../styles/brand.scss%22%5D,%22names%22:%5B%5D,%22mappings%22:%22AAGA;AACA;AACA;ACLA;AACI;EACA;IACI;IACA;IACA;IAEA;;AAGJ;EACA;IACI;;AAGJ;EACA;IACI;IACA;;AAGJ;EACA;IACI;MACI;MACA;MACA;MACA;;;;AC3BZ;EACI;EACA;EACA;EACA;EAEA;EACA;EACA;EACA;EACA;EAEA;EACA;EACA;EACA;EACA;EACA;EAEA;EACA;;;AAGJ;EACI;IACI;IACA;IACA;IACA;;EAGJ;AAAA;IAEI;;EAGJ;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;IAWI;IACA;;;AAIR;EACI;IACI;;EAEA;IACI;;EAGJ;IACI;;EAGJ;IACI;;;AAKZ;EACI;IACI;IACA;;EAGJ;IACI;IACA;;EAGJ;IACI;;EAGJ;AAAA;IAEI%22,%22file%22:%22index.css%22%7D */

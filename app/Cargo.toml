@@ -9,3 +9,4 @@ version = "0.1.0"
 leptos_meta = { version = "0.7.8", features = ["tracing"] }
 leptos = { version = "0.7.8", features = ["csr", "tracing"] }
 leptos-use = { version = "0.15.7", features = [] }
+utils = { workspace = true }

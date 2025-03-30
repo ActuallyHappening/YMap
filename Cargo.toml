@@ -2,3 +2,6 @@
 resolver = "3"
 members = ["app", "utils"]
 
+
+[workspace.dependencies]
+utils = { path = "./utils" }

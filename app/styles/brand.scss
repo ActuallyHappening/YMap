@@ -1,0 +1,90 @@
+html {
+    --colour-black: black;
+    --colour-white: white;
+    --colour-brand-primary: #ff69b4;
+    --colour-accent-red: #ff0000;
+
+    --colour-background: var(--colour-white);
+    --colour-text-black: var(--colour-black);
+    --colour-link-black: var(--color-text-black);
+    --colour-link-black-hovered: var(--colour-brand-primary);
+    --colour-link-black-current: var(--colour-brand-primary);
+
+    --border-radius: 0.5rem;
+    --border-width: 0.2rem;
+    --padding: 0.2rem;
+    --margin: 0.2rem;
+    --size-h1: 3rem;
+    --icon-width: 2rem;
+
+    --font-standard: "League Spartan";
+    --font-accent: "Archivo Black";
+}
+
+@layer standard-colour {
+    hr {
+        width: 100%;
+        border-top: 1px solid var(--colour-black);
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    html,
+    body {
+        background-color: var(--colour-background);
+    }
+
+    html,
+    body,
+    p,
+    li,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    span {
+        font-family: var(--font-standard);
+        color: var(--colour-text-black);
+    }
+}
+
+@layer hovered-colours {
+    a {
+        font-family: var(--font-standard);
+
+        &:not(:hover) {
+            color: var(--colour-link-black) !important;
+        }
+
+        &:hover {
+            color: var(--colour-link-black-hovered) !important;
+        }
+
+        &[aria-current="page"] {
+            color: var(--colour-link-black-current) !important;
+        }
+    }
+}
+
+@layer brand-themed {
+    * {
+        border-radius: var(--border-radius);
+        border: 0px solid black;
+    }
+
+    button {
+        padding: var(--padding);
+        margin: var(--margin);
+    }
+
+    h1 {
+        font-size: var(--size-h1);
+    }
+
+    input,
+    textarea {
+        outline: none;
+    }
+}

@@ -1,0 +1,6 @@
+// later defined layers get precedence
+// according to spec
+
+@layer baseline-resets;
+@layer aggressive-resets;
+@layer standard-colours, hovered-colours, brand-themed; // brand.scss

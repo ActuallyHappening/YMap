@@ -65,6 +65,7 @@ dependencies = [
  "leptos",
  "leptos-use",
  "leptos_meta",
+ "utils",
 ]
 
 [[package]]
