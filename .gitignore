@@ -1,0 +1,14 @@
+/*
+
+!.cargo
+!app
+!utils
+
+!.env.toml
+!.gitignore
+!Cargo.lock
+!Cargo.toml
+!CHANGELOG.md
+!README.md
+!rustfmt.toml
+!TODO.md

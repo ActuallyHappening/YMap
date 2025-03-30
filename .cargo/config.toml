@@ -1,0 +1,36 @@
+[alias]
+r = [
+  "run",
+  # "-Zcodegen-backend",
+  # "--config",
+  # "profile.dev.codegen-backend = \"cranelift\"",
+]
+xdb = ["r", "-p", "xdb", "--"]
+xserver = ["r", "-p", "xserver", "--"]
+xapp = ["r", "-p", "xapp", "--"]
+xdiscord = ["r", "-p", "xdiscord", "--"]
+xpueue = ["r", "-p", "xpueue", "--"]
+t = ["test-all-features"]
+
+
+[term]
+color = "always"
+
+[build]
+# rustflags = ['--cfg=getrandom_backend="wasm_js"']
+
+# very nice, I can't believe its this simpl!
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg=getrandom_backend=\"wasm_js\""]
+
+[target.x86_64-unknown-linux-gnu]
+linker = "/usr/bin/clang"
+rustflags = [
+  "-C",
+  "link-arg=--ld-path=/usr/bin/mold",
+  "-Csplit-debuginfo=unpacked",
+]
+
+# # lld must be installed! Run: `brew install lld`
+# [target.aarch64-apple-darwin]
+# rustflags = ["-C", "link-arg=-fuse-ld=/opt/homebrew/opt/lld/bin/ld64.lld"]
