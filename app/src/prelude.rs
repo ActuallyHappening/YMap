@@ -1,2 +1,2 @@
 pub use leptos::prelude::*;
-pub use utils::*;
+pub use utils::prelude::*;
