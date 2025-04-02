@@ -5,7 +5,22 @@ edition = "2024"
 
 [dependencies]
 color-eyre = "0.6.3"
-time = { version = "0.3.41", features = ["local-offset", "macros"] }
 tracing = "0.1.41"
 tracing-error = "0.2.1"
-tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter", "time"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+time = { version = "0.3.41", features = ["local-offset", "macros"] }
+tracing-subscriber = { version = "0.3.19", features = [
+    "fmt",
+    "env-filter",
+    "time",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
+web-sys = { version = "0.3.77", features = [
+    "HtmlDocument",
+    "Location",
+    "Window",
+] }
+tracing-wasm = "0.2.1"

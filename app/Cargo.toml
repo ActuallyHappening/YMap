@@ -11,3 +11,4 @@ leptos = { version = "0.7.8", features = ["csr", "tracing"] }
 leptos-use = { version = "0.15.7", features = [] }
 utils = { workspace = true }
 color-eyre = "0.6.3"
+console_error_panic_hook = "0.1.7"
