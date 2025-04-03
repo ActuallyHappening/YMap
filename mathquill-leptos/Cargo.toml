@@ -1,0 +1,13 @@
+[package]
+name = "mathquill-leptos"
+version = "0.1.0"
+edition = "2024"
+description = "A mathquill integration layer for Leptos"
+repository = "https://github.com/ActuallyHappening/YMap"
+keywords = ["math", "mathquill", "leptos"]
+
+[dependencies]
+leptos = "0.7.8"
+leptos_meta = "0.7.8"
+thiserror = "2.0.12"
+url = "2.5.4"

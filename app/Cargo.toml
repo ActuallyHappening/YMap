@@ -12,3 +12,6 @@ leptos-use = { version = "0.15.7", features = [] }
 utils = { workspace = true }
 color-eyre = "0.6.3"
 console_error_panic_hook = "0.1.7"
+surrealdb = "2.2.1"
+tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1.0.219", features = ["derive"] }
