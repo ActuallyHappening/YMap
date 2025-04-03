@@ -135,6 +135,7 @@ dependencies = [
  "leptos",
  "leptos-use",
  "leptos_meta",
+ "mathquill-leptos",
  "serde",
  "surrealdb",
  "tokio",
@@ -2357,13 +2358,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "mathquill-js-sys"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "mathquill-leptos"
 version = "0.1.0"
 dependencies = [
  "leptos",
  "leptos_meta",
+ "mathquill-js-sys",
  "thiserror 2.0.12",
+ "tracing",
  "url",
+ "web-sys",
 ]
 
 [[package]]

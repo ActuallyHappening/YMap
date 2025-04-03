@@ -2,6 +2,8 @@
 
 pub mod prelude {
   pub(crate) use leptos::prelude::*;
+  #[allow(unused_imports)]
+  pub(crate) use tracing::{debug, error, info, trace, warn};
   pub(crate) use url::Url;
 
   pub(crate) use crate::errors::Error;
@@ -30,6 +32,9 @@ pub mod assets {
 
   /// The absolute base path for assets to be loaded from the frontend,
   /// see [`AssetsBasePath::new`]
+  ///
+  /// It is best you use this API, because the mathquill .css file
+  /// imports from paths relative to itself
   pub struct AssetsBasePath(Url);
 
   impl AssetsBasePath {
@@ -126,6 +131,63 @@ pub mod components {
       .to_string();
     view! {
         <Link rel="stylesheet" href />
+    }
+  }
+
+  pub fn MathQuillField() -> impl IntoView {
+    let node_ref = NodeRef::new();
+    node_ref.on_load(|el: web_sys::HtmlSpanElement| {
+      let mathquill = crate::js::MathQuill::get_global_interface();
+      let field = mathquill.mount_field(&el, crate::js::Config::default());
+
+      let current = field.latex();
+      info!(?current, "MathQuillField mounted");
+    });
+    view! {
+        <span node_ref=node_ref />
+    }
+  }
+}
+
+mod js {
+  use crate::prelude::*;
+
+  use web_sys::wasm_bindgen::{JsCast as _, prelude::Closure};
+
+  pub struct MathQuill(mathquill_js_sys::MathQuill);
+
+  pub struct Config(mathquill_js_sys::Config);
+
+  impl Default for Config {
+    fn default() -> Self {
+      let closure: Closure<dyn FnMut()> = Closure::new(|| info!("Default editted!"));
+      let callback = Box::leak(Box::new(closure));
+      Self(mathquill_js_sys::Config {
+        space_behaves_like_tab: true,
+        handlers: mathquill_js_sys::Handlers {
+          edit: callback.as_ref().clone().unchecked_into(),
+        },
+      })
+    }
+  }
+
+  impl MathQuill {
+    pub fn get_global_interface() -> Self {
+      Self(mathquill_js_sys::MathQuill::getInterface(2))
+    }
+
+    pub fn mount_field(&self, html_element: &web_sys::HtmlElement, config: Config) -> MathField {
+      MathField(self.0.MathField(html_element, Some(config.0)))
+    }
+
+    // pub fn mount_static(&self, node_ref: &web_sys::HtmlEle)
+  }
+
+  pub struct MathField(mathquill_js_sys::MathField);
+
+  impl MathField {
+    pub(crate) fn latex(&self) -> String {
+      self.0.latex()
     }
   }
 }

@@ -1,7 +1,13 @@
 [workspace]
 resolver = "3"
-members = ["app", "mathquill-leptos", "utils"]
+members = [
+    "app",
+    "mathquill-leptos",
+    "mathquill-leptos/mathquill-js-sys",
+    "utils",
+]
 
 
 [workspace.dependencies]
 utils = { path = "./utils" }
+mathquill-leptos = { path = "./mathquill-leptos" }
