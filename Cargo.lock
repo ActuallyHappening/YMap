@@ -132,6 +132,7 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "console_error_panic_hook",
+ "getrandom 0.3.2",
  "leptos",
  "leptos-use",
  "leptos_meta",
@@ -139,6 +140,7 @@ dependencies = [
  "serde",
  "surrealdb",
  "tokio",
+ "url",
  "utils",
 ]
 
@@ -3527,9 +3529,9 @@ dependencies = [
 
 [[package]]
 name = "roaring"
-version = "0.10.11"
+version = "0.10.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db909850f4ff11a6f25c79d2577a331a44cbe915d49b4aa6ba393fc24e028673"
+checksum = "a652edd001c53df0b3f96a36a8dc93fce6866988efc16808235653c6bcac8bf2"
 dependencies = [
  "bytemuck",
  "byteorder",

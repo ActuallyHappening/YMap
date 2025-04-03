@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 utils = { workspace = true }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 mathquill-leptos = { workspace = true }
 leptos_meta = { version = "0.7.8", features = ["tracing"] }
 leptos = { version = "0.7.8", features = ["csr", "tracing"] }
@@ -14,5 +15,6 @@ leptos-use = { version = "0.15.7", features = [] }
 color-eyre = "0.6.3"
 console_error_panic_hook = "0.1.7"
 surrealdb = "2.2.1"
-tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.44.1", default-features = false, features = ["macros"] }
 serde = { version = "1.0.219", features = ["derive"] }
+url = "2.5.4"

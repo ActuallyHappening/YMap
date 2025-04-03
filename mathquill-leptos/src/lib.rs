@@ -35,20 +35,49 @@ pub mod assets {
   ///
   /// It is best you use this API, because the mathquill .css file
   /// imports from paths relative to itself
-  pub struct AssetsBasePath(Url);
+  #[derive(Debug, Clone)]
+  pub struct AssetsBasePath {
+    url: Url,
+    pub mathquill_dir_path: &'static str,
+  }
+
+  #[test]
+  fn assets_path_requires_trailing_slash() {
+    let bad = "https://demo.com/page";
+    let url = bad.parse().unwrap();
+    let _assets_dir = AssetsBasePath::new(url, "any").expect_err("Didn't reject no trailing slash");
+  }
 
   impl AssetsBasePath {
-    /// Must be absolute, e.g. https://your-domain.com/static/
-    pub fn new(url: Url) -> Result<Self, Error> {
+    /// Must be absolute with a trailing slash, e.g. https://your-domain.com/static/
+    pub fn new(url: Url, mathquill_dir_path: &'static str) -> Result<Self, Error> {
       if !url[url::Position::BeforePath..url::Position::AfterPath].ends_with('/') {
         Err(Error::UrlNotTrailingSlash(url))
       } else {
-        Ok(Self(url))
+        Ok(Self {
+          url,
+          mathquill_dir_path,
+        })
       }
     }
 
     pub fn into_inner(self) -> Url {
-      self.0
+      self.url
+    }
+
+    fn join(&self, path: &str) -> Result<AssetsBasePath, Error> {
+      self
+        .url
+        .join(path)
+        .map_err(|err| Error::CouldntJoinUrl {
+          orig: self.url.clone(),
+          path: path.to_owned(),
+          source: err,
+        })
+        .map(|url| Self {
+          url,
+          mathquill_dir_path: self.mathquill_dir_path,
+        })
     }
 
     pub fn jquery_path() -> &'static str {
@@ -56,14 +85,11 @@ pub mod assets {
     }
 
     pub fn jquery_js(&self) -> Result<Url, Error> {
-      self
-        .0
-        .join(AssetsBasePath::jquery_path())
-        .map_err(|err| Error::CouldntJoinUrl {
-          orig: self.0.clone(),
-          path: AssetsBasePath::jquery_path().to_string(),
-          source: err,
-        })
+      self.join(Self::jquery_path()).map(Self::into_inner)
+    }
+
+    pub fn mathquill_dir_path(&self) -> &'static str {
+      self.mathquill_dir_path
     }
 
     pub fn mathquill_css_path() -> &'static str {
@@ -72,13 +98,9 @@ pub mod assets {
 
     pub fn mathquill_css(&self) -> Result<Url, Error> {
       self
-        .0
-        .join(AssetsBasePath::mathquill_css_path())
-        .map_err(|err| Error::CouldntJoinUrl {
-          orig: self.0.clone(),
-          path: AssetsBasePath::mathquill_css_path().to_string(),
-          source: err,
-        })
+        .join(self.mathquill_dir_path())?
+        .join(Self::mathquill_css_path())
+        .map(Self::into_inner)
     }
 
     pub fn mathquill_js_path() -> &'static str {
@@ -87,67 +109,14 @@ pub mod assets {
 
     pub fn mathquill_js(&self) -> Result<Url, Error> {
       self
-        .0
-        .join(AssetsBasePath::mathquill_js_path())
-        .map_err(|err| Error::CouldntJoinUrl {
-          orig: self.0.clone(),
-          path: AssetsBasePath::mathquill_js_path().to_string(),
-          source: err,
-        })
+        .join(self.mathquill_dir_path())?
+        .join(Self::mathquill_js_path())
+        .map(Self::into_inner)
     }
   }
 }
 
-pub mod components {
-  use leptos_meta::{Link, Script};
-
-  use crate::{assets::AssetsBasePath, prelude::*};
-
-  /// Mathquill requires JQuery (idk why)
-  pub fn JQueryScript(assets_dir: AssetsBasePath) -> impl IntoView {
-    let src = assets_dir
-      .jquery_js()
-      .expect("Couldn't get jquery_js")
-      .to_string();
-    view! {
-        <Script src />
-    }
-  }
-
-  pub fn MathquillScript(assets_dir: AssetsBasePath) -> impl IntoView {
-    let src = assets_dir
-      .mathquill_js()
-      .expect("Couldn't get mathquill js")
-      .to_string();
-    view! {
-        <Script src />
-    }
-  }
-
-  pub fn MathquillCss(assets_dir: AssetsBasePath) -> impl IntoView {
-    let href = assets_dir
-      .mathquill_css()
-      .expect("Couldn't get mathquill css")
-      .to_string();
-    view! {
-        <Link rel="stylesheet" href />
-    }
-  }
-
-  pub fn MathQuillField() -> impl IntoView {
-    let node_ref = NodeRef::new();
-    node_ref.on_load(|el: web_sys::HtmlSpanElement| {
-      let mathquill = crate::js::MathQuill::get_global_interface();
-      let field = mathquill.mount_field(&el, crate::js::Config::default());
-
-      let current = field.latex();
-      info!(?current, "MathQuillField mounted");
-    });
-    view! {
-        <span node_ref=node_ref />
-    }
-  }
-}
+pub mod components;
 
 mod js {
   use crate::prelude::*;
