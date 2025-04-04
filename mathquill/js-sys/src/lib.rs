@@ -5,6 +5,7 @@ use builder::ObjectBuilder;
 use tracing::{debug, error, info, trace, warn};
 
 use wasm_bindgen::prelude::*;
+use web_sys::js_sys;
 
 mod builder;
 
@@ -16,6 +17,40 @@ unsafe extern "C" {
 
   #[wasm_bindgen(js_namespace = MathQuill)]
   pub fn getInterface(version: u8) -> MathQuill;
+}
+
+impl MathQuill {
+  /// Don't call on a static field, see [`MathQuill::get_static_field`]
+  pub fn get_field(&self, el: &web_sys::HtmlElement) -> Option<MathField> {
+    let api_as_fn: &js_sys::Function = self.unchecked_ref();
+    let res = api_as_fn.call1(&JsValue::NULL, el).unwrap();
+    if !res.is_truthy() {
+      return None;
+    }
+    if res.is_instance_of::<MathField>() {
+      return Some(res.unchecked_into());
+    } else {
+      warn!("Called `MathQuill(el)` on an element that was not a MathField (maybe a StaticField)");
+      return None;
+    }
+  }
+
+  /// Don't call on a mutable field, see [`MathQuill::get_field`]
+  pub fn get_static_field(&self, el: &web_sys::HtmlElement) -> Option<StaticMath> {
+    let api_as_fn: &js_sys::Function = self.unchecked_ref();
+    let res = api_as_fn.call1(&JsValue::NULL, el).unwrap();
+    if !res.is_truthy() {
+      return None;
+    }
+    if res.is_instance_of::<StaticMath>() {
+      return Some(res.unchecked_into());
+    } else {
+      warn!(
+        "Called `MathQuill(el)` on an element that was not a StaticMath (maybe a mutable MathField)"
+      );
+      return None;
+    }
+  }
 }
 
 /// Use [`Config::get_js_value`] to confirm options names
@@ -95,15 +130,6 @@ impl Handlers<MathField> {
 /// Mount
 #[wasm_bindgen]
 unsafe extern "C" {
-  pub type StaticMath;
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element
-  #[wasm_bindgen(method)]
-  pub fn StaticMath(
-    this: &MathQuill,
-    html_element: &web_sys::HtmlElement,
-    config: JsValue,
-  ) -> StaticMath;
-
   pub type MathField;
   /// https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element
   #[wasm_bindgen(method)]
@@ -112,6 +138,11 @@ unsafe extern "C" {
     html_element: &web_sys::HtmlElement,
     config: JsValue,
   ) -> MathField;
+
+  pub type StaticMath;
+  /// https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element
+  #[wasm_bindgen(method)]
+  pub fn StaticMath(this: &MathQuill, html_element: &web_sys::HtmlElement) -> StaticMath;
 }
 
 /// Syncing
