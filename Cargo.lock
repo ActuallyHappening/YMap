@@ -140,6 +140,7 @@ dependencies = [
  "serde",
  "surrealdb",
  "tokio",
+ "tracing",
  "url",
  "utils",
 ]
@@ -2373,6 +2374,7 @@ name = "mathquill-js-sys"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "tracing",
  "wasm-bindgen",
  "web-sys",
 ]

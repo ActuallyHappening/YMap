@@ -2,7 +2,9 @@ use app::prelude::*;
 
 fn main() -> color_eyre::Result<()> {
   console_error_panic_hook::set_once();
-  utils::tracing::install_tracing("info,app=trace")?;
+  utils::tracing::install_tracing(
+    "debug,app=trace,mathquill-leptos=trace,mathquill-js=trace,mathquill-js-sys=trace",
+  )?;
 
   info!("Initialized logging on front-end");
 

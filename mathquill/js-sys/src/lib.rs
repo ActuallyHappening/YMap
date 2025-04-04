@@ -1,5 +1,8 @@
+#[allow(unused_imports)]
+use tracing::{debug, error, info, trace, warn};
+
 use wasm_bindgen::prelude::*;
-use web_sys::js_sys;
+use web_sys::js_sys::{self, Reflect};
 
 /// API beginning
 #[wasm_bindgen]
@@ -12,7 +15,7 @@ unsafe extern "C" {
 }
 
 /// Use [`Config::get_js_value`] to confirm options names
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Config {
   pub space_behaves_like_tab: Option<bool>,
   pub handlers: Handlers,
@@ -20,11 +23,23 @@ pub struct Config {
 
 impl Config {
   pub fn get_js_value(&self) -> JsValue {
-    let obj = js_sys::Map::new();
-    obj.set(
+    let obj = js_sys::Object::new();
+    Reflect::set(
+      &obj,
       &"spaceBehavesLikeTab".into(),
       &self.space_behaves_like_tab.into(),
-    );
+    )
+    .unwrap();
+    Reflect::set(&obj, &"handlers".into(), &self.handlers.get_js_value()).unwrap();
+    {
+      let obj_debug = js_sys::JSON::stringify(&obj);
+      debug!(
+        ?obj,
+        ?obj_debug,
+        ?self,
+        "Got JsValue for Rust-side Config struct"
+      );
+    }
     obj.unchecked_into()
   }
 }
@@ -33,22 +48,24 @@ impl Config {
 ///
 /// You will have to think about manual memory management:
 /// https://rustwasm.github.io/wasm-bindgen/reference/passing-rust-closures-to-js.html#heap-allocated-closures
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Handlers {
   pub edit: Option<Closure<dyn FnMut()>>,
 }
 
 impl Handlers {
   pub fn get_js_value(&self) -> JsValue {
-    let obj = js_sys::Map::new();
-    obj.set(
+    let obj = js_sys::Object::new();
+    Reflect::set(
+      &obj,
       &"edit".into(),
       &self
         .edit
         .as_ref()
         .map(|closure| closure.as_ref().clone())
         .into(),
-    );
+    )
+    .unwrap();
     obj.unchecked_into()
   }
 }
