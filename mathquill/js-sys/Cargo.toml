@@ -6,7 +6,7 @@ edition = "2024"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/mathquill"
 keywords = ["javascript", "*-sys", "mathquill", "bindings"]
 readme = "README.md"
-license = "GPL"
+license = "GPL-2.0"
 
 [dependencies]
 serde = { version = "1.0.219", features = ["derive"] }
