@@ -49,8 +49,8 @@ pub fn MathQuillAssets(assets_dir: AssetsBasePath) -> impl IntoView {
 pub fn MathQuillField() -> impl IntoView {
   let node_ref = NodeRef::new();
   node_ref.on_load(|el: web_sys::HtmlSpanElement| {
-    let mathquill = crate::js::MathQuill::get_global_interface();
-    let field = mathquill.mount_field(&el, crate::js::Config::default());
+    let mathquill = mathquill_js::MathQuill::get_global_interface();
+    let field = mathquill.mount_field(&el, mathquill_js::Config::default());
 
     let current = field.latex();
     info!(?current, "MathQuillField mounted");

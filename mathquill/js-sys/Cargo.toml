@@ -2,7 +2,7 @@
 name = "mathquill-js-sys"
 version = "0.1.0"
 edition = "2024"
-description = "Wraps the MathQuill JS library for raw access in Rust"
+description = "Raw JavaScript bindings for MathQuill"
 repository = "https://github.com/ActuallyHappening/YMap"
 
 [dependencies]

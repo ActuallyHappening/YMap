@@ -2360,6 +2360,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mathquill-js"
+version = "0.1.0"
+dependencies = [
+ "mathquill-js-sys",
+ "tracing",
+ "web-sys",
+]
+
+[[package]]
 name = "mathquill-js-sys"
 version = "0.1.0"
 dependencies = [
@@ -2374,7 +2383,7 @@ version = "0.1.0"
 dependencies = [
  "leptos",
  "leptos_meta",
- "mathquill-js-sys",
+ "mathquill-js",
  "thiserror 2.0.12",
  "tracing",
  "url",

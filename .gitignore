@@ -3,7 +3,7 @@
 !.cargo
 !app
 !utils
-!mathquill-leptos
+!mathquill
 
 !.env.toml
 !.gitignore

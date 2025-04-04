@@ -6,8 +6,9 @@ description = "A mathquill integration layer for Leptos"
 repository = "https://github.com/ActuallyHappening/YMap"
 keywords = ["math", "mathquill", "leptos"]
 
-[dependencies.mathquill-js-sys]
-path = "mathquill-js-sys"
+[dependencies.mathquill-js]
+path = "../js"
+version = "0.1.0"
 
 [dependencies]
 leptos = "0.7.8"
