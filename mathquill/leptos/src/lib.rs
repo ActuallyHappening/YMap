@@ -1,5 +1,5 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
-#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../loading.md"))]
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/loading.md"))]
 //!
 //! ## Simple example
 //! ```rust
