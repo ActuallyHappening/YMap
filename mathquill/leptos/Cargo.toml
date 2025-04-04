@@ -5,6 +5,7 @@ edition = "2024"
 description = "A mathquill integration layer for Leptos"
 repository = "https://github.com/ActuallyHappening/YMap"
 keywords = ["math", "mathquill", "leptos"]
+readme = "README.md"
 
 [dependencies.mathquill-js]
 path = "../js"

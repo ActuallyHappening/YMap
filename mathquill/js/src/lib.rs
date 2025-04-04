@@ -1,3 +1,5 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 

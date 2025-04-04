@@ -4,6 +4,7 @@ description = "Idiomatic JavaScript bindings for MathQuill"
 version = "0.1.0"
 authors = ["Caleb Yates <calebyates42@gmail.com>"]
 edition = "2021"
+readme = "README.md"
 
 [dependencies.mathquill-js-sys]
 path = "../js-sys"

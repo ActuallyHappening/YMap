@@ -1,3 +1,5 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+
 use std::marker::PhantomData;
 
 use builder::ObjectBuilder;
@@ -21,6 +23,8 @@ unsafe extern "C" {
 
 impl MathQuill {
   /// Don't call on a static field, see [`MathQuill::get_static_field`]
+  ///
+  /// IMPROVEME: Runtime-panic if accidentally called on a static field
   pub fn get_field(&self, el: &web_sys::HtmlElement) -> Option<MathField> {
     let api_as_fn: &js_sys::Function = self.unchecked_ref();
     let res = api_as_fn.call1(&JsValue::NULL, el).unwrap();
@@ -39,6 +43,8 @@ impl MathQuill {
   }
 
   /// Don't call on a mutable field, see [`MathQuill::get_field`]
+  ///
+  /// IMPROVEME: Runtime-panic if accidentally called on a mutable field
   pub fn get_static_field(&self, el: &web_sys::HtmlElement) -> Option<StaticMath> {
     let api_as_fn: &js_sys::Function = self.unchecked_ref();
     let res = api_as_fn.call1(&JsValue::NULL, el).unwrap();
