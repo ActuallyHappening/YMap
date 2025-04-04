@@ -1,10 +1,33 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../loading.md"))]
+//!
+//! ## API Structure
+//! Read the docs on the [MathQuill](crate::MathQuill) struct, everything starts from there.
+//!
+//! ## Contrived example
+//! From their docs:
+//! ```js
+//! var answerSpan = document.getElementById('answer');
+//! var answerMathField = MQ.MathField(answerSpan, {
+//!   handlers: {
+//!     edit: function() {
+//!       var enteredMath = answerMathField.latex(); // Get entered math in LaTeX format
+//!       checkAnswer(enteredMath);
+//!     }
+//!   }
+//! });
+//! ```
+//! This would translate to something like:
+//! ```rust
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/field.rs"))]
+//! ```
 
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
 use web_sys::wasm_bindgen::prelude::Closure;
 
+/// The primary interface to the MathQuill library.
 pub struct MathQuill(mathquill_js_sys::MathQuill);
 
 impl MathQuill {
@@ -14,7 +37,7 @@ impl MathQuill {
   /// so you can call this as many times as you want and assume
   /// each instance is the same as the last:
   /// `By default, MathQuill overwrites the global MathQuill variable when loaded`,
-  /// copied from https://docs.mathquill.com/en/latest/Api_Methods/#api-methods
+  /// copied from <https://docs.mathquill.com/en/latest/Api_Methods/#api-methods>
   pub fn get_global_interface() -> Self {
     Self(mathquill_js_sys::MathQuill::getInterface(2))
   }
@@ -41,6 +64,7 @@ impl MathQuill {
   }
 }
 
+/// Read docs on [mathquill_js_sys::Config] about manual memory management
 pub struct Config<MathField>(mathquill_js_sys::Config<<MathField as IntoInner>::Inner>)
 where
   MathField: IntoInner;
@@ -77,8 +101,11 @@ impl<'config> HandlersMut<'config, MathField> {
   }
 }
 
+/// Wrapper around [mathquill_js_sys::MathField]
 pub struct MathField(mathquill_js_sys::MathField);
 
+/// Used internally, exposed for correctness in case
+/// you are also using [mathquill_js_sys]
 pub trait IntoInner {
   type Inner;
 }
@@ -93,6 +120,7 @@ impl MathField {
   }
 }
 
+/// Wrapper around [mathquill_js_sys::StaticMath]
 pub struct StaticMath(mathquill_js_sys::StaticMath);
 
 impl IntoInner for StaticMath {

@@ -1,4 +1,5 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../loading.md"))]
 #![allow(non_snake_case)]
 
 pub(crate) mod prelude {

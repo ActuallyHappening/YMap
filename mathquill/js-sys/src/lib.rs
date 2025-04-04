@@ -1,4 +1,5 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../loading.md"))]
 
 use std::marker::PhantomData;
 
@@ -14,7 +15,7 @@ mod builder;
 /// API beginning
 #[wasm_bindgen]
 unsafe extern "C" {
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#api-methods
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#api-methods>
   pub type MathQuill;
 
   #[wasm_bindgen(js_namespace = MathQuill)]
@@ -63,7 +64,12 @@ impl MathQuill {
   }
 }
 
-/// Use [`Config::get_js_value`] to confirm options names
+/// This is an owned, abstracted representation of the configuartion options
+/// supported by MathQuill.
+/// Dropping this struct invalidates callbacks on fields mounted by this config,
+/// see [`Handlers`].
+///
+/// Use [`Config::get_js_value`] to pass through the Wasm ABI interface
 pub struct Config<MathField> {
   pub space_behaves_like_tab: Option<bool>,
   pub handlers: Handlers<MathField>,
@@ -96,10 +102,10 @@ impl Config<MathField> {
   }
 }
 
-/// https://docs.mathquill.com/en/latest/Config/#handlers
+/// <https://docs.mathquill.com/en/latest/Config/#handlers>
 ///
 /// You will have to think about manual memory management:
-/// https://rustwasm.github.io/wasm-bindgen/reference/passing-rust-closures-to-js.html#heap-allocated-closures
+/// <https://rustwasm.github.io/wasm-bindgen/reference/passing-rust-closures-to-js.html#heap-allocated-closures>
 pub struct Handlers<MathField> {
   pub edit: Option<Closure<dyn FnMut()>>,
   pub _phantom: PhantomData<MathField>,
@@ -141,7 +147,7 @@ impl Handlers<MathField> {
 #[wasm_bindgen]
 unsafe extern "C" {
   pub type MathField;
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element>
   #[wasm_bindgen(method)]
   pub fn MathField(
     this: &MathQuill,
@@ -150,7 +156,7 @@ unsafe extern "C" {
   ) -> MathField;
 
   pub type StaticMath;
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#mqstaticmathhtml_element>
   #[wasm_bindgen(method)]
   pub fn StaticMath(this: &MathQuill, html_element: &web_sys::HtmlElement) -> StaticMath;
 }
@@ -158,19 +164,19 @@ unsafe extern "C" {
 /// Syncing
 #[wasm_bindgen]
 unsafe extern "C" {
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#latex
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#latex>
   #[wasm_bindgen(method)]
   pub fn latex(this: &StaticMath) -> String;
 
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#latex
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#latex>
   #[wasm_bindgen(method)]
   pub fn latex(this: &MathField) -> String;
 
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string>
   #[wasm_bindgen(js_name = "latex", method)]
   pub fn set_latex(this: &StaticMath, latex: &str);
 
-  /// https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string
+  /// <https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string>
   #[wasm_bindgen(js_name = "latex", method)]
   pub fn set_latex(this: &MathField, latex: &str);
 
