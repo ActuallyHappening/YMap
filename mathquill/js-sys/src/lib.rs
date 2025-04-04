@@ -27,15 +27,15 @@ impl MathQuill {
     if !res.is_truthy() {
       return None;
     }
-    if res.is_instance_of::<MathField>() {
-      return Some(res.unchecked_into());
-    } else {
-      warn!(
-        ?res,
-        "Called `MathQuill(el)` on an element that was not a MathField (maybe a StaticField)"
-      );
-      return None;
-    }
+    // if res.is_instance_of::<MathField>() {
+    return Some(res.unchecked_into());
+    // } else {
+    //   warn!(
+    //     ?res,
+    //     "Called `MathQuill(el)` on an element that was not a MathField (maybe a StaticField)"
+    //   );
+    //   return None;
+    // }
   }
 
   /// Don't call on a mutable field, see [`MathQuill::get_field`]
@@ -45,15 +45,15 @@ impl MathQuill {
     if !res.is_truthy() {
       return None;
     }
-    if res.is_instance_of::<StaticMath>() {
-      return Some(res.unchecked_into());
-    } else {
-      warn!(
-        ?res,
-        "Called `MathQuill(el)` on an element that was not a StaticMath (maybe a mutable MathField)"
-      );
-      return None;
-    }
+    // if res.is_instance_of::<StaticMath>() {
+    return Some(res.unchecked_into());
+    // } else {
+    //   warn!(
+    //     ?res,
+    //     "Called `MathQuill(el)` on an element that was not a StaticMath (maybe a mutable MathField)"
+    //   );
+    //   return None;
+    // }
   }
 }
 
