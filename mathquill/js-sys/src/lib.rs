@@ -30,7 +30,10 @@ impl MathQuill {
     if res.is_instance_of::<MathField>() {
       return Some(res.unchecked_into());
     } else {
-      warn!("Called `MathQuill(el)` on an element that was not a MathField (maybe a StaticField)");
+      warn!(
+        ?res,
+        "Called `MathQuill(el)` on an element that was not a MathField (maybe a StaticField)"
+      );
       return None;
     }
   }
@@ -46,6 +49,7 @@ impl MathQuill {
       return Some(res.unchecked_into());
     } else {
       warn!(
+        ?res,
         "Called `MathQuill(el)` on an element that was not a StaticMath (maybe a mutable MathField)"
       );
       return None;
