@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 description = "A mathquill integration layer for Leptos"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/mathquill"
-keywords = ["math", "mathquill", "leptos"]
+keywords = ["math", "mathquill", "mathquill-js", "leptos"]
+categories = ["web-programming", "wasm", "api-bindings"]
 readme = "README.md"
 license = "GPL-2.0"
 
