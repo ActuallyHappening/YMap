@@ -1,7 +1,7 @@
 [package]
 name = "mathquill-js-sys"
 description = "Raw JavaScript bindings for MathQuill"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/mathquill"
 keywords = ["mathquill", "mathquill-js"]
