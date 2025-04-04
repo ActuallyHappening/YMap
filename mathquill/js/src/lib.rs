@@ -21,6 +21,7 @@ impl Default for Config {
 }
 
 impl MathQuill {
+  /// JS errors if the MathQuill library is not loaded already
   pub fn get_global_interface() -> Self {
     Self(mathquill_js_sys::MathQuill::getInterface(2))
   }

@@ -12,8 +12,5 @@ version = "0.1.0"
 
 [dependencies]
 leptos = "0.7.8"
-leptos_meta = "0.7.8"
-thiserror = "2.0.12"
 tracing = "0.1.41"
-url = "2.5.4"
 web-sys = "0.3.77"
