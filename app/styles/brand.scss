@@ -69,7 +69,7 @@ html {
 }
 
 @layer brand-themed {
-    * {
+    *:not(.mathquill *) {
         border-radius: var(--border-radius);
         border: 0px solid black;
     }

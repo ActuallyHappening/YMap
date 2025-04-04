@@ -11,22 +11,46 @@ unsafe extern "C" {
   pub fn getInterface(version: u8) -> MathQuill;
 }
 
-#[wasm_bindgen]
-#[derive(Clone)]
+/// Use [`Config::get_js_value`] to confirm options names
+#[derive(Default)]
 pub struct Config {
-  #[wasm_bindgen(js_name = "spaceBehavesLikeTab")]
-  pub space_behaves_like_tab: bool,
-
-  #[wasm_bindgen(getter_with_clone)]
+  pub space_behaves_like_tab: Option<bool>,
   pub handlers: Handlers,
 }
 
+impl Config {
+  pub fn get_js_value(&self) -> JsValue {
+    let obj = js_sys::Map::new();
+    obj.set(
+      &"spaceBehavesLikeTab".into(),
+      &self.space_behaves_like_tab.into(),
+    );
+    obj.unchecked_into()
+  }
+}
+
 /// https://docs.mathquill.com/en/latest/Config/#handlers
-#[wasm_bindgen]
-#[derive(Clone)]
+///
+/// You will have to think about manual memory management:
+/// https://rustwasm.github.io/wasm-bindgen/reference/passing-rust-closures-to-js.html#heap-allocated-closures
+#[derive(Default)]
 pub struct Handlers {
-  #[wasm_bindgen(getter_with_clone)]
-  pub edit: js_sys::Function,
+  pub edit: Option<Closure<dyn FnMut()>>,
+}
+
+impl Handlers {
+  pub fn get_js_value(&self) -> JsValue {
+    let obj = js_sys::Map::new();
+    obj.set(
+      &"edit".into(),
+      &self
+        .edit
+        .as_ref()
+        .map(|closure| closure.as_ref().clone())
+        .into(),
+    );
+    obj.unchecked_into()
+  }
 }
 
 /// Mount
@@ -38,7 +62,7 @@ unsafe extern "C" {
   pub fn StaticMath(
     this: &MathQuill,
     html_element: &web_sys::HtmlElement,
-    config: Option<Config>,
+    config: JsValue,
   ) -> StaticMath;
 
   pub type MathField;
@@ -47,7 +71,7 @@ unsafe extern "C" {
   pub fn MathField(
     this: &MathQuill,
     html_element: &web_sys::HtmlElement,
-    config: Option<Config>,
+    config: JsValue,
   ) -> MathField;
 }
 

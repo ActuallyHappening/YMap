@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
-use web_sys::wasm_bindgen::{JsCast as _, prelude::Closure};
+use web_sys::wasm_bindgen::prelude::Closure;
 
 pub struct MathQuill(mathquill_js_sys::MathQuill);
 
@@ -9,16 +9,35 @@ pub struct Config(mathquill_js_sys::Config);
 
 impl Default for Config {
   fn default() -> Self {
-    let closure: Closure<dyn FnMut()> = Closure::new(|| info!("Default editted!"));
-    let callback = Box::leak(Box::new(closure));
-    Self(mathquill_js_sys::Config {
-      space_behaves_like_tab: true,
-      handlers: mathquill_js_sys::Handlers {
-        edit: callback.as_ref().clone().unchecked_into(),
-      },
-    })
+    let mut cfg = mathquill_js_sys::Config::default();
+
+    cfg.space_behaves_like_tab = Some(true);
+
+    Self(cfg)
   }
 }
+
+pub struct HandlersMut<'config>(&'config mut mathquill_js_sys::Handlers);
+impl Config {
+  pub fn handlers(&mut self) -> HandlersMut<'_> {
+    HandlersMut(&mut self.0.handlers)
+  }
+}
+impl<'config> HandlersMut<'config> {
+  pub fn on_edit(&mut self, callback: impl FnMut() + 'static) {
+    self.0.edit = Some(Closure::new(callback));
+  }
+}
+
+// impl Default for Config {
+//   fn default() -> Self {
+//     let edit: Closure<dyn FnMut()> = Closure::new(|| info!("Default editted!"));
+//     Self(mathquill_js_sys::Config {
+//       space_behaves_like_tab: Some(true),
+//       handlers: Some(mathquill_js_sys::Handlers { edit }),
+//     })
+//   }
+// }
 
 impl MathQuill {
   /// JS errors if the MathQuill library is not loaded already
@@ -26,8 +45,9 @@ impl MathQuill {
     Self(mathquill_js_sys::MathQuill::getInterface(2))
   }
 
-  pub fn mount_field(&self, html_element: &web_sys::HtmlElement, config: Config) -> MathField {
-    MathField(self.0.MathField(html_element, Some(config.0)))
+  /// When config.handlers is dropped, the mounted field's callbacks will be invalidated
+  pub fn mount_field(&self, html_element: &web_sys::HtmlElement, config: &Config) -> MathField {
+    MathField(self.0.MathField(html_element, config.0.get_js_value()))
   }
 
   // pub fn mount_static(&self, node_ref: &web_sys::HtmlEle)
