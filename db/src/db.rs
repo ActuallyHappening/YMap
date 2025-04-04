@@ -13,6 +13,19 @@ impl<Auth> surrealdb_layers::GetDb for Db<Auth> {
   }
 }
 
+pub mod errors {
+  use crate::prelude::*;
+
+  #[derive(thiserror::Error, Debug)]
+  pub enum Error {
+    #[error("[db] {0}")]
+    Layers(#[from] surrealdb_layers::Error),
+
+    #[error("[db] Couldn't authenticate: {0}")]
+    CouldntAuthenticate(#[source] surrealdb::Error),
+  }
+}
+
 pub mod creds {
   //! Creds are what gets you your authentication
 
@@ -20,18 +33,12 @@ pub mod creds {
 
   use super::auth;
 
-  pub(super) trait Creds {
-    type Auth: auth::Auth;
-
-    async fn login(&self, db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error>;
-  }
-
   pub struct NoCreds;
 
-  impl Creds for NoCreds {
+  impl surrealdb_layers::Creds for NoCreds {
     type Auth = auth::NoAuth;
 
-    async fn login(&self, db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
+    async fn signin(&self, db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
       db.invalidate().await?;
       Ok(auth::NoAuth)
     }
@@ -43,10 +50,11 @@ pub mod creds {
     plaintext_password: String,
   }
 
-  impl Creds for User {
+  impl surrealdb_layers::Creds for User {
     type Auth = auth::User;
 
-    async fn login(&self, _db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
+    async fn signin(&self, _db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
+      // https://surrealdb.com/docs/surrealdb/security/authentication#record-users
       todo!()
     }
   }
@@ -55,16 +63,14 @@ pub mod creds {
 pub mod auth {
   //! Auth is the current users session
 
-  use surrealdb::{Surreal, engine::any::Any, opt::auth::Jwt};
+  use crate::prelude::*;
 
-  pub(super) trait Auth: Sized {
-    async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error>;
-  }
+  use surrealdb::{Surreal, engine::any::Any, opt::auth::Jwt};
 
   /// Public db
   pub struct NoAuth;
 
-  impl Auth for NoAuth {
+  impl surrealdb_layers::Auth for NoAuth {
     async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error> {
       db.invalidate().await?;
       Ok(NoAuth)
@@ -74,7 +80,7 @@ pub mod auth {
   /// Get acutal info from session
   pub struct User(Jwt);
 
-  impl Auth for User {
+  impl surrealdb_layers::Auth for User {
     async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error> {
       db.authenticate(self.0.clone()).await?;
       Ok(User(self.0.clone()))
@@ -84,6 +90,8 @@ pub mod auth {
 
 pub mod conn {
   use crate::prelude::*;
+
+  use super::creds::NoCreds;
 
   impl Db<()> {
     pub fn build() -> DbConnUrl {
@@ -112,8 +120,8 @@ pub mod conn {
   }
 
   impl DbConnNsDb {
-    pub fn prod(self) -> DbConnBuilder {
-      DbConnBuilder {
+    pub fn prod(self) -> DbConnCreds {
+      DbConnCreds {
         url: self.url,
         ns: "ymap".to_string(),
         db: "prod".to_string(),
@@ -121,13 +129,52 @@ pub mod conn {
     }
   }
 
-  pub struct DbConnBuilder {
+  pub struct DbConnCreds {
     url: Url,
     ns: String,
     db: String,
   }
 
-  impl surrealdb_layers::DbConnBuilder for DbConnBuilder {
+  impl DbConnCreds {
+    pub fn public(self) -> DbConnBuilder<NoCreds> {
+      DbConnBuilder {
+        url: self.url,
+        ns: self.ns,
+        db: self.db,
+        creds: NoCreds,
+      }
+    }
+  }
+
+  pub struct DbConnBuilder<Creds> {
+    url: Url,
+    ns: String,
+    db: String,
+    creds: Creds,
+  }
+
+  impl<Creds> surrealdb_layers::DbConnBuilder for DbConnBuilder<Creds>
+  where
+    Creds: surrealdb_layers::Creds,
+  {
+    type Next = Db<<Creds as surrealdb_layers::Creds>::Auth>;
+
+    async fn db_authenticate(
+      &self,
+      conn: Surreal<Any>,
+    ) -> Result<Self::Next, surrealdb_layers::Error> {
+      self
+        .creds
+        .signin(&conn)
+        .await
+        .map_err(surrealdb_layers::Error::CouldntAuthenticate)?;
+
+      Ok(Db {
+        db: conn,
+        phantom: PhantomData,
+      })
+    }
+
     fn get_ns(&self) -> impl Into<String> {
       &self.ns
     }

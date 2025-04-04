@@ -57,6 +57,20 @@ pub trait GetDb {
   }
 }
 
+/// A struct holding the information used to initially authenticate a query,
+/// e.g. email + plaintext_password.
+pub trait Creds {
+  type Auth: Auth;
+
+  async fn signin(&self, db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error>;
+}
+
+/// A struct holding the information necessary to keep
+/// authenticating the query, usually a [surrealdb::opt::auth::Jwt]
+pub trait Auth: Sized {
+  async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error>;
+}
+
 fn url_with_scheme(mut url: Url, scheme: &'static str) -> Result<Url, Error> {
   url
     .set_scheme(scheme)
@@ -111,6 +125,8 @@ pub trait ConnBuilderUrl: Sized {
 }
 
 pub trait DbConnBuilder {
+  type Next;
+
   fn get_ns(&self) -> impl Into<String>;
   fn ns(&self) -> String {
     self.get_ns().into()
@@ -127,16 +143,28 @@ pub trait DbConnBuilder {
   }
 
   /// Connects to the url.
-  /// Sets the correct NS and DB
-  async fn connect(&self) -> Result<Surreal<Any>, Error> {
-    Ok(
-      any::connect(self.get_url().to_string())
-        .await
-        .map_err(|source| Error::CouldntConnect {
-          url: self.url(),
-          source,
-        })?,
-    )
+  /// Sets the correct NS and DB.
+  /// Doesn't handle authentication/credentials.
+  async fn db_connect(&self) -> Result<Surreal<Any>, Error> {
+    let db = any::connect(self.get_url().to_string())
+      .await
+      .map_err(|source| Error::CouldntConnect {
+        url: self.url(),
+        source,
+      })?;
+    db.use_ns(self.get_ns())
+      .use_db(self.get_db())
+      .await
+      .map_err(Error::CouldntSetNsDb)?;
+    Ok(db)
+  }
+
+  async fn db_authenticate(&self, conn: Surreal<Any>) -> Result<Self::Next, Error>;
+
+  /// Connects, sets ns and db, and handles authentication all at once!!
+  async fn connect(&self) -> Result<Self::Next, Error> {
+    let conn = self.db_connect().await?;
+    self.db_authenticate(conn).await
   }
 }
 
@@ -154,6 +182,12 @@ pub enum Error {
     #[source]
     source: surrealdb::Error,
   },
+
+  #[error("Couldn't set ns/db: {0}")]
+  CouldntSetNsDb(#[source] surrealdb::Error),
+
+  #[error("Couldn't authenticate: {0}")]
+  CouldntAuthenticate(#[source] surrealdb::Error),
 }
 
 pub mod serde {
