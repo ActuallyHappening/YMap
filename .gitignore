@@ -4,6 +4,7 @@
 !app
 !utils
 !mathquill
+!db
 
 !.env.toml
 !.gitignore
