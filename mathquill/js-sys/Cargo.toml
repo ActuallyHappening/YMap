@@ -1,11 +1,11 @@
 [package]
 name = "mathquill-js-sys"
 description = "Raw JavaScript bindings for MathQuill"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/mathquill"
-keywords = ["javascript", "mathquill", "bindings"]
-categories = ["web-programming", "wasm", "api-bindings"]
+keywords = ["mathquill", "mathquill-js"]
+categories = ["web-programming", "wasm", "external-ffi-bindings"]
 readme = "README.md"
 license = "GPL-2.0"
 
