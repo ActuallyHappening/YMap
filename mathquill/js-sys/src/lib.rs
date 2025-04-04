@@ -1,8 +1,12 @@
+use std::marker::PhantomData;
+
+use builder::ObjectBuilder;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
 
 use wasm_bindgen::prelude::*;
-use web_sys::js_sys::{self, Reflect};
+
+mod builder;
 
 /// API beginning
 #[wasm_bindgen]
@@ -15,32 +19,35 @@ unsafe extern "C" {
 }
 
 /// Use [`Config::get_js_value`] to confirm options names
-#[derive(Debug, Default)]
-pub struct Config {
+pub struct Config<MathField> {
   pub space_behaves_like_tab: Option<bool>,
-  pub handlers: Handlers,
+  pub handlers: Handlers<MathField>,
 }
 
-impl Config {
-  pub fn get_js_value(&self) -> JsValue {
-    let obj = js_sys::Object::new();
-    Reflect::set(
-      &obj,
-      &"spaceBehavesLikeTab".into(),
-      &self.space_behaves_like_tab.into(),
-    )
-    .unwrap();
-    Reflect::set(&obj, &"handlers".into(), &self.handlers.get_js_value()).unwrap();
-    {
-      let obj_debug = js_sys::JSON::stringify(&obj);
-      debug!(
-        ?obj,
-        ?obj_debug,
-        ?self,
-        "Got JsValue for Rust-side Config struct"
-      );
+impl<T> Default for Config<T> {
+  fn default() -> Self {
+    Self {
+      space_behaves_like_tab: None,
+      handlers: Handlers::default(),
     }
-    obj.unchecked_into()
+  }
+}
+
+impl<T> std::fmt::Debug for Config<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Config")
+      .field("space_behaves_like_tab", &self.space_behaves_like_tab)
+      .field("handlers", &self.handlers)
+      .finish()
+  }
+}
+
+impl Config<MathField> {
+  pub fn get_js_value(&self) -> JsValue {
+    let mut obj = ObjectBuilder::new();
+    obj.set("spaceBehavesLikeTab", &self.space_behaves_like_tab.into());
+    obj.set("handlers", &self.handlers.get_js_value());
+    obj.build()
   }
 }
 
@@ -48,25 +55,40 @@ impl Config {
 ///
 /// You will have to think about manual memory management:
 /// https://rustwasm.github.io/wasm-bindgen/reference/passing-rust-closures-to-js.html#heap-allocated-closures
-#[derive(Debug, Default)]
-pub struct Handlers {
+pub struct Handlers<MathField> {
   pub edit: Option<Closure<dyn FnMut()>>,
+  pub _phantom: PhantomData<MathField>,
 }
 
-impl Handlers {
+impl<T> Default for Handlers<T> {
+  fn default() -> Self {
+    Self {
+      edit: None,
+      _phantom: PhantomData,
+    }
+  }
+}
+
+impl<T> std::fmt::Debug for Handlers<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Handlers")
+      .field("edit", &self.edit)
+      .finish()
+  }
+}
+
+impl Handlers<MathField> {
   pub fn get_js_value(&self) -> JsValue {
-    let obj = js_sys::Object::new();
-    Reflect::set(
-      &obj,
-      &"edit".into(),
+    let mut obj = ObjectBuilder::new();
+    obj.set(
+      "edit",
       &self
         .edit
         .as_ref()
         .map(|closure| closure.as_ref().clone())
         .into(),
-    )
-    .unwrap();
-    obj.unchecked_into()
+    );
+    obj.build()
   }
 }
 
