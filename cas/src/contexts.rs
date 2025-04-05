@@ -4,14 +4,19 @@ mod latex {
   use std::u128;
 
   use nom::{
-    Finish, IResult, Parser,
+    Finish, Parser,
     branch::alt,
-    bytes::complete::tag,
-    character::complete::{alpha1, digit1, multispace0},
+    bytes::{
+      complete::{tag, take_while1},
+      take_while,
+    },
+    character::complete::{alpha1, anychar, digit1, multispace0},
     combinator::{all_consuming, map},
+    error::ParseError,
     multi::{many0, many1},
     sequence::{delimited, preceded},
   };
+  use nom_language::error::VerboseError;
   use num::BigUint;
 
   use crate::prelude::*;
@@ -23,8 +28,8 @@ mod latex {
     Mul,
     Eq,
     Pi,
-    Var(char),
     Frac(Frac),
+    AlphabeticChar(char),
   }
 
   #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,25 +40,65 @@ mod latex {
 
   #[derive(thiserror::Error, Debug)]
   pub enum Error {
-    #[error("Parsing error: {display}")]
-    ParsingError { debug: String, display: String },
+    #[error("Parsing error: {0}")]
+    ParsingError(String),
   }
 
-  impl From<nom::error::Error<&str>> for Error {
-    fn from(err: nom::error::Error<&str>) -> Self {
-      Error::ParsingError {
-        debug: format!("{:?}", err),
-        display: err.to_string(),
+  pub type IResult<I, O, E = nom_language::error::VerboseError<I>> = Result<(I, O), nom::Err<E>>;
+
+  impl Error {
+    fn handle_parsing_errors<T>(
+      res: Result<(&str, T), VerboseError<&str>>,
+      input: &str,
+    ) -> Result<T, Error> {
+      match res {
+        Ok((leftover, tokens)) => {
+          assert_eq!(leftover.len(), 0);
+          Ok(tokens)
+        }
+        Err(err) => {
+          let pretty_trace = nom_language::error::convert_error(input, err);
+          Err(Error::ParsingError(pretty_trace))
+        }
+      }
+    }
+
+    fn assert_parsing_errors<T>(res: Result<(&str, T), VerboseError<&str>>, input: &str) -> T {
+      match Error::handle_parsing_errors(res, input) {
+        Ok(tokens) => tokens,
+        Err(err) => panic!("Parsing error: {}", err),
       }
     }
   }
 
+  // impl From<nom_language::error::VerboseError<&str>> for Error {
+  //   fn from(err: nom_language::error::VerboseError<&str>) -> Self {
+  //     Error::ParsingError {
+  //       debug: format!("{:?}", err),
+  //       display: err.to_string(),
+  //     }
+  //   }
+  // }
+
+  /// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
+  /// trailing whitespace, returning the output of `inner`.
+  pub fn ws<'a, O, E: ParseError<&'a str>, F>(
+    inner: F,
+  ) -> impl Parser<&'a str, Output = O, Error = E>
+  where
+    F: Parser<&'a str, Output = O, Error = E>,
+  {
+    delimited(multispace0, inner, multispace0)
+  }
+
+  /// Will error on invalid content at the end
   pub fn parse_latex(input: &str) -> Result<Vec<LatexToken>, Error> {
-    let (leftover, tokens) = all_consuming(tokens).parse(input).finish()?;
-    assert_eq!(leftover.len(), 0);
+    let res = all_consuming(ws(tokens)).parse(input).finish();
+    let tokens = Error::handle_parsing_errors(res, input)?;
     Ok(tokens)
   }
 
+  /// May leave whitespace or invalid content at the end
   fn tokens(input: &str) -> IResult<&str, Vec<LatexToken>> {
     map(
       many1(alt((
@@ -68,6 +113,23 @@ mod latex {
       |vec_of_vecs| vec_of_vecs.into_iter().flatten().collect(),
     )
     .parse(input)
+  }
+
+  #[test]
+  fn latex_tokens() {
+    let input = "123 x y z -5";
+    let tokens = Error::assert_parsing_errors(tokens(input).finish(), input);
+    assert_eq!(
+      tokens,
+      vec![
+        LatexToken::Num(BigUint::from(123u32)),
+        LatexToken::AlphabeticChar('x'),
+        LatexToken::AlphabeticChar('y'),
+        LatexToken::AlphabeticChar('z'),
+        LatexToken::Neg,
+        LatexToken::Num(BigUint::from(5u32))
+      ]
+    );
   }
 
   fn neg(input: &str) -> IResult<&str, LatexToken> {
@@ -124,32 +186,44 @@ mod latex {
     map(preceded(multispace0, tag(r"\pi")), |_str| LatexToken::Pi).parse(input)
   }
 
+  fn is_free_char(char: char) -> bool {
+    ('a'..='z').contains(&char) || ('A'..='Z').contains(&char)
+  }
   fn vars(input: &str) -> IResult<&str, Vec<LatexToken>> {
-    map(preceded(multispace0, alpha1), |chars: &str| {
-      chars.chars().map(|char| LatexToken::Var(char)).collect()
-    })
+    map(
+      take_while1(|char: char| char.is_whitespace() || is_free_char(char)),
+      |chars: &str| {
+        chars
+          .chars()
+          .filter_map(|char| (!char.is_whitespace()).then(|| LatexToken::AlphabeticChar(char)))
+          .collect()
+      },
+    )
     .parse(input)
   }
 
   #[test]
   fn latex_vars() {
-    let (_remaining, tokens) = all_consuming(vars).parse(r"   x y z").unwrap();
+    let input = r"   x y   z";
+    let tokens = Error::assert_parsing_errors(vars(input).finish(), input);
     assert_eq!(
       tokens,
       vec![
-        LatexToken::Var('x'),
-        LatexToken::Var('y'),
-        LatexToken::Var('z')
+        LatexToken::AlphabeticChar('x'),
+        LatexToken::AlphabeticChar('y'),
+        LatexToken::AlphabeticChar('z')
       ]
     );
   }
 
+  /// Will error on content in numerator or denominator
+  /// failing to parse
   fn frac(input: &str) -> IResult<&str, LatexToken> {
     map(
       (
-        delimited(multispace0, tag(r"\frac"), multispace0),
-        delimited(multispace0, tokens, multispace0),
-        delimited(multispace0, tokens, multispace0),
+        ws(tag(r"\frac")),
+        ws(delimited(tag("{"), ws(tokens), tag("}"))),
+        ws(delimited(tag("{"), ws(tokens), tag("}"))),
       ),
       |(_frac, numerator, denominator)| {
         LatexToken::Frac(Frac {
@@ -159,6 +233,27 @@ mod latex {
       },
     )
     .parse(input)
+  }
+
+  #[test]
+  fn latex_frac() {
+    let fraction = r"\frac{2xy}{ 3 \pi }";
+    let res = Error::handle_parsing_errors(frac(fraction).finish(), fraction);
+    let Ok(tokens) = res else {
+      panic!("{}", res.unwrap_err());
+    };
+
+    assert_eq!(
+      tokens,
+      LatexToken::Frac(Frac {
+        numerator: vec![
+          LatexToken::Num(2u32.into()),
+          LatexToken::AlphabeticChar('x'),
+          LatexToken::AlphabeticChar('y')
+        ],
+        denominator: vec![LatexToken::Num(3u32.into()), LatexToken::Pi],
+      })
+    );
   }
 }
 

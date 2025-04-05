@@ -8,6 +8,7 @@ publish = false
 bevy_ecs = "0.15.3"
 bevy_reflect = "0.15.3"
 nom = "8.0.0"
+nom-language = "0.1.0"
 num = { version = "0.4.3", features = ["num-bigint"] }
 thiserror = "2.0.12"
 utils.workspace = true
