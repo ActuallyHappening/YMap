@@ -7,6 +7,7 @@ use crate::{contexts::scalar::real::Error, prelude::*};
 use super::{IR2Exprs, OpKind, ir2::IR2Flat};
 
 /// Takes into account operator precedence
+#[derive(Debug)]
 pub enum IR3Expr<Ident> {
   BinaryOp(IR3BinaryOp<Ident>),
   Flat(IR3Flat<Ident>),
@@ -24,6 +25,7 @@ impl From<IR3BinaryOp<Ident>> for IR3Expr<Ident> {
   }
 }
 
+#[derive(Debug)]
 pub enum IR3Flat<Ident> {
   Neg1,
   Num(BigUint),
@@ -31,6 +33,7 @@ pub enum IR3Flat<Ident> {
   Bracket(Box<IR3Expr<Ident>>),
 }
 
+#[derive(Debug)]
 pub enum IR3BinaryOp<Ident> {
   Add {
     lhs: Box<IR3Expr<Ident>>,

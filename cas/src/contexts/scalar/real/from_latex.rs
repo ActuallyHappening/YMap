@@ -10,6 +10,7 @@ pub enum OpKind {
 
 pub use ir1::IR1Expr;
 pub use ir2::IR2Exprs;
+pub use ir3::IR3Expr;
 
 mod ir1;
 mod ir2;

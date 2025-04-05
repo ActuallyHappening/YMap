@@ -13,11 +13,19 @@ pub fn App() -> impl IntoView {
   };
   let ir2 = move || -> Result<_, cas::contexts::scalar::real::Error> {
     let res = ir_1()?;
-    let lhs = res
+    res
       .into_iter()
-      .next()
-      .ok_or(cas::contexts::scalar::real::Error::NoTokens)?;
-    cas::contexts::scalar::real::IR2Exprs::from_ir1(lhs)
+      .map(|tokens| cas::contexts::scalar::real::IR2Exprs::from_ir1(tokens))
+      .collect::<Result<Vec<_>, _>>()
+  };
+  let ir3 = move || -> Result<_, cas::contexts::scalar::real::Error> {
+    let res = ir2()?;
+    Ok(
+      res
+        .into_iter()
+        .map(|tokens| cas::contexts::scalar::real::IR3Expr::from_ir2(tokens))
+        .collect::<Vec<_>>(),
+    )
   };
 
   view! {
@@ -36,5 +44,10 @@ pub fn App() -> impl IntoView {
       Ok(ir) => format!("Successfully converted to IR2: {:?}", ir),
       Err(err) => format!("Couldn't convert to IR2: {}", err),
     } } </p>
+    <p> { move || match ir3() {
+      Ok(ir) => format!("Successfully converted to IR3: {:?}", ir),
+      Err(err) => format!("Couldn't convert to IR3: {}", err),
+    } } </p>
+
   }
 }
