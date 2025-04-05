@@ -29,4 +29,3 @@ pub mod storage {
 }
 
 pub mod contexts;
-pub mod latex;

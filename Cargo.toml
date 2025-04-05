@@ -7,3 +7,4 @@ members = ["app", "cas", "db", "latex", "mathquill/*", "things", "utils"]
 utils = { path = "./utils" }
 mathquill-leptos = { path = "./mathquill/leptos" }
 cas = { path = "./cas" }
+latex-parser = { path = "./latex" }

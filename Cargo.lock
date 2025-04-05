@@ -135,12 +135,14 @@ dependencies = [
  "color-eyre",
  "console_error_panic_hook",
  "getrandom 0.3.2",
+ "latex-parser",
  "leptos",
  "leptos-use",
  "leptos_meta",
  "mathquill-leptos",
  "serde",
  "surrealdb",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "url",
@@ -742,6 +744,8 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
+ "num",
+ "thiserror 2.0.12",
  "utils",
 ]
 

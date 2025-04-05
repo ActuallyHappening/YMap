@@ -7,7 +7,7 @@ pub mod scalar {
     //! Simplifies expressions and solves equations
     //! in the context of real scalar numbers,
     //! e.g. 2y=3 => y=3/2
-    use crate::{latex::LatexToken, prelude::*};
+    use crate::prelude::*;
     use bevy_ecs::{entity::Entity, world::World};
     use num::bigint::BigUint;
 

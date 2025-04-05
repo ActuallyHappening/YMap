@@ -6,7 +6,7 @@ pub fn App() -> impl IntoView {
 
   let latex = RwSignal::new(String::new());
   let on_edit = Callback::new(move |new_latex: String| latex.set(new_latex));
-  let latex_ast = move || cas::latex::LatexTokens::parse_from_latex(&latex.read());
+  let latex_ast = move || latex_parser::LatexTokens::parse_from_latex(&latex.read());
 
   view! {
     <h1> "YMap" </h1>

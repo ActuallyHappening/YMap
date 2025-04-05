@@ -10,6 +10,7 @@ publish = false
 utils = { workspace = true }
 mathquill-leptos = { workspace = true }
 cas.workspace = true
+latex-parser.workspace = true
 getrandom = { version = "0.3", features = ["wasm_js"] }
 leptos_meta = { version = "0.7.8", features = ["tracing"] }
 leptos = { version = "0.7.8", features = ["csr", "tracing"] }
@@ -21,3 +22,4 @@ tokio = { version = "1.44.1", default-features = false, features = ["macros"] }
 serde = { version = "1.0.219", features = ["derive"] }
 url = "2.5.4"
 tracing = "0.1.41"
+thiserror = "2.0.12"
