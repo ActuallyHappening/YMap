@@ -27,7 +27,7 @@ pub enum IR2Flat {
 }
 
 impl IR2Flat {
-  fn from_ir1_expr_flat(flat_expr: IR1Flat) -> Result<IR2Flat, Error> {
+  fn from_ir1(flat_expr: IR1Flat) -> Result<IR2Flat, Error> {
     match flat_expr {
       IR1Flat::Num(num) => Ok(IR2Flat::Num(num)),
       IR1Flat::Ident(ident) => Ok(IR2Flat::Ident(ident)),
@@ -82,9 +82,7 @@ where
 {
   let first = tokens.next().ok_or(Error::NoTokens)?;
   match first {
-    IR1Expr::Expr(expr) => Ok(ResolvedExpr::Single(
-      IR2Flat::from_ir1_expr_flat(expr)?.into(),
-    )),
+    IR1Expr::Expr(expr) => Ok(ResolvedExpr::Single(IR2Flat::from_ir1(expr)?.into())),
     // since this is the first, must be an unary
     IR1Expr::Op(op) => match op {
       // these can act as unary
@@ -102,7 +100,7 @@ where
         let IR1Expr::Expr(flat) = tokens.next().ok_or(Error::NoTokens)? else {
           return Err(Error::CantListOperators);
         };
-        let flat = IR2Flat::from_ir1_expr_flat(flat)?;
+        let flat = IR2Flat::from_ir1(flat)?;
         match current {
           Sign::Positive => Ok(ResolvedExpr::Single(flat)),
           Sign::Negative => {
@@ -148,19 +146,63 @@ fn cancelling_add_neg() {
 /// Handles implicit expression multiplication,
 /// assumes the previous token was an expression.
 ///
+/// Will return `None` in the case of implicit multiplication,
+/// e.g. ab
+///
 /// Recursive
-fn resolve_op<I>(tokens: &mut I, pairs: &mut Vec<(OpKind, IR2Flat)>) -> Result<OpKind, Error>
+fn resolve_op<I>(
+  tokens: &mut Peekable<I>,
+  pairs: &mut Vec<(OpKind, IR2Flat)>,
+) -> Result<Option<OpKind>, Error>
 where
   I: Iterator<Item = IR1Expr>,
 {
   match tokens.next().ok_or(Error::NoTokens)? {
-    IR1Expr::Op(op) => Ok(op),
+    IR1Expr::Op(op) => Ok(Some(op)),
     IR1Expr::Expr(flat) => {
-      let flat = IR2Flat::from_ir1_expr_flat(flat)?;
+      let flat = IR2Flat::from_ir1(flat)?;
       pairs.push((OpKind::Mul, flat));
-      resolve_op(tokens, pairs)
+      if tokens.peek().is_some() {
+        resolve_op(tokens, pairs)
+      } else {
+        Ok(None)
+      }
     }
   }
+}
+
+#[test]
+fn op_implicit_mul_once() {
+  let tokens: Vec<IR1Expr> = vec![IR1Flat::Ident(Ident::Pi).into()];
+
+  let mut tokens = tokens.into_iter().peekable();
+  let mut pairs = Vec::new();
+
+  let resolved = resolve_op(&mut tokens, &mut pairs).unwrap();
+  assert_eq!(pairs, vec![(OpKind::Mul, IR2Flat::Ident(Ident::Pi))]);
+  assert_eq!(resolved, None);
+}
+
+#[test]
+fn op_implicit_mul_twice() {
+  let tokens: Vec<IR1Expr> = vec![
+    IR1Flat::Ident(Ident::Pi).into(),
+    IR1Flat::Num(42u32.into()).into(),
+    OpKind::Div.into(),
+  ];
+
+  let mut tokens = tokens.into_iter().peekable();
+  let mut pairs = Vec::new();
+
+  let resolved = resolve_op(&mut tokens, &mut pairs).unwrap();
+  assert_eq!(
+    pairs,
+    vec![
+      (OpKind::Mul, IR2Flat::Ident(Ident::Pi)),
+      (OpKind::Mul, IR2Flat::Num(42u32.into()))
+    ]
+  );
+  assert_eq!(resolved, Some(OpKind::Div));
 }
 
 impl IR2Exprs {
@@ -184,10 +226,9 @@ impl IR2Exprs {
     while tokens.peek().is_some() {
       // op
       let op = resolve_op(&mut tokens, &mut pairs)?;
-
-      if tokens.peek().is_none() {
+      let Some(op) = op else {
         continue;
-      }
+      };
 
       // expr
       let expr = resolve_expr(&mut tokens)?;
