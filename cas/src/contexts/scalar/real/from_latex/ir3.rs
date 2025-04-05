@@ -28,7 +28,7 @@ pub enum IR3Flat<Ident> {
   Neg1,
   Num(BigUint),
   Ident(Ident),
-  Bracket(Vec<IR3Expr<Ident>>),
+  Bracket(Box<IR3Expr<Ident>>),
 }
 
 pub enum IR3BinaryOp<Ident> {
@@ -118,16 +118,20 @@ impl IR3Expr<Ident> {
     }
   }
 
-  pub fn from_ir2(ir2: IR2Exprs) -> Vec<Self> {
+  pub fn from_ir2(ir2: IR2Exprs) -> Self {
     let (first, ops) = ir2.resolve();
-    let mut ops = ops.into_iter().peekable();
+    let first = IR3Flat::from_ir2(first).into();
+    let mut ops = ops
+      .into_iter()
+      .map(|(op, expr)| (op, IR3Flat::from_ir2(expr)))
+      .peekable();
 
     let Some((op, expr)) = ops.next() else {
       // base case, single expr
-      return vec![IR3Flat::from_ir2(first).into()];
+      return first;
     };
 
-    IR3Expr::recursive_from_ir2(first, op, current, next)
+    IR3Expr::recursive_from_ir2(first, op, expr, ops)
   }
 }
 
@@ -137,7 +141,7 @@ impl IR3Flat<Ident> {
       IR2Flat::Neg1 => IR3Flat::Neg1,
       IR2Flat::Num(num) => IR3Flat::Num(num),
       IR2Flat::Ident(ident) => IR3Flat::Ident(ident),
-      IR2Flat::Bracketed(exprs) => IR3Flat::Bracket(IR3Expr::from_ir2(*exprs)),
+      IR2Flat::Bracketed(exprs) => IR3Flat::Bracket(Box::new(IR3Expr::from_ir2(*exprs))),
     }
   }
 }
