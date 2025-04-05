@@ -62,7 +62,8 @@ pub enum LatexToken {
   Mul,
   Add,
   Eq,
-  Exp,
+  /// May be empty
+  Exp(Vec<LatexToken>),
   Ident(Ident),
   Bracketed(Bracketed),
   Frac(Frac),
@@ -82,7 +83,9 @@ pub trait TokenVisitor: Sized {
   fn visit_neg(&mut self) {}
   fn visit_mul(&mut self) {}
   fn visit_add(&mut self) {}
-  fn visit_exp(&mut self) {}
+  fn visit_exp(&mut self, exp: &[LatexToken]) {
+    _ = exp;
+  }
   fn visit_eq(&mut self) {}
   fn visit_ident(&mut self, ident: &Ident) {
     _ = ident;
@@ -114,7 +117,7 @@ impl LatexToken {
       LatexToken::Num(num) => visitor.visit_num(num),
       LatexToken::Mul => visitor.visit_mul(),
       LatexToken::Add => visitor.visit_add(),
-      LatexToken::Exp => visitor.visit_exp(),
+      LatexToken::Exp(exp) => visitor.visit_exp(exp.as_ref()),
       LatexToken::Eq => visitor.visit_eq(),
       LatexToken::Ident(ident) => visitor.visit_ident(ident),
       LatexToken::Bracketed(bracketed) => visitor.visit_bracketed(bracketed),
@@ -244,8 +247,21 @@ fn add(input: &str) -> IResult<&str, LatexToken> {
   map(preceded(multispace0, tag("+")), |_str| LatexToken::Add).parse(input)
 }
 
+/// ^ may have a corrosponding {}, or may not
 fn exp(input: &str) -> IResult<&str, LatexToken> {
-  map(preceded(multispace0, tag("^")), |_str| LatexToken::Exp).parse(input)
+  alt((
+    map(
+      preceded(
+        multispace0,
+        preceded(tag("^"), delimited(ws(tag("{")), tokens, ws(tag("}")))),
+      ),
+      |tokens| LatexToken::Exp(tokens),
+    ),
+    map(preceded(multispace0, tag("^")), |_str| {
+      LatexToken::Exp(vec![])
+    }),
+  ))
+  .parse(input)
 }
 
 fn num(input: &str) -> IResult<&str, LatexToken> {

@@ -7,10 +7,12 @@ pub fn App() -> impl IntoView {
   let latex = RwSignal::new(String::new());
   let on_edit = Callback::new(move |new_latex: String| latex.set(new_latex));
   let latex_ast = move || latex_parser::LatexTokens::parse_from_latex(&latex.read());
-  let ir_1 =
-    move || latex_ast().map(|latex| cas::contexts::scalar::real::IR1Expr::from_latex_tokens(latex));
+  let ir_1 = move || -> Result<_, cas::contexts::scalar::real::Error> {
+    let latex = latex_ast()?;
+    cas::contexts::scalar::real::IR1Expr::from_latex_tokens(latex)
+  };
   let ir2 = move || -> Result<_, cas::contexts::scalar::real::Error> {
-    let res = ir_1()??;
+    let res = ir_1()?;
     let lhs = res
       .into_iter()
       .next()
