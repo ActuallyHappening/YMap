@@ -1,14 +1,31 @@
-pub fn add(left: u64, right: u64) -> u64 {
-  left + right
+#![allow(unused_imports)]
+
+pub mod prelude {
+  pub(crate) use utils::prelude::*;
 }
 
-#[cfg(test)]
-mod tests {
-  use super::*;
+pub mod storage {
+  use bevy_ecs::{bundle::Bundle, entity::Entity, world::World};
 
-  #[test]
-  fn it_works() {
-    let result = add(2, 2);
-    assert_eq!(result, 4);
+  use crate::prelude::*;
+
+  pub struct Storage {
+    backing_world: World,
+    start: Entity,
+  }
+
+  trait Context {
+    type Line: ContextLine;
+  }
+
+  trait ContextLine {
+    // fn from_world
+  }
+
+  pub struct LineRef<'world> {
+    id: Entity,
+    world: &'world World,
   }
 }
+
+pub mod contexts;

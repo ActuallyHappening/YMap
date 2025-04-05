@@ -5,3 +5,9 @@ edition = "2024"
 publish = false
 
 [dependencies]
+bevy_ecs = "0.15.3"
+bevy_reflect = "0.15.3"
+nom = "8.0.0"
+num = { version = "0.4.3", features = ["num-bigint"] }
+thiserror = "2.0.12"
+utils.workspace = true
