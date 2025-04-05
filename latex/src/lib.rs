@@ -129,6 +129,7 @@ impl LatexToken {
 /// A symbol
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Ident {
+  Tau,
   Pi,
   AlphabeticChar(char),
 }
@@ -136,6 +137,7 @@ pub enum Ident {
 impl std::fmt::Display for Ident {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
+      Ident::Tau => write!(f, "τ"),
       Ident::Pi => write!(f, "π"),
       Ident::AlphabeticChar(char) => write!(f, "{}", char),
     }
@@ -307,12 +309,19 @@ fn eq(input: &str) -> IResult<&str, LatexToken> {
 }
 
 fn identifier(input: &str) -> IResult<&str, LatexToken> {
-  preceded(multispace0, alt((pi, alphanumeric_ident))).parse(input)
+  preceded(multispace0, alt((pi, tau, alphanumeric_ident))).parse(input)
 }
 
 fn pi(input: &str) -> IResult<&str, LatexToken> {
   map(preceded(multispace0, tag(r"\pi")), |_str| {
     LatexToken::Ident(Ident::Pi)
+  })
+  .parse(input)
+}
+
+fn tau(input: &str) -> IResult<&str, LatexToken> {
+  map(preceded(multispace0, tag(r"\tau")), |_str| {
+    LatexToken::Ident(Ident::Tau)
   })
   .parse(input)
 }
