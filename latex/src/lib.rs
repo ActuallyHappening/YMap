@@ -309,7 +309,7 @@ fn eq(input: &str) -> IResult<&str, LatexToken> {
 }
 
 fn identifier(input: &str) -> IResult<&str, LatexToken> {
-  preceded(multispace0, alt((pi, tau, alphanumeric_ident))).parse(input)
+  preceded(multispace0, alt((tau, pi, alphanumeric_ident))).parse(input)
 }
 
 fn pi(input: &str) -> IResult<&str, LatexToken> {
