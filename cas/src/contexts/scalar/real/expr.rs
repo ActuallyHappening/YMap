@@ -3,6 +3,24 @@ use num::BigUint;
 
 use super::Ident;
 
+pub struct Exprs<Ident>(pub Vec<Expr<Ident>>);
+
+impl<Ident> IntoIterator for Exprs<Ident> {
+  type Item = Expr<Ident>;
+  type IntoIter = std::vec::IntoIter<Self::Item>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.0.into_iter()
+  }
+}
+
+pub enum Expr<Ident> {
+  Constant(ConstantNum),
+  Ident(Ident),
+  Unary(UnaryOp<Ident>),
+  Binary(BinaryOp<Ident>),
+}
+
 #[derive(Clone)]
 pub enum ConstantNum {
   Positive(BigUint),
@@ -12,13 +30,6 @@ pub enum ConstantNum {
   //   num: BigUint,
   //   denom: BigUint
   // }
-}
-
-pub enum Expr<Ident> {
-  Constant(ConstantNum),
-  Ident(Ident),
-  Unary(UnaryOp<Ident>),
-  Binary(BinaryOp<Ident>),
 }
 
 impl<Var> From<ConstantNum> for Expr<Var> {

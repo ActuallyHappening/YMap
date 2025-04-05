@@ -23,7 +23,7 @@ pub fn App() -> impl IntoView {
   view! {
     <h1> "YMap" </h1>
     <MathQuillField on_edit=on_edit />
-    <p> { move || latex.get() } </p>
+    <p> { move || format!("Raw latex: {}", latex.get()) } </p>
     <p> { move || match latex_ast() {
       Ok(ast) => format!("Successfully parsed: {:?}", ast),
       Err(err) => format!("Couldn't parse what you have typed: {}", err),
