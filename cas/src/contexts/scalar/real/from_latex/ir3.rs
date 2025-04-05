@@ -122,19 +122,19 @@ impl IR3Expr<Ident> {
   }
 
   pub fn from_ir2(ir2: IR2Exprs) -> Self {
-    let (first, ops) = ir2.resolve();
+    let IR2Exprs { first, pairs } = ir2;
     let first = IR3Flat::from_ir2(first).into();
-    let mut ops = ops
+    let mut pairs = pairs
       .into_iter()
       .map(|(op, expr)| (op, IR3Flat::from_ir2(expr)))
       .peekable();
 
-    let Some((op, expr)) = ops.next() else {
+    let Some((op, expr)) = pairs.next() else {
       // base case, single expr
       return first;
     };
 
-    IR3Expr::recursive_from_ir2(first, op, expr, ops)
+    IR3Expr::recursive_from_ir2(first, op, expr, pairs)
   }
 }
 

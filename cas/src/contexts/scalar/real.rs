@@ -74,11 +74,6 @@ pub enum Error {
   #[error("Typing required ...")]
   NoTokens,
 
-  #[error(
-    "You can't just list multiple numbers or expressions, add them together or something idk"
-  )]
-  CantListExpressions,
-
   // #[error("You gotta write stuff around the = sign bro")]
   // EmptyAroundEq,
   #[error("Why are you putting equals signs there? Don't nest them please!")]

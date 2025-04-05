@@ -10,32 +10,12 @@ use super::{
 };
 
 /// Cancels unary [`OpKind::Neg`] and [`OpKind::Add`]
-/// into -1 * ... or ...
+/// into -1 * ... or ...,
+/// implicitely multiplies between expressions
 #[derive(Debug)]
 pub struct IR2Exprs {
-  ops: Vec<(IR2Flat, OpKind)>,
-  last: IR2Flat,
-}
-
-impl IR2Exprs {
-  pub fn resolve(self) -> (IR2Flat, Vec<(OpKind, IR2Flat)>) {
-    let mut ops = self.ops.into_iter();
-    let last = self.last;
-
-    let Some((first, first_op)) = ops.next() else {
-      return (last, vec![]);
-    };
-
-    let mut ret: Vec<(OpKind, IR2Flat)> = Vec::new();
-
-    let mut prev_op = first_op;
-    for (next, op) in ops {
-      ret.push((prev_op, next));
-      prev_op = op;
-    }
-
-    (first, ret)
-  }
+  pub first: IR2Flat,
+  pub pairs: Vec<(OpKind, IR2Flat)>,
 }
 
 #[derive(Debug)]
@@ -82,50 +62,25 @@ impl Sign {
   }
 }
 
-fn next_flat_expr(token: IR1Expr) -> Result<IR1ExprFlat, Error> {
-  match token {
-    IR1Expr::Op(_op) => Err(Error::CantListOperators),
-    IR1Expr::Expr(expr) => Ok(expr),
+enum ResolvedExpr {
+  Single(IR2Flat),
+  Negated(IR2Flat, OpKind, IR2Flat),
+}
+
+impl From<IR2Flat> for ResolvedExpr {
+  fn from(value: IR2Flat) -> Self {
+    ResolvedExpr::Single(value)
   }
 }
 
-fn next_op(token: IR1Expr) -> Result<OpKind, Error> {
-  match token {
-    IR1Expr::Op(op) => Ok(op),
-    IR1Expr::Expr(_flat) => Err(Error::CantListExpressions),
-  }
-}
-
-enum Extract1Pair<I>
-where
-  I: Iterator<Item = IR1Expr>,
-{
-  ExprOp {
-    left: Peekable<I>,
-    expr: IR2Flat,
-    op: OpKind,
-  },
-  FinalExpr(IR2Flat),
-}
-
-fn extract_one<I>(mut tokens: Peekable<I>) -> Result<Extract1Pair<I>, Error>
+/// Handles +-++-- cancellation
+fn resolve_expr<I>(tokens: &mut Peekable<I>) -> Result<ResolvedExpr, Error>
 where
   I: Iterator<Item = IR1Expr>,
 {
   let first = tokens.next().ok_or(Error::NoTokens)?;
   match first {
-    IR1Expr::Expr(expr) => {
-      let expr = IR2Flat::from_ir1_expr_flat(expr)?;
-      let Some(next_token) = tokens.next() else {
-        return Ok(Extract1Pair::FinalExpr(expr));
-      };
-      let op = next_op(next_token)?;
-      Ok(Extract1Pair::ExprOp {
-        left: tokens,
-        expr,
-        op,
-      })
-    }
+    IR1Expr::Expr(expr) => Ok(IR2Flat::from_ir1_expr_flat(expr)?.into()),
     // since this is the first, must be an unary
     IR1Expr::Op(op) => match op {
       // these can act as unary
@@ -139,18 +94,16 @@ where
           current.combine(Sign::from_op(next_op));
         }
 
+        // must be basic expr next
+        let IR1Expr::Expr(flat) = tokens.next().ok_or(Error::NoTokens)? else {
+          return Err(Error::CantListOperators);
+        };
+        let flat = IR2Flat::from_ir1_expr_flat(flat)?;
         match current {
-          Sign::Positive => {
-            // everything cancelled, no extra tokens need to be inserted
-            extract_one(tokens)
-          }
+          Sign::Positive => Ok(flat.into()),
           Sign::Negative => {
             // add -1 * to output
-            Ok(Extract1Pair::ExprOp {
-              left: tokens,
-              expr: IR2Flat::Neg1,
-              op: OpKind::Mul,
-            })
+            Ok(ResolvedExpr::Negated(IR2Flat::Neg1, OpKind::Mul, flat))
           }
         }
       }
@@ -160,24 +113,75 @@ where
   }
 }
 
+enum ResolvedOp {
+  Op(OpKind),
+  ImplicitMultiplication(OpKind, IR2Flat, Box<ResolvedOp>),
+}
+
+/// Handles implicit expression multiplication,
+/// assumes the previous token was an expression.
+///
+/// Recursive
+fn resolve_op<I>(tokens: &mut I) -> Result<ResolvedOp, Error>
+where
+  I: Iterator<Item = IR1Expr>,
+{
+  match tokens.next().ok_or(Error::NoTokens)? {
+    IR1Expr::Op(op) => Ok(ResolvedOp::Op(op)),
+    IR1Expr::Expr(flat) => {
+      let flat = IR2Flat::from_ir1_expr_flat(flat)?;
+      Ok(ResolvedOp::ImplicitMultiplication(
+        OpKind::Mul,
+        flat,
+        Box::new(resolve_op(tokens)?),
+      ))
+    }
+  }
+}
+
 impl IR2Exprs {
   pub fn from_ir1(tokens: impl IntoIterator<Item = IR1Expr>) -> Result<IR2Exprs, Error> {
     let mut tokens = tokens.into_iter().peekable();
-    let mut pairs: Vec<(IR2Flat, OpKind)> = Vec::new();
+    let mut pairs: Vec<(OpKind, IR2Flat)> = Vec::new();
 
-    loop {
-      let res = extract_one(tokens)?;
-      match res {
-        Extract1Pair::ExprOp { left, expr, op } => {
-          tokens = left;
-          pairs.push((expr, op));
-        }
-        Extract1Pair::FinalExpr(last) => {
-          // WHAAT how does the compiler know this
-          // will always diverge? Is it genius?
-          return Ok(IR2Exprs { ops: pairs, last });
+    // Error::NoTokens if not a first
+    let first = resolve_expr(&mut tokens)?;
+    let first = match first {
+      ResolvedExpr::Single(flat) => flat,
+      ResolvedExpr::Negated(one, op, two) => {
+        pairs.push((op, two));
+        one
+      }
+    };
+
+    // checks
+    while tokens.peek().is_some() {
+      // op
+      let resolved_op = resolve_op(&mut tokens)?;
+      fn resolve_op_closure(pairs: &mut Vec<(OpKind, IR2Flat)>, resolved_op: ResolvedOp) -> OpKind {
+        match resolved_op {
+          ResolvedOp::Op(op) => op,
+          ResolvedOp::ImplicitMultiplication(op, flat, next) => {
+            pairs.push((op, flat));
+            resolve_op_closure(pairs, *next)
+          }
         }
       }
+      let op = resolve_op_closure(&mut pairs, resolved_op);
+
+      // expr
+      let expr = resolve_expr(&mut tokens)?;
+      let expr = match expr {
+        ResolvedExpr::Single(flat) => flat,
+        ResolvedExpr::Negated(one, op, two) => {
+          pairs.push((op, two));
+          one
+        }
+      };
+
+      pairs.push((op, expr));
     }
+
+    Ok(IR2Exprs { first, pairs })
   }
 }

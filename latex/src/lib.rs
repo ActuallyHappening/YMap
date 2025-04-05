@@ -264,8 +264,10 @@ fn exp(input: &str) -> IResult<&str, LatexToken> {
   .parse(input)
 }
 
+/// spaces between digits don't matter, wow
 fn num(input: &str) -> IResult<&str, LatexToken> {
-  map(preceded(multispace0, digit1), |str: &str| {
+  map(many1(preceded(multispace0, digit1)), |strs: Vec<&str>| {
+    let str = strs.join("");
     LatexToken::Num(str.parse().expect("BigUint to parse from only digits"))
   })
   .parse(input)
