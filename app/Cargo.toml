@@ -8,8 +8,9 @@ publish = false
 
 [dependencies]
 utils = { workspace = true }
-getrandom = { version = "0.3", features = ["wasm_js"] }
 mathquill-leptos = { workspace = true }
+cas.workspace = true
+getrandom = { version = "0.3", features = ["wasm_js"] }
 leptos_meta = { version = "0.7.8", features = ["tracing"] }
 leptos = { version = "0.7.8", features = ["csr", "tracing"] }
 leptos-use = { version = "0.15.7", features = [] }

@@ -6,3 +6,4 @@ members = ["app", "cas", "db", "mathquill/*", "things", "utils"]
 [workspace.dependencies]
 utils = { path = "./utils" }
 mathquill-leptos = { path = "./mathquill/leptos" }
+cas = { path = "./cas" }
