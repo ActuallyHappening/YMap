@@ -37,6 +37,21 @@ impl Thing {
 }
 
 pub mod db {
+  use crate::{layers::GetDb, prelude::*};
+
+  use super::Thing;
+
+  pub struct TableThing<Auth>(Db<Auth>);
+
+  impl<Auth> GetDb for TableThing<Auth> {
+    fn get_db(&self) -> &Surreal<Any> {
+      self.0.get_db()
+    }
+  }
+
+  impl<Auth> surrealdb_layers::DbTable for TableThing<Auth> {
+    type Table = Thing;
+  }
 }
 
 mod payload {

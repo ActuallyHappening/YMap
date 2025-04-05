@@ -28,6 +28,14 @@ pub trait TableWithId: Table {
   }
 }
 
+/// A newtype around a database connection associated
+/// only with a single table
+pub trait DbTable: GetDb {
+  type Table: Table;
+  
+  
+}
+
 /// A transparent wrapper around an ID that has the
 /// invariant of pointing to a specific table,
 /// with the table being pointed to being completely

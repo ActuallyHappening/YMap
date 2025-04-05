@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["app", "db", "mathquill/*", "utils"]
+members = ["app", "cas", "db", "mathquill/*", "things", "utils"]
 
 
 [workspace.dependencies]

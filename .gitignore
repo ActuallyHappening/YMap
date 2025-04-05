@@ -5,6 +5,8 @@
 !utils
 !mathquill
 !db
+!things
+!cas
 
 !.env.toml
 !.gitignore
