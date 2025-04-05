@@ -1,5 +1,4 @@
-use std::u128;
-
+#[allow(unused_imports)]
 use nom::{
   Finish, Parser,
   branch::alt,
@@ -16,10 +15,8 @@ use nom::{
 use nom_language::error::VerboseError;
 use num::BigUint;
 
-use crate::prelude::*;
-
 #[derive(Debug)]
-pub struct LatexTokens(Vec<LatexToken>);
+pub struct LatexTokens(pub Vec<LatexToken>);
 
 impl LatexTokens {
   pub fn parse_from_latex(latex: &str) -> Result<Self, Error> {
@@ -46,9 +43,30 @@ pub enum LatexToken {
   Num(BigUint),
   Mul,
   Eq,
-  Pi,
+  Identifier(Identifier),
+  Bracketed {
+    bracket: Bracket,
+    tokens: Vec<LatexToken>,
+  },
   Frac(Frac),
+}
+
+/// A symbol
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Identifier {
+  Pi,
   AlphabeticChar(char),
+}
+
+impl From<Identifier> for LatexToken {
+  fn from(identifier: Identifier) -> Self {
+    LatexToken::Identifier(identifier)
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Bracket {
+  Round,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,6 +100,7 @@ impl Error {
     }
   }
 
+  #[cfg(test)]
   fn assert_parsing_errors<T>(res: Result<(&str, T), VerboseError<&str>>, input: &str) -> T {
     match Error::handle_parsing_errors(res, input) {
       Ok(tokens) => tokens,
@@ -89,15 +108,6 @@ impl Error {
     }
   }
 }
-
-// impl From<nom_language::error::VerboseError<&str>> for Error {
-//   fn from(err: nom_language::error::VerboseError<&str>) -> Self {
-//     Error::ParsingError {
-//       debug: format!("{:?}", err),
-//       display: err.to_string(),
-//     }
-//   }
-// }
 
 /// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
 /// trailing whitespace, returning the output of `inner`.
@@ -110,19 +120,7 @@ where
 
 /// May leave whitespace or invalid content at the end
 fn tokens(input: &str) -> IResult<&str, Vec<LatexToken>> {
-  map(
-    many1(alt((
-      map(neg, |t| vec![t]),
-      map(num, |t| vec![t]),
-      map(mul, |t| vec![t]),
-      map(eq, |t| vec![t]),
-      map(pi, |t| vec![t]),
-      vars,
-      map(frac, |t| vec![t]),
-    ))),
-    |vec_of_vecs| vec_of_vecs.into_iter().flatten().collect(),
-  )
-  .parse(input)
+  many1(alt((neg, num, mul, eq, pi, identifier, brackets, frac))).parse(input)
 }
 
 #[test]
@@ -133,9 +131,9 @@ fn latex_tokens() {
     tokens,
     vec![
       LatexToken::Num(BigUint::from(123u32)),
-      LatexToken::AlphabeticChar('x'),
-      LatexToken::AlphabeticChar('y'),
-      LatexToken::AlphabeticChar('z'),
+      LatexToken::Identifier(Identifier::AlphabeticChar('x')),
+      LatexToken::Identifier(Identifier::AlphabeticChar('y')),
+      LatexToken::Identifier(Identifier::AlphabeticChar('z')),
       LatexToken::Neg,
       LatexToken::Num(BigUint::from(5u32))
     ]
@@ -192,37 +190,78 @@ fn eq(input: &str) -> IResult<&str, LatexToken> {
   map(preceded(multispace0, tag("=")), |_str| LatexToken::Eq).parse(input)
 }
 
-fn pi(input: &str) -> IResult<&str, LatexToken> {
-  map(preceded(multispace0, tag(r"\pi")), |_str| LatexToken::Pi).parse(input)
+fn identifier(input: &str) -> IResult<&str, LatexToken> {
+  preceded(multispace0, alt((pi, alphanumeric_ident))).parse(input)
 }
 
-fn is_free_char(char: char) -> bool {
-  ('a'..='z').contains(&char) || ('A'..='Z').contains(&char)
-}
-fn vars(input: &str) -> IResult<&str, Vec<LatexToken>> {
-  map(
-    take_while1(|char: char| char.is_whitespace() || is_free_char(char)),
-    |chars: &str| {
-      chars
-        .chars()
-        .filter_map(|char| (!char.is_whitespace()).then(|| LatexToken::AlphabeticChar(char)))
-        .collect()
-    },
-  )
+fn pi(input: &str) -> IResult<&str, LatexToken> {
+  map(preceded(multispace0, tag(r"\pi")), |_str| {
+    LatexToken::Identifier(Identifier::Pi)
+  })
   .parse(input)
 }
 
+/// This is a bit manual, is there a better way?
+fn alphanumeric_ident<'i, E>(input: &'i str) -> IResult<&'i str, LatexToken, E>
+where
+  E: ParseError<&'i str>,
+{
+  let char = input
+    .chars()
+    .next()
+    .ok_or(E::from_error_kind(input, nom::error::ErrorKind::Char))
+    .map_err(|err| nom::Err::Error(err))?;
+  if char.is_alphabetic() {
+    return Ok((
+      &input[1..],
+      LatexToken::Identifier(Identifier::AlphabeticChar(char)),
+    ));
+  } else {
+    Err(nom::Err::Error(E::from_error_kind(
+      input,
+      nom::error::ErrorKind::Char,
+    )))
+  }
+}
+
 #[test]
-fn latex_vars() {
-  let input = r"   x y   z";
-  let tokens = Error::assert_parsing_errors(vars(input).finish(), input);
+fn latex_identifiers() {
+  let input = r"   x y   z\pi";
+  let tokens = Error::assert_parsing_errors(many1(identifier).parse(input).finish(), input);
   assert_eq!(
     tokens,
     vec![
-      LatexToken::AlphabeticChar('x'),
-      LatexToken::AlphabeticChar('y'),
-      LatexToken::AlphabeticChar('z')
+      Identifier::AlphabeticChar('x').into(),
+      Identifier::AlphabeticChar('y').into(),
+      Identifier::AlphabeticChar('z').into(),
+      Identifier::Pi.into()
     ]
+  );
+}
+
+fn brackets(input: &str) -> IResult<&str, LatexToken> {
+  delimited(ws(tag(r"\left(")), tokens, ws(tag(r"\right)")))
+    .map(|tokens| LatexToken::Bracketed {
+      bracket: Bracket::Round,
+      tokens,
+    })
+    .parse(input)
+}
+
+#[test]
+fn latex_brackets() {
+  let input = r"\left( 5 \cdot 7 \right)";
+  let tokens = Error::assert_parsing_errors(tokens.parse(input).finish(), input);
+  assert_eq!(
+    tokens,
+    vec![LatexToken::Bracketed {
+      bracket: Bracket::Round,
+      tokens: vec![
+        LatexToken::Num(5u32.into()),
+        LatexToken::Mul,
+        LatexToken::Num(7u32.into())
+      ]
+    }]
   );
 }
 
@@ -258,10 +297,10 @@ fn latex_frac() {
     LatexToken::Frac(Frac {
       numerator: vec![
         LatexToken::Num(2u32.into()),
-        LatexToken::AlphabeticChar('x'),
-        LatexToken::AlphabeticChar('y')
+        Identifier::AlphabeticChar('x').into(),
+        Identifier::AlphabeticChar('y').into()
       ],
-      denominator: vec![LatexToken::Num(3u32.into()), LatexToken::Pi],
+      denominator: vec![LatexToken::Num(3u32.into()), Identifier::Pi.into()],
     })
   );
 }
