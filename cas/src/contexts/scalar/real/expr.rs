@@ -1,7 +1,7 @@
 use bevy_ecs::component::Component;
 use num::BigUint;
 
-use super::Identifier;
+use super::Ident;
 
 #[derive(Clone)]
 pub enum ConstantNum {
@@ -14,11 +14,11 @@ pub enum ConstantNum {
   // }
 }
 
-pub enum Expr<Var> {
+pub enum Expr<Ident> {
   Constant(ConstantNum),
-  Var(Var),
-  Unary(UnaryOp<Var>),
-  Binary(BinaryOp<Var>),
+  Ident(Ident),
+  Unary(UnaryOp<Ident>),
+  Binary(BinaryOp<Ident>),
 }
 
 impl<Var> From<ConstantNum> for Expr<Var> {
@@ -33,9 +33,9 @@ impl<Var> From<BigUint> for Expr<Var> {
   }
 }
 
-impl From<Identifier> for Expr<Identifier> {
-  fn from(value: Identifier) -> Self {
-    Expr::Var(value)
+impl From<Ident> for Expr<Ident> {
+  fn from(value: Ident) -> Self {
+    Expr::Ident(value)
   }
 }
 

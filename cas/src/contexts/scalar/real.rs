@@ -8,13 +8,12 @@ use std::{
 
 use crate::prelude::*;
 use bevy_ecs::{bundle::Bundle, component::Component, entity::Entity, world::World};
-use latex_parser::{Bracketed, Frac, LatexToken, LatexTokens};
+use expr::{ConstantNum, Equation};
+use latex_parser::{Bracketed, Frac, Ident, LatexToken, LatexTokens};
 use num::bigint::BigUint;
 
-pub type Identifier = latex_parser::Ident;
-
 pub struct RealScalarStorage {
-  context: ContextOneVarEq<Identifier>,
+  context: ContextOneVarEq<Ident>,
   world: World,
   start: Entity,
 }
@@ -47,7 +46,7 @@ struct IsEquation;
 
 #[derive(Bundle)]
 struct Line {
-  eq: Equation<Identifier>,
+  eq: Equation<Ident>,
   is_eq: IsEquation,
 }
 
@@ -56,13 +55,13 @@ pub enum Error {
   #[error(
     "You must define all your variables and constants before using them, this one wasn't defined: {0}"
   )]
-  UndefinedIdent(Identifier),
+  UndefinedIdent(Ident),
 
   #[error("Couldn't parse your math: {0}")]
   ParseLatex(#[from] latex_parser::Error),
 
   #[error("This program only supports solving equations of one variable at the moment")]
-  MultipleVariables(HashSet<Identifier>),
+  MultipleVariables(HashSet<Ident>),
 
   #[error("This program doesn't just simplify your expressions, make it an equation!")]
   NoVariables,
@@ -82,8 +81,8 @@ pub enum Error {
 
 pub enum OneVariableEquation {
   NoVariables,
-  Ok { solve_for: Identifier },
-  ErrMultipleVars(HashSet<Identifier>),
+  Ok { solve_for: Ident },
+  ErrMultipleVars(HashSet<Ident>),
 }
 
 impl latex_parser::TokenVisitor for OneVariableEquation {
@@ -116,7 +115,7 @@ pub struct ContextOneVarEq<Var> {
   constants: HashMap<Var, ConstantNum>,
 }
 
-impl ContextOneVarEq<Identifier> {
+impl ContextOneVarEq<Ident> {
   pub fn infer_variable(tokens: &LatexTokens) -> Result<Self, Error> {
     let mut visitor = OneVariableEquation::NoVariables;
     tokens.visit(&mut visitor);
@@ -157,8 +156,8 @@ where
 
 pub use from_latex::*;
 
-mod from_latex;
 mod expr;
+mod from_latex;
 
 pub mod pass {
   use crate::prelude::*;

@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 
 pub mod prelude {
+  pub(crate) use num::bigint::BigUint;
   pub(crate) use utils::prelude::*;
 }
 
