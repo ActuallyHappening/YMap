@@ -4,6 +4,7 @@ pub mod prelude {
   pub(crate) use num::bigint::BigUint;
   pub(crate) use utils::prelude::*;
 }
+pub mod contexts;
 
 pub mod storage {
   use bevy_ecs::{bundle::Bundle, entity::Entity, world::World};
@@ -28,5 +29,3 @@ pub mod storage {
     world: &'world World,
   }
 }
-
-pub mod contexts;

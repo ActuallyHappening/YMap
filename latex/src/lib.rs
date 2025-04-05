@@ -46,6 +46,15 @@ impl FromIterator<LatexToken> for LatexTokens {
   }
 }
 
+impl IntoIterator for LatexTokens {
+  type Item = LatexToken;
+  type IntoIter = std::vec::IntoIter<Self::Item>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.0.into_iter()
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LatexToken {
   Num(BigUint),

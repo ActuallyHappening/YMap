@@ -12,6 +12,11 @@ use expr::{ConstantNum, Equation};
 use latex_parser::{Bracketed, Frac, Ident, LatexToken, LatexTokens};
 use num::bigint::BigUint;
 
+pub use from_latex::*;
+
+mod expr;
+mod from_latex;
+
 pub struct RealScalarStorage {
   context: ContextOneVarEq<Ident>,
   world: World,
@@ -66,17 +71,24 @@ pub enum Error {
   #[error("This program doesn't just simplify your expressions, make it an equation!")]
   NoVariables,
 
-  #[error("Keep typing ...")]
+  #[error("Typing required ...")]
   NoTokens,
 
-  #[error("You can't just list multiple numbers, add them or something idk")]
-  TwoNumbersTogether(BigUint, BigUint),
+  #[error(
+    "You can't just list multiple numbers or expressions, add them together or something idk"
+  )]
+  CantListExpressions,
 
-  #[error("You gotta write stuff around the = sign bro")]
-  EmptyAroundEq,
-
+  // #[error("You gotta write stuff around the = sign bro")]
+  // EmptyAroundEq,
   #[error("Why are you putting equals signs there? Don't nest them please!")]
   CantNestEq,
+
+  #[error("You can't just list operators like times or minus, give them some numbers")]
+  CantListOperators,
+
+  #[error("You can't finish your expression with + or -, add something after it")]
+  CantEndOnAddNeg,
 }
 
 pub enum OneVariableEquation {
@@ -153,11 +165,6 @@ where
     }
   }
 }
-
-pub use from_latex::*;
-
-mod expr;
-mod from_latex;
 
 pub mod pass {
   use crate::prelude::*;
