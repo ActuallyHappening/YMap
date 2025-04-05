@@ -745,6 +745,7 @@ dependencies = [
  "bevy_ecs",
  "bevy_reflect",
  "latex-parser",
+ "nonzero_lit",
  "num",
  "thiserror 2.0.12",
  "utils",
@@ -2827,6 +2828,12 @@ name = "nonmax"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "610a5acd306ec67f907abe5567859a3c693fb9886eb1f012ab8f2a47bef3db51"
+
+[[package]]
+name = "nonzero_lit"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30a9e0365849b8ce3d067218268d6c523c1c14f539f7e9157d635d8adfb308fa"
 
 [[package]]
 name = "ntapi"

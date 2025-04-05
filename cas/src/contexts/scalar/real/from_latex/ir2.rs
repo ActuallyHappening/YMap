@@ -13,26 +13,45 @@ use super::{
 /// into -1 * ... or ...
 #[derive(Debug)]
 pub struct IR2Exprs {
-  pub ops: Vec<(IR2ExprFlat, OpKind)>,
-  pub last: IR2ExprFlat,
+  ops: Vec<(IR2Flat, OpKind)>,
+  last: IR2Flat,
+}
+
+impl IR2Exprs {
+  pub fn resolve(self) -> (IR2Flat, Vec<(OpKind, IR2Flat)>) {
+    let mut ops = self.ops.into_iter();
+    let last = self.last;
+
+    let Some((first, first_op)) = ops.next() else {
+      return (last, vec![]);
+    };
+
+    let mut ret: Vec<(OpKind, IR2Flat)> = Vec::new();
+
+    let mut prev_op = first_op;
+    for (next, op) in ops {
+      ret.push((prev_op, next));
+      prev_op = op;
+    }
+
+    (first, ret)
+  }
 }
 
 #[derive(Debug)]
-pub enum IR2ExprFlat {
+pub enum IR2Flat {
   Neg1,
   Num(BigUint),
   Ident(Ident),
   Bracketed(Box<IR2Exprs>),
 }
 
-impl IR2ExprFlat {
-  fn from_ir1_expr_flat(flat_expr: IR1ExprFlat) -> Result<IR2ExprFlat, Error> {
+impl IR2Flat {
+  fn from_ir1_expr_flat(flat_expr: IR1ExprFlat) -> Result<IR2Flat, Error> {
     match flat_expr {
-      IR1ExprFlat::Num(num) => Ok(IR2ExprFlat::Num(num)),
-      IR1ExprFlat::Ident(ident) => Ok(IR2ExprFlat::Ident(ident)),
-      IR1ExprFlat::Bracketed(exprs) => {
-        Ok(IR2ExprFlat::Bracketed(Box::new(IR2Exprs::from_ir1(exprs)?)))
-      }
+      IR1ExprFlat::Num(num) => Ok(IR2Flat::Num(num)),
+      IR1ExprFlat::Ident(ident) => Ok(IR2Flat::Ident(ident)),
+      IR1ExprFlat::Bracketed(exprs) => Ok(IR2Flat::Bracketed(Box::new(IR2Exprs::from_ir1(exprs)?))),
     }
   }
 }
@@ -83,10 +102,10 @@ where
 {
   ExprOp {
     left: Peekable<I>,
-    expr: IR2ExprFlat,
+    expr: IR2Flat,
     op: OpKind,
   },
-  FinalExpr(IR2ExprFlat),
+  FinalExpr(IR2Flat),
 }
 
 fn extract_one<I>(mut tokens: Peekable<I>) -> Result<Extract1Pair<I>, Error>
@@ -96,7 +115,7 @@ where
   let first = tokens.next().ok_or(Error::NoTokens)?;
   match first {
     IR1Expr::Expr(expr) => {
-      let expr = IR2ExprFlat::from_ir1_expr_flat(expr)?;
+      let expr = IR2Flat::from_ir1_expr_flat(expr)?;
       let Some(next_token) = tokens.next() else {
         return Ok(Extract1Pair::FinalExpr(expr));
       };
@@ -112,13 +131,12 @@ where
       // these can act as unary
       OpKind::Add | OpKind::Neg => {
         // handle +-++-- cancelling
-        let mut current = Sign::from_op(op);
+        let current = Sign::from_op(op);
         while let Some(&IR1Expr::Op(OpKind::Add | OpKind::Neg)) = tokens.peek() {
           let Some(IR1Expr::Op(next_op)) = tokens.next() else {
             unreachable!()
           };
-          let next = Sign::from_op(next_op);
-          current = current.combine(next);
+          current.combine(Sign::from_op(next_op));
         }
 
         match current {
@@ -130,7 +148,7 @@ where
             // add -1 * to output
             Ok(Extract1Pair::ExprOp {
               left: tokens,
-              expr: IR2ExprFlat::Neg1,
+              expr: IR2Flat::Neg1,
               op: OpKind::Mul,
             })
           }
@@ -145,7 +163,7 @@ where
 impl IR2Exprs {
   pub fn from_ir1(tokens: impl IntoIterator<Item = IR1Expr>) -> Result<IR2Exprs, Error> {
     let mut tokens = tokens.into_iter().peekable();
-    let mut pairs: Vec<(IR2ExprFlat, OpKind)> = Vec::new();
+    let mut pairs: Vec<(IR2Flat, OpKind)> = Vec::new();
 
     loop {
       let res = extract_one(tokens)?;

@@ -1,5 +1,5 @@
 /// Both binary and unary
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum OpKind {
   Neg,
   Add,

@@ -1,6 +1,8 @@
 #![allow(unused_imports)]
 
 pub mod prelude {
+  pub(crate) use core::num::NonZero;
+  pub(crate) use nonzero_lit::u8;
   pub(crate) use num::bigint::BigUint;
   pub(crate) use utils::prelude::*;
 }
