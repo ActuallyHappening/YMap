@@ -6,19 +6,19 @@ use latex_parser::Ident;
 
 use super::{
   OpKind,
-  ir1::{IR1Expr, IR1ExprFlat},
+  ir1::{IR1Expr, IR1Flat},
 };
 
 /// Cancels unary [`OpKind::Neg`] and [`OpKind::Add`]
 /// into -1 * ... or ...,
 /// implicitely multiplies between expressions
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IR2Exprs {
   pub first: IR2Flat,
   pub pairs: Vec<(OpKind, IR2Flat)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum IR2Flat {
   Neg1,
   Num(BigUint),
@@ -27,11 +27,11 @@ pub enum IR2Flat {
 }
 
 impl IR2Flat {
-  fn from_ir1_expr_flat(flat_expr: IR1ExprFlat) -> Result<IR2Flat, Error> {
+  fn from_ir1_expr_flat(flat_expr: IR1Flat) -> Result<IR2Flat, Error> {
     match flat_expr {
-      IR1ExprFlat::Num(num) => Ok(IR2Flat::Num(num)),
-      IR1ExprFlat::Ident(ident) => Ok(IR2Flat::Ident(ident)),
-      IR1ExprFlat::Bracketed(exprs) => Ok(IR2Flat::Bracketed(Box::new(IR2Exprs::from_ir1(exprs)?))),
+      IR1Flat::Num(num) => Ok(IR2Flat::Num(num)),
+      IR1Flat::Ident(ident) => Ok(IR2Flat::Ident(ident)),
+      IR1Flat::Bracketed(exprs) => Ok(IR2Flat::Bracketed(Box::new(IR2Exprs::from_ir1(exprs)?))),
     }
   }
 }
@@ -62,6 +62,7 @@ impl Sign {
   }
 }
 
+#[derive(Debug, PartialEq)]
 enum ResolvedExpr {
   Single(IR2Flat),
   Negated(IR2Flat, OpKind, IR2Flat),
@@ -75,10 +76,6 @@ impl From<IR2Flat> for ResolvedExpr {
 
 /// Handles +-++-- cancellation.
 /// Assumes no previous tokens, or an operator as the previous token.
-///
-/// The return type should be understood left to right, i.e.
-/// vec![IR2Flat, OpKind, IR2Flat] in [`Some`] case
-///
 fn resolve_expr<I>(tokens: &mut Peekable<I>) -> Result<ResolvedExpr, Error>
 where
   I: Iterator<Item = IR1Expr>,
@@ -93,12 +90,12 @@ where
       // these can act as unary
       OpKind::Add | OpKind::Neg => {
         // handle +-++-- cancelling
-        let current = Sign::from_op(op);
+        let mut current = Sign::from_op(op);
         while let Some(&IR1Expr::Op(OpKind::Add | OpKind::Neg)) = tokens.peek() {
           let Some(IR1Expr::Op(next_op)) = tokens.next() else {
             unreachable!()
           };
-          current.combine(Sign::from_op(next_op));
+          current = current.combine(Sign::from_op(next_op));
         }
 
         // must be basic expr next
@@ -110,7 +107,7 @@ where
           Sign::Positive => Ok(ResolvedExpr::Single(flat)),
           Sign::Negative => {
             // add -1 * to output
-            Ok(ResolvedExpr::Negated(IR2Flat::Neg1, OpKind::Neg, flat))
+            Ok(ResolvedExpr::Negated(IR2Flat::Neg1, OpKind::Mul, flat))
           }
         }
       }
@@ -118,6 +115,34 @@ where
       OpKind::Mul | OpKind::Div | OpKind::Exp => return Err(Error::CantListOperators),
     },
   }
+}
+
+#[test]
+fn cancelling_add_neg() {
+  let input: Vec<IR1Expr> = vec![
+    OpKind::Add.into(),
+    OpKind::Neg.into(),
+    OpKind::Neg.into(),
+    OpKind::Add.into(),
+    IR1Flat::Ident(Ident::Pi).into(),
+  ];
+  let mut input = input.into_iter().peekable();
+  let resolved = resolve_expr(&mut input).unwrap();
+  assert_eq!(resolved, ResolvedExpr::Single(IR2Flat::Ident(Ident::Pi)));
+
+  let input: Vec<IR1Expr> = vec![
+    OpKind::Neg.into(),
+    OpKind::Neg.into(),
+    OpKind::Neg.into(),
+    OpKind::Add.into(),
+    IR1Flat::Ident(Ident::Pi).into(),
+  ];
+  let mut input = input.into_iter().peekable();
+  let resolved = resolve_expr(&mut input).unwrap();
+  assert_eq!(
+    resolved,
+    ResolvedExpr::Negated(IR2Flat::Neg1, OpKind::Mul, IR2Flat::Ident(Ident::Pi))
+  );
 }
 
 /// Handles implicit expression multiplication,
@@ -159,6 +184,10 @@ impl IR2Exprs {
     while tokens.peek().is_some() {
       // op
       let op = resolve_op(&mut tokens, &mut pairs)?;
+
+      if tokens.peek().is_none() {
+        continue;
+      }
 
       // expr
       let expr = resolve_expr(&mut tokens)?;

@@ -11,11 +11,11 @@ use super::*;
 #[derive(Debug)]
 pub enum IR1Expr {
   Op(OpKind),
-  Expr(IR1ExprFlat),
+  Expr(IR1Flat),
 }
 
 #[derive(Debug)]
-pub enum IR1ExprFlat {
+pub enum IR1Flat {
   Num(BigUint),
   Ident(Ident),
   /// This has ultimate operator precedence
@@ -28,8 +28,8 @@ impl From<OpKind> for IR1Expr {
   }
 }
 
-impl From<IR1ExprFlat> for IR1Expr {
-  fn from(token: IR1ExprFlat) -> Self {
+impl From<IR1Flat> for IR1Expr {
+  fn from(token: IR1Flat) -> Self {
     IR1Expr::Expr(token)
   }
 }
@@ -71,25 +71,25 @@ impl IR1Expr {
         LatexToken::Exp(tokens) => {
           current.push(OpKind::Exp.into());
           if !tokens.is_empty() {
-            current.push(IR1ExprFlat::Bracketed(IR1Expr::from_latex_nested(tokens)?).into());
+            current.push(IR1Flat::Bracketed(IR1Expr::from_latex_nested(tokens)?).into());
           }
         }
-        LatexToken::Ident(ident) => current.push(IR1ExprFlat::Ident(ident).into()),
-        LatexToken::Num(num) => current.push(IR1ExprFlat::Num(num).into()),
+        LatexToken::Ident(ident) => current.push(IR1Flat::Ident(ident).into()),
+        LatexToken::Num(num) => current.push(IR1Flat::Num(num).into()),
         LatexToken::Bracketed(Bracketed {
           bracket: latex_parser::Bracket::Round,
           inner,
         }) => {
           // transform only
-          current.push(IR1ExprFlat::Bracketed(IR1Expr::from_latex_nested(inner)?).into());
+          current.push(IR1Flat::Bracketed(IR1Expr::from_latex_nested(inner)?).into());
         }
         LatexToken::Frac(Frac {
           numerator,
           denominator,
         }) => {
-          current.push(IR1ExprFlat::Bracketed(IR1Expr::from_latex_nested(numerator)?).into());
+          current.push(IR1Flat::Bracketed(IR1Expr::from_latex_nested(numerator)?).into());
           current.push(OpKind::Div.into());
-          current.push(IR1ExprFlat::Bracketed(IR1Expr::from_latex_nested(denominator)?).into())
+          current.push(IR1Flat::Bracketed(IR1Expr::from_latex_nested(denominator)?).into())
         }
       }
     }
