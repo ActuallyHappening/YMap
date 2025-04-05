@@ -1,5 +1,3 @@
-use std::path::Display;
-
 #[allow(unused_imports)]
 use nom::{
   Finish, Parser,
@@ -50,11 +48,13 @@ impl FromIterator<LatexToken> for LatexTokens {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LatexToken {
-  Neg,
   Num(BigUint),
+  Neg,
   Mul,
+  Add,
   Eq,
-  Identifier(Identifier),
+  Exp,
+  Ident(Ident),
   Bracketed(Bracketed),
   Frac(Frac),
 }
@@ -67,11 +67,17 @@ impl From<BigUint> for LatexToken {
 
 /// IDK why this needs to be sized btw
 pub trait TokenVisitor: Sized {
-  fn visit_neg(&mut self);
-  fn visit_num(&mut self, num: &BigUint);
-  fn visit_mul(&mut self);
-  fn visit_eq(&mut self);
-  fn visit_ident(&mut self, ident: &Identifier);
+  fn visit_num(&mut self, num: &BigUint) {
+    _ = num;
+  }
+  fn visit_neg(&mut self) {}
+  fn visit_mul(&mut self) {}
+  fn visit_add(&mut self) {}
+  fn visit_exp(&mut self) {}
+  fn visit_eq(&mut self) {}
+  fn visit_ident(&mut self, ident: &Ident) {
+    _ = ident;
+  }
   /// Default visits inner tokens
   fn visit_bracketed(&mut self, bracketed: &Bracketed) {
     for token in &bracketed.inner {
@@ -98,8 +104,10 @@ impl LatexToken {
       LatexToken::Neg => visitor.visit_neg(),
       LatexToken::Num(num) => visitor.visit_num(num),
       LatexToken::Mul => visitor.visit_mul(),
+      LatexToken::Add => visitor.visit_add(),
+      LatexToken::Exp => visitor.visit_exp(),
       LatexToken::Eq => visitor.visit_eq(),
-      LatexToken::Identifier(ident) => visitor.visit_ident(ident),
+      LatexToken::Ident(ident) => visitor.visit_ident(ident),
       LatexToken::Bracketed(bracketed) => visitor.visit_bracketed(bracketed),
       LatexToken::Frac(frac) => visitor.visit_frac(frac),
     }
@@ -107,24 +115,24 @@ impl LatexToken {
 }
 
 /// A symbol
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Identifier {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Ident {
   Pi,
   AlphabeticChar(char),
 }
 
-impl std::fmt::Display for Identifier {
+impl std::fmt::Display for Ident {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
-      Identifier::Pi => write!(f, "π"),
-      Identifier::AlphabeticChar(char) => write!(f, "{}", char),
+      Ident::Pi => write!(f, "π"),
+      Ident::AlphabeticChar(char) => write!(f, "{}", char),
     }
   }
 }
 
-impl From<Identifier> for LatexToken {
-  fn from(identifier: Identifier) -> Self {
-    LatexToken::Identifier(identifier)
+impl From<Ident> for LatexToken {
+  fn from(identifier: Ident) -> Self {
+    LatexToken::Ident(identifier)
   }
 }
 
@@ -141,8 +149,8 @@ pub struct Frac {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Bracketed {
-  bracket: Bracket,
-  inner: Vec<LatexToken>,
+  pub bracket: Bracket,
+  pub inner: Vec<LatexToken>,
 }
 
 impl From<Bracketed> for LatexToken {
@@ -196,7 +204,10 @@ where
 
 /// May leave whitespace or invalid content at the end
 fn tokens(input: &str) -> IResult<&str, Vec<LatexToken>> {
-  many1(alt((neg, num, mul, eq, pi, identifier, brackets, frac))).parse(input)
+  many1(alt((
+    neg, num, mul, add, exp, eq, pi, identifier, brackets, frac,
+  )))
+  .parse(input)
 }
 
 #[test]
@@ -207,9 +218,9 @@ fn latex_tokens() {
     tokens,
     vec![
       LatexToken::Num(BigUint::from(123u32)),
-      LatexToken::Identifier(Identifier::AlphabeticChar('x')),
-      LatexToken::Identifier(Identifier::AlphabeticChar('y')),
-      LatexToken::Identifier(Identifier::AlphabeticChar('z')),
+      LatexToken::Ident(Ident::AlphabeticChar('x')),
+      LatexToken::Ident(Ident::AlphabeticChar('y')),
+      LatexToken::Ident(Ident::AlphabeticChar('z')),
       LatexToken::Neg,
       LatexToken::Num(BigUint::from(5u32))
     ]
@@ -220,10 +231,12 @@ fn neg(input: &str) -> IResult<&str, LatexToken> {
   map(preceded(multispace0, tag("-")), |_str| LatexToken::Neg).parse(input)
 }
 
-#[test]
-fn latex_neg() {
-  let (_remaining, t) = all_consuming(neg).parse("  \t -").unwrap();
-  assert_eq!(t, LatexToken::Neg);
+fn add(input: &str) -> IResult<&str, LatexToken> {
+  map(preceded(multispace0, tag("+")), |_str| LatexToken::Add).parse(input)
+}
+
+fn exp(input: &str) -> IResult<&str, LatexToken> {
+  map(preceded(multispace0, tag("^")), |_str| LatexToken::Exp).parse(input)
 }
 
 fn num(input: &str) -> IResult<&str, LatexToken> {
@@ -272,7 +285,7 @@ fn identifier(input: &str) -> IResult<&str, LatexToken> {
 
 fn pi(input: &str) -> IResult<&str, LatexToken> {
   map(preceded(multispace0, tag(r"\pi")), |_str| {
-    LatexToken::Identifier(Identifier::Pi)
+    LatexToken::Ident(Ident::Pi)
   })
   .parse(input)
 }
@@ -288,10 +301,7 @@ where
     .ok_or(E::from_error_kind(input, nom::error::ErrorKind::Char))
     .map_err(|err| nom::Err::Error(err))?;
   if char.is_alphabetic() {
-    return Ok((
-      &input[1..],
-      LatexToken::Identifier(Identifier::AlphabeticChar(char)),
-    ));
+    return Ok((&input[1..], LatexToken::Ident(Ident::AlphabeticChar(char))));
   } else {
     Err(nom::Err::Error(E::from_error_kind(
       input,
@@ -307,10 +317,10 @@ fn latex_identifiers() {
   assert_eq!(
     tokens,
     vec![
-      Identifier::AlphabeticChar('x').into(),
-      Identifier::AlphabeticChar('y').into(),
-      Identifier::AlphabeticChar('z').into(),
-      Identifier::Pi.into()
+      Ident::AlphabeticChar('x').into(),
+      Ident::AlphabeticChar('y').into(),
+      Ident::AlphabeticChar('z').into(),
+      Ident::Pi.into()
     ]
   );
 }
@@ -378,10 +388,10 @@ fn latex_frac() {
     LatexToken::Frac(Frac {
       numerator: vec![
         LatexToken::Num(2u32.into()),
-        Identifier::AlphabeticChar('x').into(),
-        Identifier::AlphabeticChar('y').into()
+        Ident::AlphabeticChar('x').into(),
+        Ident::AlphabeticChar('y').into()
       ],
-      denominator: vec![LatexToken::Num(3u32.into()), Identifier::Pi.into()],
+      denominator: vec![LatexToken::Num(3u32.into()), Ident::Pi.into()],
     })
   );
 }
