@@ -13,8 +13,8 @@ use super::{
 /// into -1 * ... or ...
 #[derive(Debug)]
 pub struct IR2Exprs {
-  ops: Vec<(IR2ExprFlat, OpKind)>,
-  last: IR2ExprFlat,
+  pub ops: Vec<(IR2ExprFlat, OpKind)>,
+  pub last: IR2ExprFlat,
 }
 
 #[derive(Debug)]
@@ -112,12 +112,13 @@ where
       // these can act as unary
       OpKind::Add | OpKind::Neg => {
         // handle +-++-- cancelling
-        let current = Sign::from_op(op);
+        let mut current = Sign::from_op(op);
         while let Some(&IR1Expr::Op(OpKind::Add | OpKind::Neg)) = tokens.peek() {
           let Some(IR1Expr::Op(next_op)) = tokens.next() else {
             unreachable!()
           };
-          current.combine(Sign::from_op(next_op));
+          let next = Sign::from_op(next_op);
+          current = current.combine(next);
         }
 
         match current {
