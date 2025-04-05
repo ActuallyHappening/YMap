@@ -1,3 +1,5 @@
+use std::path::Display;
+
 #[allow(unused_imports)]
 use nom::{
   Finish, Parser,
@@ -16,11 +18,20 @@ use nom_language::error::VerboseError;
 use num::BigUint;
 
 #[derive(Debug)]
-pub struct LatexTokens(pub Vec<LatexToken>);
+pub struct LatexTokens(Vec<LatexToken>);
 
 impl LatexTokens {
   pub fn parse_from_latex(latex: &str) -> Result<Self, Error> {
     parse_latex(latex).map(LatexTokens)
+  }
+
+  pub fn visit<T>(&self, visitor: &mut T)
+  where
+    T: TokenVisitor,
+  {
+    for token in &self.0 {
+      token.visit(visitor);
+    }
   }
 }
 
@@ -44,11 +55,55 @@ pub enum LatexToken {
   Mul,
   Eq,
   Identifier(Identifier),
-  Bracketed {
-    bracket: Bracket,
-    tokens: Vec<LatexToken>,
-  },
+  Bracketed(Bracketed),
   Frac(Frac),
+}
+
+impl From<BigUint> for LatexToken {
+  fn from(num: BigUint) -> Self {
+    LatexToken::Num(num)
+  }
+}
+
+/// IDK why this needs to be sized btw
+pub trait TokenVisitor: Sized {
+  fn visit_neg(&mut self);
+  fn visit_num(&mut self, num: &BigUint);
+  fn visit_mul(&mut self);
+  fn visit_eq(&mut self);
+  fn visit_ident(&mut self, ident: &Identifier);
+  /// Default visits inner tokens
+  fn visit_bracketed(&mut self, bracketed: &Bracketed) {
+    for token in &bracketed.inner {
+      token.visit(self);
+    }
+  }
+  /// Default visits numerator and denominator
+  fn visit_frac(&mut self, frac: &Frac) {
+    for token in &frac.numerator {
+      token.visit(self);
+    }
+    for token in &frac.denominator {
+      token.visit(self);
+    }
+  }
+}
+
+impl LatexToken {
+  pub fn visit<T>(&self, visitor: &mut T)
+  where
+    T: TokenVisitor,
+  {
+    match self {
+      LatexToken::Neg => visitor.visit_neg(),
+      LatexToken::Num(num) => visitor.visit_num(num),
+      LatexToken::Mul => visitor.visit_mul(),
+      LatexToken::Eq => visitor.visit_eq(),
+      LatexToken::Identifier(ident) => visitor.visit_ident(ident),
+      LatexToken::Bracketed(bracketed) => visitor.visit_bracketed(bracketed),
+      LatexToken::Frac(frac) => visitor.visit_frac(frac),
+    }
+  }
 }
 
 /// A symbol
@@ -56,6 +111,15 @@ pub enum LatexToken {
 pub enum Identifier {
   Pi,
   AlphabeticChar(char),
+}
+
+impl std::fmt::Display for Identifier {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Identifier::Pi => write!(f, "π"),
+      Identifier::AlphabeticChar(char) => write!(f, "{}", char),
+    }
+  }
 }
 
 impl From<Identifier> for LatexToken {
@@ -73,6 +137,18 @@ pub enum Bracket {
 pub struct Frac {
   pub numerator: Vec<LatexToken>,
   pub denominator: Vec<LatexToken>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Bracketed {
+  bracket: Bracket,
+  inner: Vec<LatexToken>,
+}
+
+impl From<Bracketed> for LatexToken {
+  fn from(bracketed: Bracketed) -> Self {
+    LatexToken::Bracketed(bracketed)
+  }
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -241,9 +317,11 @@ fn latex_identifiers() {
 
 fn brackets(input: &str) -> IResult<&str, LatexToken> {
   delimited(ws(tag(r"\left(")), tokens, ws(tag(r"\right)")))
-    .map(|tokens| LatexToken::Bracketed {
-      bracket: Bracket::Round,
-      tokens,
+    .map(|tokens| {
+      LatexToken::Bracketed(Bracketed {
+        bracket: Bracket::Round,
+        inner: tokens,
+      })
     })
     .parse(input)
 }
@@ -254,14 +332,17 @@ fn latex_brackets() {
   let tokens = Error::assert_parsing_errors(tokens.parse(input).finish(), input);
   assert_eq!(
     tokens,
-    vec![LatexToken::Bracketed {
-      bracket: Bracket::Round,
-      tokens: vec![
-        LatexToken::Num(5u32.into()),
-        LatexToken::Mul,
-        LatexToken::Num(7u32.into())
-      ]
-    }]
+    vec![
+      Bracketed {
+        bracket: Bracket::Round,
+        inner: vec![
+          LatexToken::Num(5u32.into()),
+          LatexToken::Mul,
+          LatexToken::Num(7u32.into())
+        ]
+      }
+      .into()
+    ]
   );
 }
 

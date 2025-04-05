@@ -744,6 +744,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
+ "latex-parser",
  "num",
  "thiserror 2.0.12",
  "utils",
