@@ -110,61 +110,34 @@ impl IR3Expr<Ident> {
     };
 
     if op1.is_higher_or_eq_precedence(op2) {
-      // e.g.     [prev]   *       2       +      [next]
-      //                 [op1] [current] [op2]
-      //
-      // becomes ([prev]   *       2)      +      [next]
-      //         [      newprev     ]   [newop1]
-      //         [        prev      ]   [  op1 ]  [ op2 ]  [ next_expr ]
-      let newprev = IR3BinaryOp::new(prev.into(), op1, current.into()).into();
-      let newop1 = op2;
-      let newcurrent = next_expr;
-      IR3BinaryOp::new(
-        newprev,
-        op2,
-        IR3Expr::recursive_from_ir2(newprev, newop1, newcurrent, next),
-      )
-      .into()
+      let lhs = IR3BinaryOp::new(prev.into(), op1, current.into()).into();
+      IR3Expr::recursive_from_ir2(lhs, op2, next_expr, next).into()
     } else {
-      // e.g. [prev] + 2 * [next]
-      // becomes [prev] * (2 + [next])
-      todo!()
+      let rhs = IR3Expr::recursive_from_ir2(current.into(), op2, next_expr, next);
+      IR3BinaryOp::new(prev.into(), op1, rhs).into()
     }
   }
 
-  pub fn from_ir2(ir2: IR2Exprs) -> Result<Vec<Self>, Error> {
+  pub fn from_ir2(ir2: IR2Exprs) -> Vec<Self> {
     let (first, ops) = ir2.resolve();
-    let mut ops = ops.into_iter();
+    let mut ops = ops.into_iter().peekable();
 
     let Some((op, expr)) = ops.next() else {
       // base case, single expr
-      return Ok(vec![IR3Flat::from_ir2(first)?.into()]);
+      return vec![IR3Flat::from_ir2(first).into()];
     };
 
-    // get next
-    let Some((next_expr, next_op)) = ops.next() else {
-      // no choice in operator precedence
-      return Ok(vec![
-        IR3BinaryOp::new(
-          IR3Flat::from_ir2(first)?.into(),
-          op,
-          IR3Flat::from_ir2(expr)?.into(),
-        )
-        .into(),
-      ]);
-    };
-
-    todo!()
+    IR3Expr::recursive_from_ir2(first, op, current, next)
   }
 }
 
 impl IR3Flat<Ident> {
-  pub fn from_ir2(ir2: IR2Flat) -> Result<Self, Error> {
+  pub fn from_ir2(ir2: IR2Flat) -> Self {
     match ir2 {
-      IR2Flat::Neg1 => Ok(IR3Flat::Neg1),
-      IR2Flat::Num(num) => Ok(IR3Flat::Num(num)),
-      IR2Flat::Ident(ident) => Ok(IR3Flat::Ident(ident)),
-      IR2Flat::Bracketed(exprs) => Ok(IR3Flat::Bracket(IR3Expr::from_ir2(*exprs)?)),
+      IR2Flat::Neg1 => IR3Flat::Neg1,
+      IR2Flat::Num(num) => IR3Flat::Num(num),
+      IR2Flat::Ident(ident) => IR3Flat::Ident(ident),
+      IR2Flat::Bracketed(exprs) => IR3Flat::Bracket(IR3Expr::from_ir2(*exprs)),
     }
   }
 }
