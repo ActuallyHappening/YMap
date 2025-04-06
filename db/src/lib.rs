@@ -18,6 +18,7 @@ pub mod prelude {
   pub use crate::db::Db;
 }
 
+pub mod error;
 pub mod layers;
 pub mod thing;
 

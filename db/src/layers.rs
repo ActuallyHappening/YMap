@@ -18,9 +18,10 @@ pub trait Table {
   const TABLE: &str;
 }
 
-/// A surrealdb table, with a unique ID type
-pub trait TableWithId: Table {
-  type Id: Id<Table = Self>;
+/// Anything that holds an ID for a specific table
+pub trait GetId {
+  type Table: Table;
+  type Id: Id<Table = Self::Table>;
 
   fn get_id(&self) -> &Self::Id;
   fn id(&self) -> Self::Id {
@@ -32,8 +33,6 @@ pub trait TableWithId: Table {
 /// only with a single table
 pub trait DbTable: GetDb {
   type Table: Table;
-  
-  
 }
 
 /// A transparent wrapper around an ID that has the
@@ -53,6 +52,9 @@ pub trait Id: Debug + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display
 
   /// Usually derived from associated [`Self::Table`]
   const TABLE: &str = Self::Table::TABLE;
+
+  fn new_known(key: surrealdb::RecordIdKey) -> Self;
+  fn surreal_id(&self) -> surrealdb::RecordId;
 }
 
 /// For your db wrapper types, allows you to access the underlying db,

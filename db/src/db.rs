@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 
+#[derive(Clone)]
 pub struct Db<Auth> {
   db: Surreal<Any>,
   phantom: PhantomData<Auth>,
@@ -68,6 +69,7 @@ pub mod auth {
   use surrealdb::{Surreal, engine::any::Any, opt::auth::Jwt};
 
   /// Public db
+  #[derive(Clone)]
   pub struct NoAuth;
 
   impl surrealdb_layers::Auth for NoAuth {
@@ -78,6 +80,7 @@ pub mod auth {
   }
 
   /// Get acutal info from session
+  #[derive(Clone)]
   pub struct User(Jwt);
 
   impl surrealdb_layers::Auth for User {
