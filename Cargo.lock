@@ -4804,6 +4804,7 @@ dependencies = [
 name = "thing-macros"
 version = "0.1.0"
 dependencies = [
+ "darling",
  "proc-macro2",
  "syn 2.0.100",
 ]
