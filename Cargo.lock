@@ -4794,6 +4794,7 @@ dependencies = [
  "serde",
  "surrealdb",
  "surrealdb-layers",
+ "thing-macros",
  "thiserror 2.0.12",
  "tokio",
  "tracing",

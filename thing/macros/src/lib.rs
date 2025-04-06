@@ -1,10 +1,23 @@
-// #[proc_macro_derive(Serialize, attributes(serde, bar))]
-// pub fn payload(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
-//   let input = parse_macro_input!(tokens as DeriveInput);
-//   payload_impl(input)
-//     .unwrap_or_else(syn::Error::into_compile_error)
-//     .into()
-// }
+#[proc_macro_derive(Serialize, attributes(serde))]
+pub fn ser(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+  let input = parse_macro_input!(tokens as DeriveInput);
+  payload_impl(input, Do::Serialize)
+    .unwrap_or_else(syn::Error::into_compile_error)
+    .into()
+}
+
+#[proc_macro_derive(Deserialize, attributes(serde))]
+pub fn de(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+  let input = parse_macro_input!(tokens as DeriveInput);
+  payload_impl(input, Do::Deserialize)
+    .unwrap_or_else(syn::Error::into_compile_error)
+    .into()
+}
+
+enum Do {
+  Serialize,
+  Deserialize,
+}
 
 use darling::{FromDeriveInput, FromMeta};
 use proc_macro2::Span;
@@ -15,12 +28,14 @@ use syn::{DeriveInput, parse_macro_input};
 
 #[allow(unreachable_code)]
 // https://github.com/dtolnay/syn/blob/master/examples/heapsize/heapsize_derive/src/lib.rs
-fn payload_impl(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::TokenStream> {
   let name = input.ident;
 
   Ok(match input.data {
     syn::Data::Struct(data) => {
       let fields = extract_field_info(data.fields)?;
+
+      panic!("{:?}", fields);
 
       todo!();
     }
@@ -35,20 +50,21 @@ fn payload_impl(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenStream
   })
 }
 
+#[derive(Debug)]
 struct MyField {
   written_name: Ident,
   renamed_link: syn::LitStr,
 }
 
 #[derive(FromMeta)]
-struct ValidAttrs {
-  rename: RenameAttr,
+struct FieldAttrs {
+  rename: FieldRename,
 }
 
 /// Attrs to parse
 #[derive(Clone, FromMeta)]
-struct RenameAttr {
-  #[darling(rename = "fn")]
+struct FieldRename {
+  #[darling(rename = "expr")]
   renamed_link: syn::LitStr,
 }
 
@@ -60,10 +76,10 @@ fn extract_field_info(fields: Fields) -> Result<Vec<MyField>, Error> {
       for field in fields.named.iter() {
         let written_name = field.ident.as_ref().unwrap();
 
-        let mut valid_attrs: Option<ValidAttrs> = None;
+        let mut valid_attrs: Option<FieldAttrs> = None;
         for attr_line in field.attrs.iter() {
           let meta = &attr_line.meta;
-          let my_attrs = ValidAttrs::from_meta(meta)?;
+          let my_attrs = FieldAttrs::from_meta(meta)?;
           match valid_attrs {
             Some(_prev) => {
               // todo: propagate prev span

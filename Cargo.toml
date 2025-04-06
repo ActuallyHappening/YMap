@@ -5,7 +5,8 @@ members = [
     "db",
     "db/layers",
     "latex",
-    "mathquill/*", "testing",
+    "mathquill/*",
+    "testing",
     "thing",
     "thing/macros",
     "utils",
@@ -20,4 +21,5 @@ cas = { path = "./cas" }
 latex-parser = { path = "./latex" }
 surrealdb-layers = { path = "./db/layers" }
 db = { path = "./db" }
-things = { path = "./things" }
+thing = { path = "./thing" }
+thing-macros = { path = "./thing/macros" }

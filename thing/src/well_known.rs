@@ -27,6 +27,26 @@ impl IsPayloadEntry for DescriptionEn {
   }
 }
 
+#[derive(thing_macros::Serialize, thing_macros::Deserialize)]
+pub struct DocumentedPayload {
+  #[serde(rename(expr = "NameEn::known()"))]
+  name: NameEn,
+
+  #[serde(rename(expr = "DescriptionEn::known()"))]
+  description: DescriptionEn,
+}
+
+pub mod science {
+  pub mod math {
+
+    pub struct MathProblemPayload {}
+
+    // pub type GenericLatex = Thing<>
+
+    // thing:nlvgqvxja0bd5me74v2w
+  }
+}
+
 pub mod website {
   use serde::de::{self, Visitor};
 
