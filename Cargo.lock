@@ -2609,7 +2609,7 @@ dependencies = [
 
 [[package]]
 name = "mathquill-js"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "mathquill-js-sys",
  "tracing",
@@ -2618,7 +2618,7 @@ dependencies = [
 
 [[package]]
 name = "mathquill-js-sys"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "serde",
  "tracing",
@@ -2628,7 +2628,7 @@ dependencies = [
 
 [[package]]
 name = "mathquill-leptos"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "leptos",
  "mathquill-js",

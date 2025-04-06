@@ -1,6 +1,6 @@
 [package]
 name = "mathquill-leptos"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 description = "A mathquill integration layer for Leptos"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/mathquill"
