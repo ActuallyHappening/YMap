@@ -1,6 +1,8 @@
 #![allow(dead_code, unused_imports)]
 // todo: fix ser/de issues
 
+pub trait IsPayload {}
+
 pub trait IsPayloadEntry: DeserializeOwned {
   fn key() -> ThingId;
 }

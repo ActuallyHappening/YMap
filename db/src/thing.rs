@@ -37,15 +37,7 @@ impl<P> Thing<P> {
   }
 }
 
-/// A type that represents a known record
-pub trait ThingRecord: surrealdb_layers::GetId<Table = Thing<Self::Payload>> + Sized {
-  type Payload: serde::de::DeserializeOwned;
-
-  fn known_id() -> Self::Id;
-}
-
 pub mod well_known;
-
 pub mod db {
   use serde::de::DeserializeOwned;
 
