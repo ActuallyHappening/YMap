@@ -8,6 +8,7 @@ keywords = ["math", "mathquill", "mathquill-js", "leptos"]
 categories = ["web-programming", "wasm", "api-bindings"]
 readme = "README.md"
 license = "GPL-2.0"
+exclude = ["dist", "index.html"]
 
 [dependencies.mathquill-js]
 path = "../js"
@@ -17,3 +18,7 @@ version = "0.1.0"
 leptos = "0.7.8"
 tracing = "0.1.41"
 web-sys = "0.3.77"
+
+[dev-dependencies]
+# for examples
+leptos = { version = "0.7.8", features = ["csr"] }

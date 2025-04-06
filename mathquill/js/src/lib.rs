@@ -21,6 +21,14 @@
 //! ```rust
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/field.rs"))]
 //! ```
+//!
+//! If you don't want the field to be editable, you can use a static field
+//! and manually set the latext content to be whatever you want, like this:
+//! ```rust
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/static.rs"))]
+//! ```
+//!
+//! See the examples directory for more information
 
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
@@ -48,10 +56,12 @@ impl MathQuill {
     html_element: &web_sys::HtmlElement,
     config: &Config<MathField>,
   ) -> MathField {
+    debug!(el = ?html_element, "Mounting a (mutable) field");
     MathField(self.0.MathField(html_element, config.0.get_js_value()))
   }
 
   pub fn mount_static_field(&self, html_element: &web_sys::HtmlElement) -> StaticMath {
+    debug!(el = ?html_element, "Mounting a static field");
     StaticMath(self.0.StaticMath(html_element))
   }
 
@@ -74,11 +84,7 @@ where
   T: IntoInner,
 {
   fn default() -> Self {
-    let mut cfg = mathquill_js_sys::Config::default();
-
-    cfg.space_behaves_like_tab = Some(true);
-
-    Self(cfg)
+    Self(mathquill_js_sys::Config::default())
   }
 }
 
@@ -130,5 +136,9 @@ impl IntoInner for StaticMath {
 impl StaticMath {
   pub fn latex(&self) -> String {
     self.0.latex()
+  }
+
+  pub fn set_latex(&self, latex: &str) {
+    self.0.set_latex(latex);
   }
 }

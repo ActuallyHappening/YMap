@@ -2,8 +2,14 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/loading.md"))]
 //!
 //! ## Simple example
+//! Using a mutable field:
 //! ```rust
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/field.rs"))]
+//! ```
+//!
+//! Using a static field:
+//! ```rust
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/static.rs"))]
 //! ```
 
 #![allow(non_snake_case)]

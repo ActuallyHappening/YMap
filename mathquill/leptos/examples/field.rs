@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use mathquill_leptos::components::MathQuillField;
 
 // please note, you will still need to load the library,
-// this example won't work as-is
+// this example won't work as-is (in your own code)
 fn main() {
   let current = RwSignal::new(String::new());
   let on_edit = Callback::new(move |latex: String| {

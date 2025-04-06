@@ -173,11 +173,11 @@ unsafe extern "C" {
   pub fn latex(this: &MathField) -> String;
 
   /// <https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string>
-  #[wasm_bindgen(js_name = "latex", method)]
+  #[wasm_bindgen(method, js_name = "latex")]
   pub fn set_latex(this: &StaticMath, latex: &str);
 
   /// <https://docs.mathquill.com/en/latest/Api_Methods/#latexlatex_string>
-  #[wasm_bindgen(js_name = "latex", method)]
+  #[wasm_bindgen(method, js_name = "latex")]
   pub fn set_latex(this: &MathField, latex: &str);
 
   // https://docs.mathquill.com/en/latest/Api_Methods/#editable-mathfield-methods
