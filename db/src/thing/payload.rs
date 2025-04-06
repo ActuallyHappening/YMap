@@ -1,5 +1,7 @@
 use serde::{Deserializer, de::DeserializeOwned};
 
+use crate::layers::Id;
+
 use super::ThingId;
 
 pub trait IsPayload {}
@@ -7,7 +9,10 @@ pub trait IsPayload {}
 /// Todo: write a trait to deserialize
 /// using this dynamic key
 pub trait IsPayloadEntry: DeserializeOwned {
-  fn key() -> ThingId;
+  fn known() -> &'static str;
+  fn known_id() -> ThingId {
+    ThingId::new_known(Self::known().into())
+  }
 }
 
 // pub fn deserialize_with<'de, D, T>(deserializer: D) -> Result<T, D::Error>

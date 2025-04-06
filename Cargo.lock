@@ -1177,8 +1177,10 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "serde",
+ "serde-content",
  "serde_json",
  "surrealdb",
+ "surrealdb-layers",
  "thiserror 2.0.12",
  "tokio",
  "url",
@@ -4606,6 +4608,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "surrealdb-layers"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "surrealdb",
+ "thiserror 2.0.12",
+ "url",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4737,11 +4749,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "things"
+name = "thing"
 version = "0.1.0"
 dependencies = [
- "utils",
+ "db",
+ "serde",
+ "surrealdb",
+ "surrealdb-layers",
+ "tracing",
 ]
+
+[[package]]
+name = "thing-macros"
+version = "0.1.0"
 
 [[package]]
 name = "thiserror"

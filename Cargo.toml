@@ -1,6 +1,16 @@
 [workspace]
+members = [
+    "app",
+    "cas",
+    "db",
+    "db/layers",
+    "latex",
+    "mathquill/*",
+    "thing",
+    "thing/macros",
+    "utils",
+]
 resolver = "3"
-members = ["app", "cas", "db", "latex", "mathquill/*", "things", "utils"]
 
 
 [workspace.dependencies]
@@ -8,3 +18,5 @@ utils = { path = "./utils" }
 mathquill-leptos = { path = "./mathquill/leptos" }
 cas = { path = "./cas" }
 latex-parser = { path = "./latex" }
+surrealdb-layers = { path = "./db/layers" }
+db = { path = "./db" }
