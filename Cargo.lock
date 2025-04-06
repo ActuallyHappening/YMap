@@ -4778,6 +4778,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "testing"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "thing"
 version = "0.1.0"
 dependencies = [
@@ -4796,6 +4803,10 @@ dependencies = [
 [[package]]
 name = "thing-macros"
 version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "syn 2.0.100",
+]
 
 [[package]]
 name = "thiserror"
