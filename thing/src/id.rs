@@ -1,3 +1,5 @@
+use std::{fmt::Display, str::FromStr};
+
 use surrealdb::opt::IntoResource;
 
 use crate::prelude::*;

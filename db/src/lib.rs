@@ -15,7 +15,8 @@ pub mod prelude {
   pub(crate) use utils::prelude::*;
 
   pub use surrealdb_layers;
-  pub(crate) use surrealdb_layers::prelude::*;
+  pub use surrealdb_layers as layers;
+  pub use surrealdb_layers::prelude::*;
 
   pub use crate::Db;
 }

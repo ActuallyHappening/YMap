@@ -1,11 +1,6 @@
-use std::collections::HashMap;
-
-use db::{
-  prelude::*,
-  thing::{Thing, well_known::website::WebsiteRoot},
-};
+use db::prelude::*;
 use surrealdb_layers::prelude::*;
-use utils::prelude::*;
+use thing::prelude::*;
 
 #[tokio::test]
 async fn website_root() -> color_eyre::Result<()> {

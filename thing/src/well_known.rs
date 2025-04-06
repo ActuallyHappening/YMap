@@ -31,11 +31,9 @@ pub mod website {
   use serde::de::{self, Visitor};
 
   use crate::{
+    Thing, ThingId,
+    payload::{IsPayload, IsPayloadEntry},
     prelude::*,
-    thing::{
-      Thing, ThingId,
-      payload::{IsPayload, IsPayloadEntry},
-    },
   };
 
   use super::{KnownRecord, NameEn};
@@ -150,8 +148,8 @@ pub mod website {
 
       struct MyVisitor<'de> {
         // PARAM
-        marker: PhantomData<WebsiteRootPayload>,
-        lifetime: PhantomData<&'de ()>,
+        marker: std::marker::PhantomData<WebsiteRootPayload>,
+        lifetime: std::marker::PhantomData<&'de ()>,
       }
 
       impl<'de> Visitor<'de> for MyVisitor<'de> {
@@ -235,8 +233,8 @@ pub mod website {
         "WebsiteRootPayload",
         FIELDS,
         MyVisitor {
-          marker: PhantomData,
-          lifetime: PhantomData,
+          marker: std::marker::PhantomData,
+          lifetime: std::marker::PhantomData,
         },
       )
     }

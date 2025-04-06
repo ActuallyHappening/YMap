@@ -1,53 +1,14 @@
 #![allow(unused_imports)]
 
 pub mod prelude {
+  pub(crate) use extension_traits::extension;
   pub(crate) use serde::{Deserialize, Serialize};
   pub(crate) use tracing::{debug, error, info, trace, warn};
 
-  pub(crate) use db::{Db, db::auth};
+  pub(crate) use db::prelude::*;
 }
 
-pub mod errors {
-  use crate::prelude::*;
-
-  #[derive(Debug, thiserror::Error)]
-  pub enum Error {
-    #[error("Couldn't connect to the DB (url)")]
-    CouldntConnectToUrl {
-      url: Url,
-      #[source]
-      err: surrealdb::Error,
-    },
-
-    #[error("Couldn't use namespace {ns} and database {db}")]
-    CouldntUseNsDb {
-      ns: String,
-      db: String,
-      #[source]
-      err: surrealdb::Error,
-    },
-
-    #[error("Couldn't select data: {0}")]
-    CouldntSelect(#[source] surrealdb::Error),
-
-    #[error("Couldn't find a known record {0}")]
-    KnownRecordNotFound(surrealdb::RecordId),
-
-    #[error("Missing payload entry")]
-    MissingPayload { key: ThingId },
-
-    #[error("Failed to deserialize payload value")]
-    DeserializePayloadValue {
-      key: ThingId,
-      ty: std::any::TypeId,
-      #[source]
-      err: surrealdb::Error,
-    },
-
-    #[error("Couldn't deserialize payload: {0}")]
-    DeserializingPayload(#[source] surrealdb::Error),
-  }
-}
+pub mod errors;
 
 use crate::prelude::*;
 
@@ -90,13 +51,15 @@ impl<P> Thing<P> {
 
 pub mod well_known;
 pub mod db {
-  use crate::prelude::*;
+  use crate::{errors::Error, prelude::*};
+  use db::auth::NoAuth;
   use serde::de::DeserializeOwned;
 
   use super::{Thing, well_known::KnownRecord};
 
+  #[extension(pub trait ThingExt)]
   impl Db<NoAuth> {
-    pub async fn thing<P>(&self) -> Result<Thing<P>, Error>
+    async fn thing<P>(&self) -> Result<Thing<P>, Error>
     where
       Thing<P>: DeserializeOwned + KnownRecord,
     {

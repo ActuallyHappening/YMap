@@ -10,3 +10,9 @@ surrealdb = "2.2.1"
 tracing = "0.1.41"
 surrealdb-layers.workspace = true
 db.workspace = true
+extension-traits = "2.0.0"
+thiserror = "2.0.12"
+
+[dev-dependencies]
+color-eyre = "0.6.3"
+tokio = { version = "1.44.2", features = ["full"] }

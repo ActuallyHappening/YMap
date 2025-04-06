@@ -20,3 +20,4 @@ cas = { path = "./cas" }
 latex-parser = { path = "./latex" }
 surrealdb-layers = { path = "./db/layers" }
 db = { path = "./db" }
+things = { path = "./things" }
