@@ -33,4 +33,7 @@ pub enum Error {
     #[source]
     err: surrealdb::Error,
   },
+
+  #[error("Couldn't deserialize payload: {0}")]
+  DeserializingPayload(#[source] surrealdb::Error),
 }

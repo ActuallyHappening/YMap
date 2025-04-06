@@ -3,18 +3,18 @@ use crate::prelude::*;
 type AnyValue = surrealdb::Value;
 
 #[derive(Deserialize, Debug)]
-pub struct Thing {
+pub struct Thing<Payload> {
   id: ThingId,
   _debug_name: Option<String>,
   parents: Vec<ThingId>,
-  payload: payload::Payload,
+  payload: Payload,
 }
 
-impl surrealdb_layers::Table for Thing {
+impl<P> surrealdb_layers::Table for Thing<P> {
   const TABLE: &str = "thing";
 }
 
-impl surrealdb_layers::GetId for Thing {
+impl<P> surrealdb_layers::GetId for Thing<P> {
   type Table = Self;
   type Id = ThingId;
 
@@ -23,7 +23,7 @@ impl surrealdb_layers::GetId for Thing {
   }
 }
 
-impl Thing {
+impl<P> Thing<P> {
   pub fn _debug_name(&self) -> Option<String> {
     self._debug_name.clone()
   }
@@ -32,12 +32,23 @@ impl Thing {
     self.parents.clone()
   }
 
-  pub fn payload(&self) -> payload::Payload {
-    self.payload.clone()
+  pub fn payload(&self) -> &P {
+    &self.payload
   }
 }
 
+/// A type that represents a known record
+pub trait ThingRecord: surrealdb_layers::GetId<Table = Thing<Self::Payload>> + Sized {
+  type Payload: serde::de::DeserializeOwned;
+
+  fn known_id() -> Self::Id;
+}
+
+pub mod well_known;
+
 pub mod db {
+  use serde::de::DeserializeOwned;
+
   use crate::{
     db::auth::NoAuth,
     error::Error,
@@ -50,45 +61,52 @@ pub mod db {
     payload::{Payload, TryFromPayload},
   };
 
-  pub struct TableThing<Auth>(Db<Auth>);
-
-  impl<Auth> GetDb for TableThing<Auth> {
-    fn get_db(&self) -> &Surreal<Any> {
-      self.0.get_db()
-    }
-  }
-
-  impl<Auth> surrealdb_layers::DbTable for TableThing<Auth> {
-    type Table = Thing;
-  }
-
-  impl<Auth> Db<Auth> {
-    pub fn thing(self) -> TableThing<Auth> {
-      TableThing(self)
-    }
-  }
-
-  impl TableThing<NoAuth> {
-    pub fn select(&self) -> ThingSelector<NoAuth> {
-      ThingSelector {
-        db: self.0.clone(),
-        where_clause: WhereClause::default(),
-      }
-    }
-  }
-
-  pub struct ThingSelector<Auth> {
+  pub struct TableThing<Auth, P> {
     db: Db<Auth>,
-    where_clause: WhereClause,
+    payload: PhantomData<P>,
   }
 
-  impl<Auth> GetDb for ThingSelector<Auth> {
+  impl<Auth, P> GetDb for TableThing<Auth, P> {
     fn get_db(&self) -> &Surreal<Any> {
       self.db.get_db()
     }
   }
 
-  impl<Auth> std::ops::Deref for ThingSelector<Auth> {
+  impl<Auth, P> surrealdb_layers::DbTable for TableThing<Auth, P> {
+    type Table = Thing<P>;
+  }
+
+  impl<Auth> Db<Auth> {
+    pub fn thing<P>(self) -> TableThing<Auth, P> {
+      TableThing {
+        db: self,
+        payload: PhantomData,
+      }
+    }
+  }
+
+  impl<P> TableThing<NoAuth, P> {
+    pub fn select(&self) -> ThingSelector<NoAuth, P> {
+      ThingSelector {
+        db: self.db.clone(),
+        where_clause: WhereClause::default(),
+      }
+    }
+  }
+
+  pub struct ThingSelector<Auth, P> {
+    db: Db<Auth>,
+    where_clause: WhereClause,
+    payload: PhantomData<P>,
+  }
+
+  impl<Auth, P> GetDb for ThingSelector<Auth, P> {
+    fn get_db(&self) -> &Surreal<Any> {
+      self.db.get_db()
+    }
+  }
+
+  impl<Auth, P> std::ops::Deref for ThingSelector<Auth, P> {
     type Target = WhereClause;
 
     fn deref(&self) -> &Self::Target {
@@ -96,7 +114,7 @@ pub mod db {
     }
   }
 
-  impl<Auth> std::ops::DerefMut for ThingSelector<Auth> {
+  impl<Auth, P> std::ops::DerefMut for ThingSelector<Auth, P> {
     fn deref_mut(&mut self) -> &mut Self::Target {
       &mut self.where_clause
     }
@@ -125,17 +143,25 @@ pub mod db {
     }
   }
 
-  impl ThingSelector<NoAuth> {
+  impl<P> ThingSelector<NoAuth, P>
+  where
+    P: DeserializeOwned,
+  {
     pub async fn get_known<T>(&self) -> Result<T, Error>
     where
-      T: DbRecord,
+      T: ThingRecord,
     {
       let id = T::known_id().surreal_id();
-      let thing: Option<Thing> = self
+      debug!("About to deserialize");
+      let thing = self
         .get_db()
         .select(id.clone())
         .await
-        .map_err(Error::CouldntSelect)?;
+        .map_err(Error::CouldntSelect);
+
+      debug!(?thing);
+      let thing: Option<Thing> = thing?;
+
       let thing = thing.ok_or(Error::KnownRecordNotFound(id))?;
 
       let t: T = T::try_from_table_value(thing)?;
@@ -145,10 +171,7 @@ pub mod db {
   }
 
   #[derive(Debug)]
-  pub struct WebsiteRoot {
-    inner: Thing,
-    websiteroot: WebsiteData,
-  }
+  pub struct WebsiteRoot(Thing<WebsiteRootPayload>);
 
   impl GetId for WebsiteRoot {
     type Table = Thing;
@@ -159,35 +182,30 @@ pub mod db {
     }
   }
 
-  /// A type that represents a known record
-  pub trait DbRecord: GetId<Table = Thing> + Sized {
-    fn known_id() -> Self::Id;
+  impl ThingRecord for WebsiteRoot {
+    type Payload = WebsiteRootPayload;
 
-    fn try_from_table_value(value: Thing) -> Result<Self, Error>;
-  }
-
-  impl DbRecord for WebsiteRoot {
     fn known_id() -> Self::Id {
       ThingId::new_known("websiteroot".into())
     }
 
     fn try_from_table_value(value: Thing) -> Result<Self, Error> {
       Ok(Self {
-        websiteroot: WebsiteData::try_from_payload(value.payload())?,
+        websiteroot: WebsiteRootPayload::try_from_payload(value.payload())?,
         inner: value,
       })
     }
   }
 
   #[derive(Deserialize, Debug)]
-  pub struct WebsiteData {
-    show_children: Vec<ThingId>,
+  pub struct WebsiteRootPayload {
+    root: Vec<ThingId>,
   }
 
-  impl TryFromPayload for WebsiteData {
+  impl TryFromPayload for WebsiteRootPayload {
     fn try_from_payload(payload: Payload) -> Result<Self, Error> {
       let key = WebsiteRoot::known_id();
-      let websitedata = payload
+      let websitedata: WebsiteRootPayload = payload
         .get(key.clone())
         .ok_or(Error::MissingPayload { key })??;
       Ok(websitedata)
@@ -195,75 +213,7 @@ pub mod db {
   }
 }
 
-mod payload {
-  use serde::de::DeserializeOwned;
-
-  use crate::{error::Error, prelude::*};
-
-  use super::{AnyValue, ThingId};
-
-  /// A newtype to handle serialization and deserialization of payloads
-  /// since the keys are stored only as strings in the db
-  #[derive(Serialize, Deserialize, Clone, Debug)]
-  #[serde(try_from = "PayloadSerde", into = "PayloadSerde")]
-  pub struct Payload(HashMap<ThingId, AnyValue>);
-
-  impl FromIterator<(ThingId, AnyValue)> for Payload {
-    fn from_iter<T: IntoIterator<Item = (ThingId, AnyValue)>>(iter: T) -> Self {
-      Payload(iter.into_iter().collect())
-    }
-  }
-  impl IntoIterator for Payload {
-    type Item = (ThingId, AnyValue);
-    type IntoIter = std::collections::hash_map::IntoIter<ThingId, AnyValue>;
-
-    fn into_iter(self) -> Self::IntoIter {
-      self.0.into_iter()
-    }
-  }
-
-  impl Payload {
-    pub fn get<T>(&self, key: ThingId) -> Option<Result<T, Error>>
-    where
-      T: DeserializeOwned + 'static,
-    {
-      self.0.get(&key).map(|value| {
-        surrealdb::value::from_value(value.clone()).map_err(|err| Error::DeserializePayloadValue {
-          key,
-          ty: std::any::TypeId::of::<T>(),
-          err,
-        })
-      })
-    }
-  }
-
-  pub trait TryFromPayload: Sized {
-    fn try_from_payload(payload: Payload) -> Result<Self, Error>;
-  }
-
-  #[derive(Serialize, Deserialize)]
-  struct PayloadSerde(HashMap<String, AnyValue>);
-
-  impl From<Payload> for PayloadSerde {
-    fn from(value: Payload) -> Self {
-      PayloadSerde(value.into_iter().map(|(k, v)| (k.to_string(), v)).collect())
-    }
-  }
-
-  impl TryFrom<PayloadSerde> for Payload {
-    type Error = surrealdb::Error;
-
-    fn try_from(value: PayloadSerde) -> Result<Self, Self::Error> {
-      Ok(Payload(
-        value
-          .0
-          .into_iter()
-          .map(|(k, v)| Result::<_, surrealdb::Error>::Ok((ThingId::from_str(&k)?, v)))
-          .collect::<Result<_, _>>()?,
-      ))
-    }
-  }
-}
+mod payload;
 
 pub use id::ThingId;
 pub mod id {

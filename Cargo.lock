@@ -1177,6 +1177,7 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "serde",
+ "serde_json",
  "surrealdb",
  "thiserror 2.0.12",
  "tokio",
