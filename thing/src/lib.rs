@@ -1,18 +1,17 @@
-#![allow(unused_imports)]
+#![allow(unused_imports, async_fn_in_trait)]
 
 pub mod prelude {
   pub(crate) use extension_traits::extension;
   pub(crate) use serde::{Deserialize, Serialize};
   pub(crate) use tracing::{debug, error, info, trace, warn};
 
+  pub use crate::db::ThingExt as _;
   pub(crate) use db::prelude::*;
 }
 
 pub mod errors;
 
 use crate::prelude::*;
-
-type AnyValue = surrealdb::Value;
 
 #[derive(Deserialize, Debug)]
 pub struct Thing<Payload> {
@@ -50,7 +49,7 @@ impl<P> Thing<P> {
 }
 
 pub mod well_known;
-pub mod db {
+mod db {
   use crate::{errors::Error, prelude::*};
   use db::auth::NoAuth;
   use serde::de::DeserializeOwned;

@@ -49,11 +49,12 @@ pub mod website {
     }
   }
 
-  #[derive(Debug)]
+  #[derive(Debug, Serialize)]
   // #[serde(deny_unknown_fields)]
   pub struct WebsiteRootPayload {
     // #[serde(rename = "thing:websiteroot")]
     info: WebsiteInfo,
+
     // #[serde(rename = "thing:name-en")]
     name: NameEn,
   }

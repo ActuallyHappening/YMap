@@ -10,6 +10,7 @@ pub trait IsPayload {}
 /// using this dynamic key
 pub trait IsPayloadEntry: DeserializeOwned {
   fn known() -> &'static str;
+
   fn known_id() -> ThingId {
     ThingId::new_known(Self::known().into())
   }

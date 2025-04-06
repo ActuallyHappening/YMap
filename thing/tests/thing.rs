@@ -1,6 +1,6 @@
 use db::prelude::*;
-use surrealdb_layers::prelude::*;
-use thing::prelude::*;
+use thing::{prelude::*, well_known::website::WebsiteRoot};
+use utils::prelude::*;
 
 #[tokio::test]
 async fn website_root() -> color_eyre::Result<()> {
