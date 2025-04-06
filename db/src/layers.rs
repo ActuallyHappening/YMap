@@ -18,7 +18,7 @@ pub trait Table {
 /// Anything that holds an ID for a specific table
 pub trait GetId {
   type Table: Table;
-  type Id: Id<Table = Self::Table>;
+  type Id: Clone;
 
   fn get_id(&self) -> &Self::Id;
   fn id(&self) -> Self::Id {
@@ -51,7 +51,6 @@ pub trait Id: Debug + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display
   const TABLE: &str = Self::Table::TABLE;
 
   fn new_known(key: surrealdb::RecordIdKey) -> Self;
-  fn surreal_id(&self) -> surrealdb::RecordId;
 }
 
 /// For your db wrapper types, allows you to access the underlying db,

@@ -3,7 +3,7 @@ use crate::prelude::*;
 use super::{ThingId, payload::IsPayloadEntry};
 
 pub trait KnownRecord {
-  fn key() -> ThingId;
+  fn known_id() -> ThingId;
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -11,7 +11,7 @@ pub struct NameEn(String);
 
 impl IsPayloadEntry for NameEn {
   fn key() -> super::ThingId {
-    ThingId::new_known("name-en".parse().unwrap())
+    ThingId::new_known("name-en".into())
   }
 }
 
@@ -20,7 +20,7 @@ pub struct DescriptionEn(String);
 
 impl IsPayloadEntry for DescriptionEn {
   fn key() -> super::ThingId {
-    ThingId::new_known("description-en".parse().unwrap())
+    ThingId::new_known("description-en".into())
   }
 }
 
@@ -35,21 +35,31 @@ pub mod website {
 
   use super::KnownRecord;
 
-  type WebsiteRoot = Thing<WebsiteRootPayload>;
+  pub type WebsiteRoot = Thing<WebsiteRootPayload>;
 
   impl KnownRecord for WebsiteRoot {
-    fn key() -> ThingId {
-      ThingId::new_known("websiteroot".parse().into())
+    fn known_id() -> ThingId {
+      ThingId::new_known("websiteroot".into())
     }
   }
 
-  #[derive(Deserialize, Serialize)]
+  #[derive(Debug, Deserialize)]
   pub struct WebsiteRootPayload {
-    #[serde(rename = "thing:websiteroot")]
+    // #[serde(rename = "thing:websiteroot")]
     info: WebsiteInfo,
   }
 
-  #[derive(Deserialize, Serialize)]
+  // impl<'de> Deserialize<'de> for WebsiteRootPayload {
+  //   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  //   where
+  //     D: serde::Deserializer<'de> {
+  //       struct FieldVisitor;
+
+  //       let mut map = deserializer.deserialize_map(FieldVisitor)
+  //     }
+  // }
+
+  #[derive(Deserialize, Serialize, Debug)]
   pub struct WebsiteInfo {
     show_children: Vec<ThingId>,
   }
@@ -58,7 +68,7 @@ pub mod website {
 
   impl IsPayloadEntry for WebsiteInfo {
     fn key() -> super::ThingId {
-      WebsiteRoot::key()
+      WebsiteRoot::known_id()
     }
   }
 }

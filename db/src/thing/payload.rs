@@ -1,160 +1,170 @@
-#![allow(dead_code, unused_imports)]
-// todo: fix ser/de issues
+use serde::{Deserializer, de::DeserializeOwned};
+
+use super::ThingId;
 
 pub trait IsPayload {}
 
+/// Todo: write a trait to deserialize
+/// using this dynamic key
 pub trait IsPayloadEntry: DeserializeOwned {
   fn key() -> ThingId;
 }
 
-use serde::de::DeserializeOwned;
+// pub fn deserialize_with<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+// where
+//   D: Deserializer<'de>,
+// {
+//   todo!()
+// }
 
-use crate::{error::Error, prelude::*};
+// use serde::de::DeserializeOwned;
 
-use super::{AnyValue, ThingId};
+// use crate::{error::Error, prelude::*};
 
-/// A newtype to handle serialization and deserialization of payloads
-/// since the keys are stored only as strings in the db
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(try_from = "PayloadSerde", into = "PayloadSerde")]
-pub struct Payload(HashMap<ThingId, AnyValue>);
+// use super::{AnyValue, ThingId};
 
-impl FromIterator<(ThingId, AnyValue)> for Payload {
-  fn from_iter<T: IntoIterator<Item = (ThingId, AnyValue)>>(iter: T) -> Self {
-    Payload(iter.into_iter().collect())
-  }
-}
-impl IntoIterator for Payload {
-  type Item = (ThingId, AnyValue);
-  type IntoIter = std::collections::hash_map::IntoIter<ThingId, AnyValue>;
+// /// A newtype to handle serialization and deserialization of payloads
+// /// since the keys are stored only as strings in the db
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// #[serde(try_from = "PayloadSerde", into = "PayloadSerde")]
+// pub struct Payload(HashMap<ThingId, AnyValue>);
 
-  fn into_iter(self) -> Self::IntoIter {
-    self.0.into_iter()
-  }
-}
+// impl FromIterator<(ThingId, AnyValue)> for Payload {
+//   fn from_iter<T: IntoIterator<Item = (ThingId, AnyValue)>>(iter: T) -> Self {
+//     Payload(iter.into_iter().collect())
+//   }
+// }
+// impl IntoIterator for Payload {
+//   type Item = (ThingId, AnyValue);
+//   type IntoIter = std::collections::hash_map::IntoIter<ThingId, AnyValue>;
 
-impl Payload {
-  pub fn get<T>(&self, key: ThingId) -> Option<Result<T, Error>>
-  where
-    T: DeserializeOwned + 'static,
-  {
-    self.0.get(&key).map(|value| {
-      surrealdb::value::from_value(value.clone()).map_err(|err| Error::DeserializePayloadValue {
-        key,
-        ty: std::any::TypeId::of::<T>(),
-        err,
-      })
-    })
-  }
-}
+//   fn into_iter(self) -> Self::IntoIter {
+//     self.0.into_iter()
+//   }
+// }
 
-pub trait TryFromPayload: Sized {
-  fn try_from_payload(payload: Payload) -> Result<Self, Error>;
-}
+// impl Payload {
+//   pub fn get<T>(&self, key: ThingId) -> Option<Result<T, Error>>
+//   where
+//     T: DeserializeOwned + 'static,
+//   {
+//     self.0.get(&key).map(|value| {
+//       surrealdb::value::from_value(value.clone()).map_err(|err| Error::DeserializePayloadValue {
+//         key,
+//         ty: std::any::TypeId::of::<T>(),
+//         err,
+//       })
+//     })
+//   }
+// }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct PayloadSerde(HashMap<String, AnyValue>);
+// pub trait TryFromPayload: Sized {
+//   fn try_from_payload(payload: Payload) -> Result<Self, Error>;
+// }
 
-impl From<Payload> for PayloadSerde {
-  fn from(value: Payload) -> Self {
-    PayloadSerde(
-      value
-        .into_iter()
-        .map(|(k, v)| {
-          (
-            k.to_string(),
-            v, // surrealdb::value::from_value(v)
-               //   .expect("serde_json::Value to be more permissive than surrealdb::Value"),
-          )
-        })
-        .collect(),
-    )
-  }
-}
+// #[derive(Serialize, Deserialize, Debug)]
+// struct PayloadSerde(HashMap<String, AnyValue>);
 
-impl TryFrom<PayloadSerde> for Payload {
-  type Error = Error;
+// impl From<Payload> for PayloadSerde {
+//   fn from(value: Payload) -> Self {
+//     PayloadSerde(
+//       value
+//         .into_iter()
+//         .map(|(k, v)| {
+//           (
+//             k.to_string(),
+//             v, // surrealdb::value::from_value(v)
+//                //   .expect("serde_json::Value to be more permissive than surrealdb::Value"),
+//           )
+//         })
+//         .collect(),
+//     )
+//   }
+// }
 
-  fn try_from(value: PayloadSerde) -> Result<Self, Self::Error> {
-    Ok(Payload(
-      value
-        .0
-        .into_iter()
-        .map(|(k, v)| Result::<_, surrealdb::Error>::Ok((ThingId::from_str(&k)?, v)))
-        .collect::<Result<_, _>>()
-        .map_err(Error::DeserializingPayload)?,
-    ))
-  }
-}
+// impl TryFrom<PayloadSerde> for Payload {
+//   type Error = Error;
 
-#[test]
-#[ignore = "Ik it fails, https://github.com/surrealdb/surrealdb/issues/5754"]
-fn surreal_bug() -> color_eyre::Result<()> {
-  utils::tracing::install_tracing("debug")?;
+//   fn try_from(value: PayloadSerde) -> Result<Self, Self::Error> {
+//     Ok(Payload(
+//       value
+//         .0
+//         .into_iter()
+//         .map(|(k, v)| Result::<_, surrealdb::Error>::Ok((ThingId::from_str(&k)?, v)))
+//         .collect::<Result<_, _>>()
+//         .map_err(Error::DeserializingPayload)?,
+//     ))
+//   }
+// }
 
-  let json: serde_json::Value = serde_json::json! {{
-    "thing:example": 123,
-  }};
-  debug!(?json);
+// #[test]
+// #[ignore = "Ik it fails, https://github.com/surrealdb/surrealdb/issues/5754"]
+// fn surreal_bug() -> color_eyre::Result<()> {
+//   utils::tracing::install_tracing("debug")?;
 
-  let surreal: surrealdb::value::Value = surrealdb::value::to_value(json)?;
-  debug!(?surreal);
+//   let json: serde_json::Value = serde_json::json! {{
+//     "thing:example": 123,
+//   }};
+//   debug!(?json);
 
-  // works
-  let deserialized: HashMap<String, u32> = surrealdb::value::from_value(surreal.clone())?;
-  debug!(?deserialized);
+//   let surreal: surrealdb::value::Value = surrealdb::value::to_value(json)?;
+//   debug!(?surreal);
 
-  // broken?
-  let bad: HashMap<String, surrealdb::Value> = surrealdb::value::from_value(surreal.clone())?;
-  debug!(?bad);
+//   // works
+//   let deserialized: HashMap<String, u32> = surrealdb::value::from_value(surreal.clone())?;
+//   debug!(?deserialized);
 
-  // broken?
-  let bad: HashMap<String, serde_json::Value> = surrealdb::value::from_value(surreal)?;
-  debug!(?bad);
+//   // broken?
+//   let bad: HashMap<String, surrealdb::Value> = surrealdb::value::from_value(surreal.clone())?;
+//   debug!(?bad);
 
-  Ok(())
-}
+//   // broken?
+//   let bad: HashMap<String, serde_json::Value> = surrealdb::value::from_value(surreal)?;
+//   debug!(?bad);
 
-#[test]
-fn surreal_bugs() -> color_eyre::Result<()> {
-  utils::tracing::install_tracing("debug")?;
+//   Ok(())
+// }
 
-  {
-    let val = serde_json::json!(123);
-    let surreal: surrealdb::Value = surrealdb::value::to_value(val)?;
-    let num: u32 = surrealdb::value::from_value(surreal.clone())?;
-    debug!(?num);
-  }
+// #[test]
+// fn surreal_bugs() -> color_eyre::Result<()> {
+//   utils::tracing::install_tracing("debug")?;
 
-  {
-    let val = serde_json::json!({ "key": "value" });
-    let val = serde_json::json!(123);
-    let surreal: surrealdb::Value = surrealdb::value::to_value(val)?;
-    let res: surrealdb::Value = surrealdb::value::from_value(surreal.clone())?;
-    debug!(?res);
-  }
+//   {
+//     let val = serde_json::json!(123);
+//     let surreal: surrealdb::Value = surrealdb::value::to_value(val)?;
+//     let num: u32 = surrealdb::value::from_value(surreal.clone())?;
+//     debug!(?num);
+//   }
 
-  Ok(())
-}
+//   {
+//     let val = serde_json::json!({ "key": "value" });
+//     let val = serde_json::json!(123);
+//     let surreal: surrealdb::Value = surrealdb::value::to_value(val)?;
+//     let res: surrealdb::Value = surrealdb::value::from_value(surreal.clone())?;
+//     debug!(?res);
+//   }
 
-#[test]
-#[ignore]
-fn surreal_value() -> color_eyre::Result<()> {
-  utils::tracing::install_tracing("debug")?;
+//   Ok(())
+// }
 
-  let json: serde_json::Value = serde_json::json! {{
-    "thing:example": "a string",
-  }};
-  debug!(?json);
+// #[test]
+// #[ignore]
+// fn surreal_value() -> color_eyre::Result<()> {
+//   utils::tracing::install_tracing("debug")?;
 
-  let json_str = json.to_string();
-  debug!(?json_str);
+//   let json: serde_json::Value = serde_json::json! {{
+//     "thing:example": "a string",
+//   }};
+//   debug!(?json);
 
-  let obj_from_str = surrealdb::Value::from_str(&json_str)?;
-  debug!(?obj_from_str);
+//   let json_str = json.to_string();
+//   debug!(?json_str);
 
-  let obj: surrealdb::Object = serde_json::from_value(json)?;
-  debug!(?obj);
+//   let obj_from_str = surrealdb::Value::from_str(&json_str)?;
+//   debug!(?obj_from_str);
 
-  Ok(())
-}
+//   let obj: surrealdb::Object = serde_json::from_value(json)?;
+//   debug!(?obj);
+
+//   Ok(())
+// }
