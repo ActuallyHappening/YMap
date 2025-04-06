@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 type AnyValue = surrealdb::Value;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Thing {
   id: ThingId,
   _debug_name: Option<String>,
@@ -11,7 +11,7 @@ pub struct Thing {
 }
 
 impl surrealdb_layers::Table for Thing {
-  const TABLE: &str = "table";
+  const TABLE: &str = "thing";
 }
 
 impl surrealdb_layers::GetId for Thing {
@@ -144,6 +144,7 @@ pub mod db {
     }
   }
 
+  #[derive(Debug)]
   pub struct WebsiteRoot {
     inner: Thing,
     websiteroot: WebsiteData,
@@ -178,7 +179,7 @@ pub mod db {
     }
   }
 
-  #[derive(Deserialize)]
+  #[derive(Deserialize, Debug)]
   pub struct WebsiteData {
     show_children: Vec<ThingId>,
   }
@@ -203,7 +204,7 @@ mod payload {
 
   /// A newtype to handle serialization and deserialization of payloads
   /// since the keys are stored only as strings in the db
-  #[derive(Serialize, Deserialize, Clone)]
+  #[derive(Serialize, Deserialize, Clone, Debug)]
   #[serde(try_from = "PayloadSerde", into = "PayloadSerde")]
   pub struct Payload(HashMap<ThingId, AnyValue>);
 

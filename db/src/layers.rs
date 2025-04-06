@@ -1,15 +1,12 @@
 #![allow(async_fn_in_trait)]
 
 pub mod prelude {
-  pub use super::{ConnBuilderUrl as _, DbConnBuilder as _, GetDb as _, Id as _, Table as _};
+  pub use super::{ConnBuilderUrl as _, GetDb as _, Id as _, Table as _};
   pub use surrealdb::Surreal;
   pub use surrealdb::engine::any::Any;
 }
 
-use surrealdb::{
-  Surreal,
-  engine::any::{self, Any},
-};
+use surrealdb::{Surreal, engine::any::Any};
 
 use crate::prelude::*;
 
@@ -131,50 +128,6 @@ pub trait ConnBuilderUrl: Sized {
   fn http(self) -> Result<Self::Next, Error> {
     let url = self.http_url()?;
     Ok(self.url(url))
-  }
-}
-
-pub trait DbConnBuilder {
-  type Next;
-
-  fn get_ns(&self) -> impl Into<String>;
-  fn ns(&self) -> String {
-    self.get_ns().into()
-  }
-
-  fn get_db(&self) -> impl Into<String>;
-  fn db(&self) -> String {
-    self.get_db().into()
-  }
-
-  fn get_url(&self) -> &Url;
-  fn url(&self) -> Url {
-    self.get_url().clone()
-  }
-
-  /// Connects to the url.
-  /// Sets the correct NS and DB.
-  /// Doesn't handle authentication/credentials.
-  async fn db_connect(&self) -> Result<Surreal<Any>, Error> {
-    let db = any::connect(self.get_url().to_string())
-      .await
-      .map_err(|source| Error::CouldntConnect {
-        url: self.url(),
-        source,
-      })?;
-    db.use_ns(self.get_ns())
-      .use_db(self.get_db())
-      .await
-      .map_err(Error::CouldntSetNsDb)?;
-    Ok(db)
-  }
-
-  async fn db_authenticate(&self, conn: Surreal<Any>) -> Result<Self::Next, Error>;
-
-  /// Connects, sets ns and db, and handles authentication all at once!!
-  async fn connect(&self) -> Result<Self::Next, Error> {
-    let conn = self.db_connect().await?;
-    self.db_authenticate(conn).await
   }
 }
 

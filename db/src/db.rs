@@ -14,19 +14,6 @@ impl<Auth> surrealdb_layers::GetDb for Db<Auth> {
   }
 }
 
-pub mod errors {
-  use crate::prelude::*;
-
-  #[derive(thiserror::Error, Debug)]
-  pub enum Error {
-    #[error("[db] {0}")]
-    Layers(#[from] surrealdb_layers::Error),
-
-    #[error("[db] Couldn't authenticate: {0}")]
-    CouldntAuthenticate(#[source] surrealdb::Error),
-  }
-}
-
 pub mod creds {
   //! Creds are what gets you your authentication
 
@@ -92,9 +79,11 @@ pub mod auth {
 }
 
 pub mod conn {
-  use crate::prelude::*;
+  use std::pin::Pin;
 
-  use super::creds::NoCreds;
+  use crate::{error::Error, prelude::*};
+
+  use super::{auth::NoAuth, creds::NoCreds};
 
   impl Db<()> {
     pub fn build() -> DbConnUrl {
@@ -107,87 +96,55 @@ pub mod conn {
   }
 
   impl surrealdb_layers::ConnBuilderUrl for DbConnUrl {
-    type Next = DbConnNsDb;
+    type Next = Pin<Box<dyn Future<Output = Result<DbConnNsDb, Error>>>>;
 
     fn default_url(&self) -> Result<Url, surrealdb_layers::Error> {
       Ok("wss://eager-bee-06aqohg53hq27c0jg11k14gdbk.aws-use1.surreal.cloud".parse()?)
     }
 
     fn url(self, url: Url) -> Self::Next {
-      DbConnNsDb { url }
+      Box::pin(async {
+        surrealdb::engine::any::connect(url.to_string())
+          .await
+          .map(|conn| DbConnNsDb { conn })
+          .map_err(|err| Error::CouldntConnectToUrl { url, err })
+      })
     }
   }
 
+  /// Connected
   pub struct DbConnNsDb {
-    url: Url,
+    conn: Surreal<Any>,
   }
 
   impl DbConnNsDb {
-    pub fn prod(self) -> DbConnCreds {
-      DbConnCreds {
-        url: self.url,
-        ns: "ymap".to_string(),
-        db: "prod".to_string(),
-      }
+    pub async fn prod(self) -> Result<DbConnCreds, Error> {
+      let ns = "ymap";
+      let db = "prod";
+      self
+        .conn
+        .use_ns(ns)
+        .use_db(db)
+        .await
+        .map_err(|err| Error::CouldntUseNsDb {
+          ns: ns.to_owned(),
+          db: db.to_owned(),
+          err,
+        })?;
+      Ok(DbConnCreds { conn: self.conn })
     }
   }
 
   pub struct DbConnCreds {
-    url: Url,
-    ns: String,
-    db: String,
+    conn: Surreal<Any>,
   }
 
   impl DbConnCreds {
-    pub fn public(self) -> DbConnBuilder<NoCreds> {
-      DbConnBuilder {
-        url: self.url,
-        ns: self.ns,
-        db: self.db,
-        creds: NoCreds,
-      }
-    }
-  }
-
-  pub struct DbConnBuilder<Creds> {
-    url: Url,
-    ns: String,
-    db: String,
-    creds: Creds,
-  }
-
-  impl<Creds> surrealdb_layers::DbConnBuilder for DbConnBuilder<Creds>
-  where
-    Creds: surrealdb_layers::Creds,
-  {
-    type Next = Db<<Creds as surrealdb_layers::Creds>::Auth>;
-
-    async fn db_authenticate(
-      &self,
-      conn: Surreal<Any>,
-    ) -> Result<Self::Next, surrealdb_layers::Error> {
-      self
-        .creds
-        .signin(&conn)
-        .await
-        .map_err(surrealdb_layers::Error::CouldntAuthenticate)?;
-
-      Ok(Db {
-        db: conn,
+    pub fn public(self) -> Db<NoAuth> {
+      Db {
+        db: self.conn,
         phantom: PhantomData,
-      })
-    }
-
-    fn get_ns(&self) -> impl Into<String> {
-      &self.ns
-    }
-
-    fn get_db(&self) -> impl Into<String> {
-      &self.db
-    }
-
-    fn get_url(&self) -> &Url {
-      &self.url
+      }
     }
   }
 }
