@@ -757,217 +757,241 @@ pub mod well_known {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
             extern crate serde as _serde;
             #[automatically_derived]
-            impl _serde::Serialize for WebsiteRootPayload {
-                fn serialize<__S>(
-                    &self,
-                    __serializer: __S,
-                ) -> _serde::__private::Result<__S::Ok, __S::Error>
+            impl<'de> _serde::Deserialize<'de> for WebsiteRootPayload {
+                fn deserialize<__D>(
+                    __deserializer: __D,
+                ) -> _serde::__private::Result<Self, __D::Error>
                 where
-                    __S: _serde::Serializer,
+                    __D: _serde::Deserializer<'de>,
                 {
-                    let mut __serde_state = _serde::Serializer::serialize_struct(
-                        __serializer,
+                    #[allow(non_camel_case_types)]
+                    #[doc(hidden)]
+                    enum __Field {
+                        __field0,
+                        __field1,
+                        __ignore,
+                    }
+                    #[doc(hidden)]
+                    struct __FieldVisitor;
+                    #[automatically_derived]
+                    impl<'de> _serde::de::Visitor<'de> for __FieldVisitor {
+                        type Value = __Field;
+                        fn expecting(
+                            &self,
+                            __formatter: &mut _serde::__private::Formatter,
+                        ) -> _serde::__private::fmt::Result {
+                            _serde::__private::Formatter::write_str(
+                                __formatter,
+                                "field identifier",
+                            )
+                        }
+                        fn visit_u64<__E>(
+                            self,
+                            __value: u64,
+                        ) -> _serde::__private::Result<Self::Value, __E>
+                        where
+                            __E: _serde::de::Error,
+                        {
+                            match __value {
+                                0u64 => _serde::__private::Ok(__Field::__field0),
+                                1u64 => _serde::__private::Ok(__Field::__field1),
+                                _ => _serde::__private::Ok(__Field::__ignore),
+                            }
+                        }
+                        fn visit_str<__E>(
+                            self,
+                            __value: &str,
+                        ) -> _serde::__private::Result<Self::Value, __E>
+                        where
+                            __E: _serde::de::Error,
+                        {
+                            match __value {
+                                "info" => _serde::__private::Ok(__Field::__field0),
+                                "name" => _serde::__private::Ok(__Field::__field1),
+                                _ => _serde::__private::Ok(__Field::__ignore),
+                            }
+                        }
+                        fn visit_bytes<__E>(
+                            self,
+                            __value: &[u8],
+                        ) -> _serde::__private::Result<Self::Value, __E>
+                        where
+                            __E: _serde::de::Error,
+                        {
+                            match __value {
+                                b"info" => _serde::__private::Ok(__Field::__field0),
+                                b"name" => _serde::__private::Ok(__Field::__field1),
+                                _ => _serde::__private::Ok(__Field::__ignore),
+                            }
+                        }
+                    }
+                    #[automatically_derived]
+                    impl<'de> _serde::Deserialize<'de> for __Field {
+                        #[inline]
+                        fn deserialize<__D>(
+                            __deserializer: __D,
+                        ) -> _serde::__private::Result<Self, __D::Error>
+                        where
+                            __D: _serde::Deserializer<'de>,
+                        {
+                            _serde::Deserializer::deserialize_identifier(
+                                __deserializer,
+                                __FieldVisitor,
+                            )
+                        }
+                    }
+                    #[doc(hidden)]
+                    struct __Visitor<'de> {
+                        marker: _serde::__private::PhantomData<WebsiteRootPayload>,
+                        lifetime: _serde::__private::PhantomData<&'de ()>,
+                    }
+                    #[automatically_derived]
+                    impl<'de> _serde::de::Visitor<'de> for __Visitor<'de> {
+                        type Value = WebsiteRootPayload;
+                        fn expecting(
+                            &self,
+                            __formatter: &mut _serde::__private::Formatter,
+                        ) -> _serde::__private::fmt::Result {
+                            _serde::__private::Formatter::write_str(
+                                __formatter,
+                                "struct WebsiteRootPayload",
+                            )
+                        }
+                        #[inline]
+                        fn visit_seq<__A>(
+                            self,
+                            mut __seq: __A,
+                        ) -> _serde::__private::Result<Self::Value, __A::Error>
+                        where
+                            __A: _serde::de::SeqAccess<'de>,
+                        {
+                            let __field0 = match _serde::de::SeqAccess::next_element::<
+                                WebsiteInfo,
+                            >(&mut __seq)? {
+                                _serde::__private::Some(__value) => __value,
+                                _serde::__private::None => {
+                                    return _serde::__private::Err(
+                                        _serde::de::Error::invalid_length(
+                                            0usize,
+                                            &"struct WebsiteRootPayload with 2 elements",
+                                        ),
+                                    );
+                                }
+                            };
+                            let __field1 = match _serde::de::SeqAccess::next_element::<
+                                NameEn,
+                            >(&mut __seq)? {
+                                _serde::__private::Some(__value) => __value,
+                                _serde::__private::None => {
+                                    return _serde::__private::Err(
+                                        _serde::de::Error::invalid_length(
+                                            1usize,
+                                            &"struct WebsiteRootPayload with 2 elements",
+                                        ),
+                                    );
+                                }
+                            };
+                            _serde::__private::Ok(WebsiteRootPayload {
+                                info: __field0,
+                                name: __field1,
+                            })
+                        }
+                        #[inline]
+                        fn visit_map<__A>(
+                            self,
+                            mut __map: __A,
+                        ) -> _serde::__private::Result<Self::Value, __A::Error>
+                        where
+                            __A: _serde::de::MapAccess<'de>,
+                        {
+                            let mut __field0: _serde::__private::Option<WebsiteInfo> = _serde::__private::None;
+                            let mut __field1: _serde::__private::Option<NameEn> = _serde::__private::None;
+                            while let _serde::__private::Some(__key) = _serde::de::MapAccess::next_key::<
+                                __Field,
+                            >(&mut __map)? {
+                                match __key {
+                                    __Field::__field0 => {
+                                        if _serde::__private::Option::is_some(&__field0) {
+                                            return _serde::__private::Err(
+                                                <__A::Error as _serde::de::Error>::duplicate_field("info"),
+                                            );
+                                        }
+                                        __field0 = _serde::__private::Some(
+                                            _serde::de::MapAccess::next_value::<
+                                                WebsiteInfo,
+                                            >(&mut __map)?,
+                                        );
+                                    }
+                                    __Field::__field1 => {
+                                        if _serde::__private::Option::is_some(&__field1) {
+                                            return _serde::__private::Err(
+                                                <__A::Error as _serde::de::Error>::duplicate_field("name"),
+                                            );
+                                        }
+                                        __field1 = _serde::__private::Some(
+                                            _serde::de::MapAccess::next_value::<NameEn>(&mut __map)?,
+                                        );
+                                    }
+                                    _ => {
+                                        let _ = _serde::de::MapAccess::next_value::<
+                                            _serde::de::IgnoredAny,
+                                        >(&mut __map)?;
+                                    }
+                                }
+                            }
+                            let __field0 = match __field0 {
+                                _serde::__private::Some(__field0) => __field0,
+                                _serde::__private::None => {
+                                    _serde::__private::de::missing_field("info")?
+                                }
+                            };
+                            let __field1 = match __field1 {
+                                _serde::__private::Some(__field1) => __field1,
+                                _serde::__private::None => {
+                                    _serde::__private::de::missing_field("name")?
+                                }
+                            };
+                            _serde::__private::Ok(WebsiteRootPayload {
+                                info: __field0,
+                                name: __field1,
+                            })
+                        }
+                    }
+                    #[doc(hidden)]
+                    const FIELDS: &'static [&'static str] = &["info", "name"];
+                    _serde::Deserializer::deserialize_struct(
+                        __deserializer,
                         "WebsiteRootPayload",
-                        false as usize + 1 + 1,
-                    )?;
-                    _serde::ser::SerializeStruct::serialize_field(
-                        &mut __serde_state,
-                        "info",
-                        &self.info,
-                    )?;
-                    _serde::ser::SerializeStruct::serialize_field(
-                        &mut __serde_state,
-                        "name",
-                        &self.name,
-                    )?;
-                    _serde::ser::SerializeStruct::end(__serde_state)
+                        FIELDS,
+                        __Visitor {
+                            marker: _serde::__private::PhantomData::<WebsiteRootPayload>,
+                            lifetime: _serde::__private::PhantomData,
+                        },
+                    )
                 }
             }
         };
-        pub struct DynamicNames {
-            pairs: Vec<(String,)>,
-        }
-        impl<'de> Deserialize<'de> for WebsiteRootPayload {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        impl Serialize for WebsiteRootPayload {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
-                D: serde::Deserializer<'de>,
+                S: serde::Serializer,
             {
-                enum Field {
-                    Field0,
-                    Field1,
-                }
-                struct FieldVisitor;
-                const FIELDS: &[&str] = &["thing:websiteroot", "thing:name-en"];
-                impl Field {
-                    pub fn name(self) -> &'static str {
-                        match self {
-                            Field::Field0 => <WebsiteInfo as IsPayloadEntry>::known(),
-                            Field::Field1 => <NameEn as IsPayloadEntry>::known(),
-                        }
-                    }
-                }
-                impl<'de> Visitor<'de> for FieldVisitor {
-                    type Value = Field;
-                    fn expecting(
-                        &self,
-                        f: &mut std::fmt::Formatter,
-                    ) -> std::fmt::Result {
-                        f.write_fmt(format_args!("field identifier"))
-                    }
-                    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match v {
-                            1 => Ok(Field::Field0),
-                            2 => Ok(Field::Field1),
-                            _ => {
-                                Err(
-                                    E::invalid_value(
-                                        serde::de::Unexpected::Unsigned(v),
-                                        &"field index 0 <= i < 2",
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        if v == Field::Field0.name() {
-                            return Ok(Field::Field0);
-                        }
-                        if v == Field::Field1.name() {
-                            return Ok(Field::Field1);
-                        }
-                        Err(de::Error::unknown_field(v, FIELDS))
-                    }
-                    fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                    where
-                        E: de::Error,
-                    {
-                        if v == Field::Field0.name().as_bytes() {
-                            return Ok(Field::Field0);
-                        }
-                        if v == Field::Field1.name().as_bytes() {
-                            return Ok(Field::Field1);
-                        }
-                        Err(
-                            de::Error::unknown_field(
-                                &std::string::String::from_utf8_lossy(v),
-                                FIELDS,
-                            ),
-                        )
-                    }
-                }
-                impl<'de> Deserialize<'de> for Field {
-                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                    where
-                        D: de::Deserializer<'de>,
-                    {
-                        serde::Deserializer::deserialize_identifier(
-                            deserializer,
-                            FieldVisitor,
-                        )
-                    }
-                }
-                struct MyVisitor<'de> {
-                    marker: std::marker::PhantomData<WebsiteRootPayload>,
-                    lifetime: std::marker::PhantomData<&'de ()>,
-                }
-                impl<'de> Visitor<'de> for MyVisitor<'de> {
-                    type Value = WebsiteRootPayload;
-                    fn expecting(
-                        &self,
-                        f: &mut std::fmt::Formatter,
-                    ) -> std::fmt::Result {
-                        f.write_fmt(format_args!("struct WebsiteRootPayload"))
-                    }
-                    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-                    where
-                        A: de::SeqAccess<'de>,
-                    {
-                        let field0 = match de::SeqAccess::next_element::<
-                            WebsiteInfo,
-                        >(&mut seq)? {
-                            Some(val) => val,
-                            None => {
-                                return Err(
-                                    de::Error::invalid_length(
-                                        0usize,
-                                        &"struct WebsiteRootPayload with 2 elements",
-                                    ),
-                                );
-                            }
-                        };
-                        let field1 = match de::SeqAccess::next_element::<
-                            NameEn,
-                        >(&mut seq)? {
-                            Some(val) => val,
-                            None => {
-                                return Err(
-                                    de::Error::invalid_length(
-                                        1usize,
-                                        &"struct WebsiteRootPayload with 2 elements",
-                                    ),
-                                );
-                            }
-                        };
-                        Ok(WebsiteRootPayload {
-                            info: field0,
-                            name: field1,
-                        })
-                    }
-                    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-                    where
-                        A: de::MapAccess<'de>,
-                    {
-                        let mut field0 = None;
-                        let mut field1 = None;
-                        while let Some(key) = de::MapAccess::next_key::<
-                            Field,
-                        >(&mut map)? {
-                            match key {
-                                Field::Field0 => {
-                                    if field0.is_some() {
-                                        return Err(
-                                            de::Error::duplicate_field("thing:websiteroot (aka info)"),
-                                        );
-                                    }
-                                    field0 = Some(de::MapAccess::next_value(&mut map)?);
-                                }
-                                Field::Field1 => {
-                                    if field1.is_some() {
-                                        return Err(
-                                            de::Error::duplicate_field("thing:name-en (aka name)"),
-                                        );
-                                    }
-                                    field1 = Some(de::MapAccess::next_value(&mut map)?);
-                                }
-                            }
-                        }
-                        Ok(WebsiteRootPayload {
-                            info: field0
-                                .ok_or_else(|| de::Error::missing_field(
-                                    "thing:websiteroot (aka info)",
-                                ))?,
-                            name: field1
-                                .ok_or_else(|| de::Error::missing_field(
-                                    "thing:name-en (aka name)",
-                                ))?,
-                        })
-                    }
-                }
-                serde::Deserializer::deserialize_struct(
-                    deserializer,
+                let mut state = serde::Serializer::serialize_struct(
+                    serializer,
                     "WebsiteRootPayload",
-                    FIELDS,
-                    MyVisitor {
-                        marker: std::marker::PhantomData,
-                        lifetime: std::marker::PhantomData,
-                    },
-                )
+                    0 + 1 + 1,
+                )?;
+                serde::ser::SerializeStruct::serialize_field(
+                    &mut state,
+                    <WebsiteInfo as IsPayloadEntry>::known(),
+                    &self.info,
+                )?;
+                serde::ser::SerializeStruct::serialize_field(
+                    &mut state,
+                    <NameEn as IsPayloadEntry>::known(),
+                    &self.name,
+                )?;
+                serde::ser::SerializeStruct::end(state)
             }
         }
         pub struct WebsiteInfo {

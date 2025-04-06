@@ -49,7 +49,7 @@ pub mod website {
     }
   }
 
-  #[derive(Debug, Serialize)]
+  #[derive(Debug)]
   // #[serde(deny_unknown_fields)]
   pub struct WebsiteRootPayload {
     // #[serde(rename = "thing:websiteroot")]
@@ -57,10 +57,6 @@ pub mod website {
 
     // #[serde(rename = "thing:name-en")]
     name: NameEn,
-  }
-
-  pub struct DynamicNames {
-    pairs: Vec<(String,)>,
   }
 
   impl<'de> Deserialize<'de> for WebsiteRootPayload {
@@ -71,19 +67,10 @@ pub mod website {
       enum Field {
         Field0,
         Field1,
+        Ignore,
       }
       struct FieldVisitor;
       const FIELDS: &[&str] = &["thing:websiteroot", "thing:name-en"];
-
-      impl Field {
-        pub fn name(self) -> &'static str {
-          match self {
-            // PARAM
-            Field::Field0 => <WebsiteInfo as IsPayloadEntry>::known(),
-            Field::Field1 => <NameEn as IsPayloadEntry>::known(),
-          }
-        }
-      }
 
       impl<'de> Visitor<'de> for FieldVisitor {
         type Value = Field;
@@ -101,10 +88,11 @@ pub mod website {
             1 => Ok(Field::Field0),
             2 => Ok(Field::Field1),
             // PARAM
-            _ => Err(E::invalid_value(
-              serde::de::Unexpected::Unsigned(v),
-              &"field index 0 <= i < 2",
-            )),
+            // _ => Err(E::invalid_value(
+            //   serde::de::Unexpected::Unsigned(v),
+            //   &"field index 0 <= i < 2",
+            // )),
+            _ => Ok(Field::Ignore),
           }
         }
 
@@ -112,29 +100,31 @@ pub mod website {
         where
           E: serde::de::Error,
         {
-          if v == Field::Field0.name() {
+          if v == <WebsiteInfo as IsPayloadEntry>::known() {
             return Ok(Field::Field0);
           }
-          if v == Field::Field1.name() {
+          if v == <NameEn as IsPayloadEntry>::known() {
             return Ok(Field::Field1);
           }
-          Err(de::Error::unknown_field(v, FIELDS))
+          Ok(Field::Ignore)
+          // Err(de::Error::unknown_field(v, FIELDS))
         }
 
         fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
         where
           E: de::Error,
         {
-          if v == Field::Field0.name().as_bytes() {
+          if v == <WebsiteInfo as IsPayloadEntry>::known().as_bytes() {
             return Ok(Field::Field0);
           }
-          if v == Field::Field1.name().as_bytes() {
+          if v == <WebsiteInfo as IsPayloadEntry>::known().as_bytes() {
             return Ok(Field::Field1);
           }
-          Err(de::Error::unknown_field(
-            &std::string::String::from_utf8_lossy(v),
-            FIELDS,
-          ))
+          Ok(Field::Ignore)
+          // Err(de::Error::unknown_field(
+          //   &std::string::String::from_utf8_lossy(v),
+          //   FIELDS,
+          // ))
         }
       }
 
@@ -218,6 +208,9 @@ pub mod website {
                 }
                 field1 = Some(de::MapAccess::next_value(&mut map)?);
               }
+              Field::Ignore => {
+                _ = de::MapAccess::next_value::<de::IgnoredAny>(&mut map);
+              }
             }
           }
           // PARAM
@@ -238,6 +231,29 @@ pub mod website {
           lifetime: std::marker::PhantomData,
         },
       )
+    }
+  }
+
+  impl Serialize for WebsiteRootPayload {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+      S: serde::Serializer,
+    {
+      // PARAM len + name
+      let mut state =
+        serde::Serializer::serialize_struct(serializer, "WebsiteRootPayload", 0 + 1 + 1)?;
+      // PARAM repeat
+      serde::ser::SerializeStruct::serialize_field(
+        &mut state,
+        <WebsiteInfo as IsPayloadEntry>::known(),
+        &self.info,
+      )?;
+      serde::ser::SerializeStruct::serialize_field(
+        &mut state,
+        <NameEn as IsPayloadEntry>::known(),
+        &self.name,
+      )?;
+      serde::ser::SerializeStruct::end(state)
     }
   }
 
