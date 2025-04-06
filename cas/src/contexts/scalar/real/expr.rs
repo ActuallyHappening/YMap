@@ -14,17 +14,18 @@ impl<Ident> IntoIterator for Exprs<Ident> {
   }
 }
 
+/// Encodes associativity of addition and multiplication
 pub enum Expr<Ident> {
   Constant(ConstantNum),
   Ident(Ident),
   Unary(UnaryOp<Ident>),
-  Binary(BinaryOp<Ident>),
+  Ops(Ops<Ident>),
 }
 
 #[derive(Clone)]
 pub enum ConstantNum {
   Positive(BigUint),
-  Pi,
+  Tau,
   // Negative(BigUint),
   // Ratio {
   //   num: BigUint,
@@ -50,9 +51,9 @@ impl From<Ident> for Expr<Ident> {
   }
 }
 
-impl<Var> From<BinaryOp<Var>> for Expr<Var> {
-  fn from(value: BinaryOp<Var>) -> Self {
-    Expr::Binary(value)
+impl<Var> From<Ops<Var>> for Expr<Var> {
+  fn from(value: Ops<Var>) -> Self {
+    Expr::Ops(value)
   }
 }
 
@@ -60,14 +61,16 @@ pub enum UnaryOp<Var> {
   Neg(Box<Expr<Var>>),
 }
 
-pub enum BinaryOp<Var> {
+pub enum Ops<Var> {
   Add {
-    lhs: Box<Expr<Var>>,
-    rhs: Box<Expr<Var>>,
+    epxrs: Vec<Expr<Var>>,
+    // lhs: Box<Expr<Var>>,
+    // rhs: Box<Expr<Var>>,
   },
   Mul {
-    lhs: Box<Expr<Var>>,
-    rhs: Box<Expr<Var>>,
+    exprs: Vec<Expr<Var>>,
+    // lhs: Box<Expr<Var>>,
+    // rhs: Box<Expr<Var>>,
   },
   Div {
     numerator: Box<Expr<Var>>,

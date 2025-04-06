@@ -25,10 +25,10 @@ mod from_ir2 {
     prelude::*,
   };
 
-  use super::IR2Exprs;
+  use super::{IR2Exprs, IR3Expr};
 
   impl Exprs<Ident> {
-    fn from_ir2(context: &ContextOneVarEq<Ident>, ir2: IR2Exprs) -> Result<Self, Error> {
+    fn from_ir3(context: &ContextOneVarEq<Ident>, irr: IR3Expr<Ident>) -> Result<Self, Error> {
       todo!()
     }
   }
