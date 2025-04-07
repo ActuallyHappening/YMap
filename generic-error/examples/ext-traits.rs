@@ -1,6 +1,6 @@
-use generic_error::GenericError;
-use generic_error::Untyped;
-use generic_error::prelude::*;
+use generic_err::GenericError;
+use generic_err::Untyped;
+use generic_err::prelude::*;
 
 #[derive(Debug, thiserror::Error)]
 enum NonCloneError {

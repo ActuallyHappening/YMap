@@ -1,4 +1,4 @@
-use generic_error::GenericError;
+use generic_err::GenericError;
 
 #[derive(Debug, thiserror::Error)]
 enum NonCloneError {

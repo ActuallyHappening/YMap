@@ -1,5 +1,5 @@
 [package]
-name = "generic-error"
+name = "generic-err"
 version = "0.1.0"
 edition = "2024"
 description = "A small utility library to make errors always serializable clonable"
