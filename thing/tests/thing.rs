@@ -8,7 +8,7 @@ async fn website_root() -> color_eyre::Result<()> {
 
   let db = db::Db::build().wss()?.await?.prod().await?.public();
 
-  let thing: WebsiteRoot = db.thing().await?;
+  let thing: WebsiteRoot = db.known_thing().await?;
 
   info!(?thing);
 

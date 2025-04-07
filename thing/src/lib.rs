@@ -7,6 +7,7 @@ pub mod prelude {
 
   pub use crate::db::ThingExt as _;
   pub(crate) use db::prelude::*;
+  pub use thing_macros::{Deserialize as PDeserialize, Serialize as PSerailzie};
 }
 
 pub mod errors;
@@ -58,7 +59,7 @@ mod db {
 
   #[extension(pub trait ThingExt)]
   impl Db<NoAuth> {
-    async fn thing<P>(&self) -> Result<Thing<P>, Error>
+    async fn known_thing<P>(&self) -> Result<Thing<P>, Error>
     where
       Thing<P>: DeserializeOwned + KnownRecord,
     {
@@ -74,7 +75,7 @@ mod db {
   }
 }
 
-mod payload;
+pub mod payload;
 
 pub use id::ThingId;
 pub mod id;

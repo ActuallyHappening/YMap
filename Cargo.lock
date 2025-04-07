@@ -139,6 +139,7 @@ dependencies = [
  "leptos",
  "leptos-use",
  "leptos_meta",
+ "leptos_router",
  "mathquill-leptos",
  "serde",
  "surrealdb",
@@ -747,6 +748,8 @@ dependencies = [
  "latex-parser",
  "nonzero_lit",
  "num",
+ "serde",
+ "thing",
  "thiserror 2.0.12",
  "utils",
 ]
@@ -2487,6 +2490,42 @@ dependencies = [
  "tracing",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "leptos_router"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4168ead6a9715daba953aa842795cb2ad81b6e011a15745bd3d1baf86f76de95"
+dependencies = [
+ "any_spawner",
+ "either_of",
+ "futures",
+ "gloo-net",
+ "js-sys",
+ "leptos",
+ "leptos_router_macro",
+ "once_cell",
+ "or_poisoned",
+ "reactive_graph",
+ "send_wrapper",
+ "tachys",
+ "thiserror 2.0.12",
+ "url",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "leptos_router_macro"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e31197af38d209ffc5d9f89715381c415a1570176f8d23455fbe00d148e79640"
+dependencies = [
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.100",
 ]
 
 [[package]]
@@ -4775,13 +4814,6 @@ dependencies = [
  "dirs-next",
  "rustversion",
  "winapi",
-]
-
-[[package]]
-name = "testing"
-version = "0.1.0"
-dependencies = [
- "serde",
 ]
 
 [[package]]

@@ -19,10 +19,10 @@ enum Do {
   Deserialize,
 }
 
-use darling::{FromDeriveInput, FromMeta};
+use darling::FromMeta;
 use proc_macro2::Span;
 use quote::{format_ident, quote};
-use syn::token::{Enum, Token, Union};
+use syn::token::{Enum, Union};
 use syn::{Data, DataEnum, DataUnion, Error, Fields, Ident};
 
 use syn::{DeriveInput, parse_macro_input};
@@ -37,7 +37,6 @@ fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::T
     syn::Data::Struct(data) => {
       let fields = extract_field_info(data.fields)?;
       let num_fields = fields.len();
-      let num_fields_str = num_fields.to_string();
 
       match emit {
         Do::Serialize => {
@@ -114,29 +113,24 @@ fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::T
               }
             },
           );
-          let fields_visit_seq = fields.iter().zip(field_enum_idents.iter()).map(
-            |(
-              MyField {
-                written_name,
-                renamed_link,
-                ty,
-              },
-              ident,
-            )| {
-              quote! {
-                let #ident = match ::serde::de::SeqAccess::next_element::<#ty>(&mut seq)? {
-                  ::core::option::Option::Some(val) => val,
-                  ::core::option::Option::None => {
-                    // PARAM
-                    return ::core::result::Result::Err(::serde::de::Error::invalid_length(
-                      0usize,
-                      &concat!("struct ", #name_str, " with ", #num_fields, " elements"),
-                    ));
-                  }
-                };
-              }
-            },
-          );
+          let fields_visit_seq =
+            fields
+              .iter()
+              .zip(field_enum_idents.iter())
+              .map(|(MyField { ty, .. }, ident)| {
+                quote! {
+                  let #ident = match ::serde::de::SeqAccess::next_element::<#ty>(&mut seq)? {
+                    ::core::option::Option::Some(val) => val,
+                    ::core::option::Option::None => {
+                      // PARAM
+                      return ::core::result::Result::Err(::serde::de::Error::invalid_length(
+                        0usize,
+                        &concat!("struct ", #name_str, " with ", #num_fields, " elements"),
+                      ));
+                    }
+                  };
+                }
+              });
           let fields_visit_seq_final = fields.iter().zip(field_enum_idents.iter()).map(
             |(MyField { written_name, .. }, field_enum_ident)| {
               quote! {
@@ -151,14 +145,7 @@ fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::T
             }
           });
           let visit_map_matches = field_enum_idents.iter().zip(fields.iter()).map(
-            |(
-              ident,
-              MyField {
-                written_name,
-                renamed_link,
-                ..
-              },
-            )| {
+            |(ident, MyField { renamed_link, .. })| {
               quote! {
                 Field::#ident => {
                   if #ident.is_some() {
@@ -166,7 +153,8 @@ fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::T
                     return ::core::result::Result::Err(::serde::de::Error::duplicate_field(
                       // "thing:websiteroot (aka info)",
                       // param_err_msg
-                      concat!(stringify!(#written_name), " (but is is dynamically renamed)")
+                      // concat!(stringify!(#written_name), " (but is is dynamically renamed)")
+                      #renamed_link
                     ));
                   }
                   #ident =
@@ -180,14 +168,15 @@ fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::T
               ident,
               MyField {
                 written_name,
-                ty,
                 renamed_link,
+                ..
               },
             )| {
               quote! {
                 #written_name: #ident.ok_or_else(||
                   ::serde::de::Error::missing_field(
-                    concat!(stringify!(#written_name), " (but is is dynamically renamed)")
+                    // concat!(stringify!(#written_name), " (but is is dynamically renamed)")
+                    #renamed_link
                   )
                 )?
               }
@@ -417,6 +406,9 @@ fn extract_field_info(fields: Fields) -> Result<Vec<MyField>, Error> {
       }
       Ok(ret)
     }
-    Fields::Unnamed(fields) => Err(Error::new(Span::call_site(), "Only works on named fields")),
+    Fields::Unnamed(fields) => Err(Error::new(
+      fields.paren_token.span.join(),
+      "Only works on named fields",
+    )),
   }
 }
