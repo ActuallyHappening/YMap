@@ -16,6 +16,7 @@
 //! there are methods to suit your needs, e.g. [`GenericError::from_non_err`].
 
 pub mod prelude {
+  //! Only exports extension traits without polluting your namespace
   pub use crate::{GenericErrorExt as _, GenericErrorRefExt as _};
 }
 
