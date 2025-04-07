@@ -4,6 +4,7 @@ members = [
     "cas",
     "db",
     "db/layers",
+    "generic-error",
     "latex",
     "mathquill/*",
     "thing",

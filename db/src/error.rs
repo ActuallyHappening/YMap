@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
   #[error("Couldn't connect to the DB (url)")]

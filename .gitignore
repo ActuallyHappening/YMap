@@ -8,6 +8,7 @@
 !thing
 !cas
 !latex
+!generic-error
 
 !.env.toml
 !.gitignore

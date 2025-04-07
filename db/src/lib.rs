@@ -21,6 +21,7 @@ pub mod prelude {
   pub use crate::Db;
 }
 
+pub use error::Error;
 pub mod error;
 
 use crate::prelude::*;

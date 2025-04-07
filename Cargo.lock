@@ -134,6 +134,7 @@ dependencies = [
  "cas",
  "color-eyre",
  "console_error_panic_hook",
+ "db",
  "getrandom 0.3.2",
  "latex-parser",
  "leptos",
@@ -143,6 +144,7 @@ dependencies = [
  "mathquill-leptos",
  "serde",
  "surrealdb",
+ "thing",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -1651,6 +1653,15 @@ checksum = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "generic-error"
+version = "0.1.0"
+dependencies = [
+ "extension-traits",
+ "serde",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

@@ -1,14 +1,6 @@
 #![allow(unused_imports, async_fn_in_trait)]
 
-pub mod prelude {
-  pub(crate) use extension_traits::extension;
-  pub(crate) use serde::{Deserialize, Serialize};
-  pub(crate) use tracing::{debug, error, info, trace, warn};
-
-  pub use crate::db::ThingExt as _;
-  pub(crate) use db::prelude::*;
-  pub use thing_macros::{Deserialize as PDeserialize, Serialize as PSerailzie};
-}
+pub mod prelude;
 
 pub mod errors;
 

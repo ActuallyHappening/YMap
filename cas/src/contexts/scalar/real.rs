@@ -17,15 +17,12 @@ pub use from_latex::*;
 mod expr;
 mod from_latex;
 pub mod things {
-  use thing::{
-    payload::IsPayloadEntry,
-    prelude::{PDeserialize, PSerailzie},
-  };
+  use thing::payload::IsPayloadEntry;
 
   use crate::prelude::*;
 
   /// Info record: thing:mrcrjzvzuoajtb1ka9xo
-  #[derive(PDeserialize, PSerailzie)]
+  #[derive(PDeserialize, PSerialize)]
   pub struct SingleVarOneEq {
     #[serde(rename(expr = "SingleVarOneEqPayload::known()"))]
     latex: SingleVarOneEqPayload,
@@ -39,7 +36,7 @@ pub mod things {
 
   impl IsPayloadEntry for SingleVarOneEqPayload {
     fn known() -> &'static str {
-      "thing:mrcrjzvzuoajtb1ka9xo"
+      "mrcrjzvzuoajtb1ka9xo"
     }
   }
 }

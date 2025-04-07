@@ -1,0 +1,11 @@
+[package]
+name = "generic-error"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+extension-traits = "2.0.0"
+serde = { version = "1.0.219", features = ["derive", "rc"] }
+
+[dev-dependencies]
+thiserror = "2.0.12"

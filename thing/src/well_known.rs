@@ -3,6 +3,7 @@ use crate::prelude::*;
 use super::{ThingId, payload::IsPayloadEntry};
 
 pub trait KnownRecord {
+  /// The known and static surrealdb key for this thing / record
   fn known() -> &'static str;
   fn known_id() -> ThingId {
     ThingId::new_known(Self::known().into())
@@ -57,37 +58,4 @@ pub mod website {
   };
 
   use super::{KnownRecord, NameEn};
-
-  pub type WebsiteRoot = Thing<WebsiteRootPayload>;
-
-  impl KnownRecord for WebsiteRoot {
-    fn known() -> &'static str {
-      "websiteroot"
-    }
-    fn known_id() -> ThingId {
-      ThingId::new_known("websiteroot".into())
-    }
-  }
-
-  #[derive(Debug, thing_macros::Serialize, thing_macros::Deserialize)]
-  pub struct WebsiteRootPayload {
-    #[serde(rename(expr = "WebsiteInfo::known()"))]
-    info: WebsiteInfo,
-
-    #[serde(rename(expr = "NameEn::known()"))]
-    name: NameEn,
-  }
-
-  #[derive(Deserialize, Serialize, Debug)]
-  pub struct WebsiteInfo {
-    show_children: Vec<ThingId>,
-  }
-
-  impl IsPayload for WebsiteRootPayload {}
-
-  impl IsPayloadEntry for WebsiteInfo {
-    fn known() -> &'static str {
-      WebsiteRoot::known()
-    }
-  }
 }
