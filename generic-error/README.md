@@ -19,5 +19,5 @@ pub struct GenericError<T>
 .. although many details have been omitted for brevity
 
 
-See [docs](https://docs.rs/generic-error) or the
+See [docs](https://docs.rs/generic-err) or the
 [examples](https://github.com/ActuallyHappening/YMap/tree/master/generic-error/examples) dir for usage
