@@ -5,7 +5,7 @@ edition = "2024"
 description = "A small utility library to make errors always serializable clonable"
 readme = "README.md"
 license = "GPL-2.0"
-documentation = "https://docs.rs/generic-error"
+documentation = "https://docs.rs/generic-err"
 repository = "https://github.com/ActuallyHappening/YMap/tree/master/generic-error"
 
 [dependencies]
