@@ -1,3 +1,20 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+//!
+//! ## Usage
+//! ```rust
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/simple.rs"))]
+//! ```
+//!
+//! You can also use the [`Untyped`] variant of [`GenericError`] if that suits your needs better.
+//!
+//! There are also extension traits for convenience:
+//! ```rust
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/ext-traits.rs"))]
+//! ```
+//!
+//! Also, for types that don't implement [`Debug`](std::fmt::Debug),
+//! there are methods to suit your needs, e.g. [`GenericError::from_non_err`].
+
 pub mod prelude {
   pub use crate::{GenericErrorExt as _, GenericErrorRefExt as _};
 }

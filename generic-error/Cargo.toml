@@ -2,6 +2,9 @@
 name = "generic-error"
 version = "0.1.0"
 edition = "2024"
+description = "A small utility library to make errors always serializable clonable"
+readme = "README.md"
+license = "GPL-2.0"
 
 [dependencies]
 extension-traits = "2.0.0"

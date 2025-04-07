@@ -1,4 +1,6 @@
 use generic_error::GenericError;
+use generic_error::Untyped;
+use generic_error::prelude::*;
 
 #[derive(Debug, thiserror::Error)]
 enum NonCloneError {
@@ -16,14 +18,13 @@ where
 
 fn main() {
   let non_clone: Result<(), NonCloneError> = Err(NonCloneError::DbNotConnected);
-  let non_clone_debug = format!("{:?}", non_clone);
-
-  let now_cloneable: Result<(), GenericError<NonCloneError>> =
-    non_clone.map_err(GenericError::from);
-  let cloneable_debug = format!("{:?}", now_cloneable);
-
-  assert_eq!(non_clone_debug, cloneable_debug);
+  let clonable: Result<(), GenericError<NonCloneError>> = non_clone.make_generic();
 
   // See? Magic!
-  literally_everyday(now_cloneable);
+  literally_everyday(clonable);
+
+  let non_clonable: Result<(), NonCloneError> = Ok(());
+  let clonable_untyped: Result<(), GenericError<Untyped>> = non_clonable.make_generic_untyped();
+
+  literally_everyday(clonable_untyped);
 }
