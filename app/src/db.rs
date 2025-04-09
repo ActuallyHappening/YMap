@@ -1,4 +1,5 @@
 use db::auth;
+use generic_err::GenericErrorExt;
 
 use crate::prelude::*;
 
@@ -17,11 +18,11 @@ impl DbConn {
     leptos::context::use_context().expect("Call DbConn::provide() above you first")
   }
 
-  pub fn guest(&self) -> Result<Db<auth::NoAuth>, Error> {
+  pub fn guest(&self) -> Result<Db<auth::NoAuth>, GenericError<Error>> {
     match self {
       DbConn::OkGuest(db) => Ok(db.clone()),
-      DbConn::WaitingForGuest { prev_err } => Err(Error::DbWaiting),
-      DbConn::Err(err) => Err(Error::DbError(err.clone())),
+      DbConn::WaitingForGuest { prev_err: _ } => Err(Error::DbWaiting).make_generic(),
+      DbConn::Err(err) => Err(Error::DbError(GenericError::from_ref(err))).make_generic(),
     }
   }
 }

@@ -135,6 +135,7 @@ dependencies = [
  "color-eyre",
  "console_error_panic_hook",
  "db",
+ "generic-err",
  "getrandom 0.3.2",
  "latex-parser",
  "leptos",

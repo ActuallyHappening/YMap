@@ -6,5 +6,5 @@ pub enum Error {
   DbWaiting,
 
   #[error("Couldn't connect to database")]
-  DbError(db::Error),
+  DbError(#[source] GenericError<db::Error>),
 }

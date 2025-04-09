@@ -44,7 +44,7 @@ pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
   view! {}
 }
 
-pub async fn known_id<T>(current: ThingId) -> Result<T, Error> {
+pub async fn known_id<T>(current: ThingId) -> Result<T, GenericError<Error>> {
   todo!()
 }
 
@@ -111,7 +111,7 @@ pub mod latex_demo {
       )
     };
 
-    view! {
+    Some(view! {
       <h1> "YMap" </h1>
       <MathQuillField on_edit=on_edit />
       <p> { move || format!("Raw latex: {}", latex.get()) } </p>
@@ -131,7 +131,6 @@ pub mod latex_demo {
         Ok(ir) => format!("Successfully converted to IR3: {:?}", ir),
         Err(err) => format!("Couldn't convert to IR3: {}", err),
       } } </p>
-
-    }
+    })
   }
 }
