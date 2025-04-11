@@ -4,7 +4,6 @@ pub use utils::prelude::*;
 
 pub use serde::{Deserialize, Serialize};
 
-pub use db::prelude::*;
 pub use thing::prelude::*;
 pub use thing::{Thing, ThingId};
 

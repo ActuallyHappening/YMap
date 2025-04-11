@@ -1,42 +1,25 @@
 use std::ops::Deref;
 
-use db::{Db, auth, creds};
-
 use crate::prelude::*;
 
 pub enum DbConn {
-  WaitingForGuest {
-    prev_err: Option<db::Error>,
-  },
-  Guest(Result<Db<auth::NoAuth>, db::Error>),
-  WaitingForSignUp {
-    creds: creds::SignUpUser,
-    prev_err: Option<db::Error>,
-  },
-  WaitingForSignIn {
-    creds: creds::SignInUser,
-    prev_err: Option<db::Error>,
-  },
-  User(Result<Db<auth::User>, db::Error>),
+  WaitingForGuest,
+  Guest(Surreal<Any>),
 }
 
 impl DbConn {
   pub fn provide() {
-    leptos::context::provide_context(RwSignal::new(DbConn::WaitingForGuest { prev_err: None }));
+    leptos::context::provide_context(RwSignal::new(DbConn::WaitingForGuest));
   }
 
   pub fn from_context() -> RwSignal<DbConn> {
     leptos::context::use_context().expect("Call DbConn::provide() above you first")
   }
 
-  /// Will still magically be able to select correct records if signed in
-  pub fn guest(&self) -> Result<Db<auth::NoAuth>, AppError> {
+  pub fn get_db(&self) -> Result<Surreal<Any>, AppError> {
     match self {
-      DbConn::WaitingForGuest { .. }
-      | DbConn::WaitingForSignIn { .. }
-      | DbConn::WaitingForSignUp { .. } => Err(AppError::DbWaiting),
-      DbConn::Guest(res) => Ok(res.as_ref()?.clone()),
-      DbConn::User(res) => Ok(res.as_ref()?.clone().downgrade()),
+      DbConn::WaitingForGuest => Err(AppError::DbWaiting),
+      DbConn::Guest(db) => Ok(db.clone()),
     }
   }
 }
@@ -44,37 +27,23 @@ impl DbConn {
 pub fn Connect() -> impl IntoView {
   let state = DbConn::from_context();
   move || match state.read().deref() {
-    DbConn::WaitingForGuest { .. } => {
+    DbConn::WaitingForGuest => {
       let suspend = Suspend::new(async move {
-        let res = (async || -> Result<Db<auth::NoAuth>, db::Error> {
-          Ok(db::Db::build().wss()?.await?.prod().await?.public())
-        })()
-        .await;
-
-        let msg = match &res {
-          Ok(_) => "Connected as guest successfully!".into(),
-          Err(err) => format!("Failed to connect as guest: {}", err),
-        };
-
-        DbConn::from_context().set(DbConn::Guest(res));
-
-        view! { <pre> {msg} </pre>}
+        let db = surrealdb::engine::any::connect(
+          "wss://eager-bee-06aqohg53hq27c0jg11k14gdbk.aws-use1.surreal.cloud",
+        )
+        .await?;
+        db.use_ns("ymap").use_db("prod").await?;
+        DbConn::from_context().set(DbConn::Guest(db));
+        AppResult::Ok(view! { "Connected in suspense"})
       });
+
       view! {
-        <p> "Connecting as guest ..." </p>
         {suspend}
+        <p> "Connecting ..." </p>
       }
       .into_any()
     }
-    DbConn::Guest(Ok(_)) => view! {
-      <p> "Connected (guest)" </p>
-    }
-    .into_any(),
-    DbConn::Guest(Err(_)) => view! {
-      <p> "Failed to connect (as guest)" </p>
-      <p> "Reload to try again" </p>
-    }
-    .into_any(),
-    _ => todo!(),
+    DbConn::Guest(_) => view! { <p> "Connected" </p> }.into_any(),
   }
 }

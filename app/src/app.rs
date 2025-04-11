@@ -1,6 +1,6 @@
 use std::ops::Deref as _;
 
-use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
+use crate::{db::DbConn, prelude::*};
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
@@ -9,7 +9,6 @@ use surrealdb::Notification;
 use thing::well_known::KnownRecord;
 
 pub fn App() -> impl IntoView {
-  leptos_meta::provide_meta_context();
   crate::db::DbConn::provide();
 
   provide_context(RootOwner(Owner::current().unwrap()));
@@ -109,11 +108,9 @@ where
       async move {
         let d: T = db
           .read()
-          .guest()?
-          .get_db()
+          .get_db()?
           .select(surrealdb::RecordId::from(("thing", "6uwvf0js9234j0tnvp92")))
-          .await
-          .map_err(|err| AppError::DbError(GenericError::from(db::Error::CouldntSelect(err))))?
+          .await?
           .unwrap();
 
         AppResult::Ok(todo!())

@@ -1,14 +1,9 @@
-use db::prelude::surrealdb_layers;
-
 use crate::prelude::*;
 
-#[derive(Debug, thiserror::Error, Clone, Serialize, Deserialize)]
+#[derive(Debug, thiserror::Error, Clone)]
 pub enum AppError {
   #[error("Waiting for database connection")]
   DbWaiting,
-
-  #[error("Couldn't connect to database")]
-  DbError(#[source] GenericError<db::Error>),
 
   #[error("Loading data from database ...")]
   DataLoading,
@@ -18,6 +13,15 @@ pub enum AppError {
 
   #[error("Waiting until next tick ...")]
   FirstTimeGlobalState,
+
+  #[error("Surreal custom: {0}")]
+  Surreal(#[source] GenericError<surrealdb::Error>),
+}
+
+impl From<surrealdb::Error> for AppError {
+  fn from(error: surrealdb::Error) -> Self {
+    Self::Surreal(GenericError::from(error))
+  }
 }
 
 impl IntoRender for &AppError {
@@ -27,23 +31,5 @@ impl IntoRender for &AppError {
     let p = view! { <p> { self.to_string() } </p> };
     let pre = view! { <pre> { format!("{:?}", self) } </pre> };
     (p, pre).into_any()
-  }
-}
-
-impl From<db::Error> for AppError {
-  fn from(error: db::Error) -> Self {
-    Self::DbError(GenericError::from(error))
-  }
-}
-
-impl From<&db::Error> for AppError {
-  fn from(error: &db::Error) -> Self {
-    Self::DbError(GenericError::from_ref(error))
-  }
-}
-
-impl From<surrealdb_layers::Error> for AppError {
-  fn from(value: surrealdb_layers::Error) -> Self {
-    Self::DbError(GenericError::from(db::Error::Inner(value)))
   }
 }
