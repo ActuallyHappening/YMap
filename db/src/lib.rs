@@ -82,7 +82,7 @@ mod things {
       let initial: T = self.known_thing().await?;
       let deltas = self
         .get_db()
-        .query(format!("LIVE SELECT * FROM {}", id))
+        .query(format!("LIVE SELECT * FROM thing WHERE id = {}", id))
         // .bind(("id", id.clone()))
         .await
         .map_err(Error::LiveQueryStart)?
