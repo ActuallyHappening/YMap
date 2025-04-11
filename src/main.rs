@@ -1,8 +1,17 @@
 #![allow(non_snake_case)]
 
+pub use leptos::prelude::*;
+
 pub fn main() {
   console_error_panic_hook::set_once();
-  utils::tracing::install_tracing("debug").unwrap();
+
+  use tracing_subscriber::prelude::*;
+  use tracing_subscriber::{EnvFilter, Registry};
+
+  Registry::default()
+    .with(EnvFilter::new("debug"))
+    .with(tracing_wasm::WASMLayer::default())
+    .init();
 
   tracing::info!("Initialized logging on front-end");
 
@@ -11,38 +20,15 @@ pub fn main() {
   tracing::info!("Finished hydration");
 }
 
-pub use leptos::prelude::*;
-pub use utils::prelude::*;
-
 pub type AppResult<T> = Result<T, AppError>;
 
 pub fn App() -> impl IntoView {
   provide_context(RwSignal::new(AppError::StartsOffHere));
 
   Effect::new(move || {
-    use_context::<RwSignal<AppError>>()
-      .unwrap()
-      .set(AppError::RenderMePlease);
+    expect_context::<RwSignal<AppError>>().set(AppError::RenderMePlease);
   });
 
-  view! {
-    <MyErrorBoundary>
-      <LatexDemo />
-    </MyErrorBoundary>
-  }
-}
-
-#[component]
-pub fn LatexDemo() -> impl IntoView {
-  move || {
-    let err = expect_context::<RwSignal<AppError>>().get();
-    debug!(?err, "Rendering error in ui");
-    Result::<(), _>::Err(err)
-  }
-}
-
-#[component]
-pub fn MyErrorBoundary(children: Children) -> impl IntoView {
   let fallback = move |errors: ArcRwSignal<Errors>| {
     errors
       .read()
@@ -51,12 +37,23 @@ pub fn MyErrorBoundary(children: Children) -> impl IntoView {
       .map(|err| err.downcast_ref::<AppError>().unwrap().into_render())
       .collect_view()
   };
-  view! { <leptos::error::ErrorBoundary fallback>{children()}</leptos::error::ErrorBoundary> }
+
+  view! {
+    <ErrorBoundary fallback>
+    {
+      move || {
+        let err = expect_context::<RwSignal<AppError>>().get();
+        tracing::debug!(?err, "Rendering error in ui");
+        Result::<(), _>::Err(err)
+      }
+    }
+    </ErrorBoundary>
+  }
 }
 
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum AppError {
-  #[error("Waiting until next tick ...")]
+  #[error("Starts off here")]
   StartsOffHere,
 
   #[error("Render me please!")]

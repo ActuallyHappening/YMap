@@ -1,20 +1,14 @@
 /*
 
 !.cargo
-!app
-!utils
-!mathquill
-!db
-!thing
-!cas
-!latex
-!generic-error
-
-!.env.toml
 !.gitignore
-!Cargo.lock
 !Cargo.toml
-!CHANGELOG.md
+!Cargo.lock
+!index.html
 !README.md
+!rust-toolchain.toml
 !rustfmt.toml
-!TODO.md
+
+!src
+!styles
+!public
