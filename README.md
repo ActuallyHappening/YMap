@@ -1,3 +1,6 @@
+# BUG 3796
+`trunk serve` to run
+
 ## YMap
 This is the fourth attempt at implementing this.
 As always, this is a **100% Rust** project, and I want to prove that Rust is good at everything.
