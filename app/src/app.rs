@@ -1,12 +1,10 @@
 use std::ops::Deref as _;
 
 use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
-use generic_err::GenericErrorExt;
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
 };
-use mathquill_leptos::components::*;
 use surrealdb::Notification;
 use thing::well_known::KnownRecord;
 
@@ -16,37 +14,13 @@ pub fn App() -> impl IntoView {
 
   provide_context(RootOwner(Owner::current().unwrap()));
 
-  view! {
-    <Router>
-      <main>
-        <Routes fallback=|| "404 Not Found">
-          <Route path=path!("/") view=|| view! { <Redirect path=format!("/thing/{}", WebsiteRoot::known()) /> } />
-          <ParentRoute path=path!("/thing") view=Outlet>
-            <Route path=path!("") view=|| view! { <Redirect path=format!("/thing/{}", WebsiteRoot::known()) /> } />
-            <Route path=path!(":id") view=|| view! { <Main /> } />
-          </ParentRoute>
-        </Routes>
-      </main>
-    </Router>
+  let id = Signal::stored(ThingId::new_known("6uwvf0js9234j0tnvp92".into()));
 
+  view! {
+    <ThingView id=id />
     <footer>
       <crate::db::Connect />
     </footer>
-  }
-}
-
-pub fn Main() -> impl IntoView {
-  let id = Signal::derive(move || {
-    ThingId::new_known(
-      leptos_router::hooks::use_params_map()
-        .get()
-        .get("id")
-        .expect("Only render main with :id path param")
-        .into(),
-    )
-  });
-  view! {
-    <ThingView id=id />
   }
 }
 
@@ -133,24 +107,16 @@ where
     let stream = LocalResource::new(|| {
       let db = DbConn::from_context();
       async move {
-        let stream = db.read().guest()?.known_thing_stream::<T>().await?;
+        let d: T = db
+          .read()
+          .guest()?
+          .get_db()
+          .select(surrealdb::RecordId::from(("thing", "6uwvf0js9234j0tnvp92")))
+          .await
+          .map_err(|err| AppError::DbError(GenericError::from(db::Error::CouldntSelect(err))))?
+          .unwrap();
 
-        // let sig = root_owner.with(|| ReadSignal::from_stream(stream));
-        // make sure this is actually created off the root owner
-        let sig = ReadSignal::from_stream(stream);
-
-        // maps from db::Error to AppError
-        let mapped = Signal::derive(move || {
-          let sig = sig.read();
-          let res = sig
-            .deref()
-            .as_ref()
-            .ok_or(AppError::LiveQueryStreamWaiting)?
-            .as_ref()
-            .map(T::clone)?;
-          AppResult::Ok(res)
-        });
-        AppResult::Ok(mapped)
+        AppResult::Ok(todo!())
       }
     });
 
