@@ -1,16 +1,44 @@
 use std::ops::Deref as _;
 
 use crate::prelude::*;
-use latex_demo::LatexDemoPage;
 
 pub fn App() -> impl IntoView {
   provide_context(RootOwner(Owner::current().unwrap()));
 
-  // let id = Signal::stored(surrealdb::RecordId::from(("thing", "6uwvf0js9234j0tnvp92")));
-
   view! {
-    <ThingView/>
+    <MyErrorBoundary name="Latex Demo">
+      <LatexDemo />
+    </MyErrorBoundary>
   }
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct LatexDemoPage {
+  pub doesnt_exist: String,
+}
+
+#[component]
+pub fn LatexDemo() -> impl IntoView {
+  let initial_latex = Signal::derive(move || known_id().map(|page| page.doesnt_exist));
+  let ui = move || -> AppResult<_> {
+    let latex = RwSignal::new(initial_latex.get()?);
+
+    Ok(view! {
+      <h1> "YMap" </h1>
+      <p> {latex} </p>
+    })
+  };
+  let ui = move || {
+    let ui = ui();
+    if let Err(err) = &ui {
+      debug!(?err, "Error the UI is rendering");
+    } else {
+      debug!("The ui is rendering a normal view");
+    }
+    ui
+  };
+
+  Some(ui)
 }
 
 #[component]
@@ -34,15 +62,6 @@ pub fn MyErrorBoundary(
       .collect_view()
   };
   view! { <leptos::error::ErrorBoundary fallback>{children()}</leptos::error::ErrorBoundary> }
-}
-
-#[component]
-pub fn ThingView() -> impl IntoView {
-  view! {
-    <MyErrorBoundary name="Latex Demo">
-      <latex_demo::LatexDemo />
-    </MyErrorBoundary>
-  }
 }
 
 #[derive(Clone)]
@@ -80,10 +99,6 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
   root_owner.with(|| {
     provide_context(RwSignal::new(Cached::StartsOffHere));
 
-    let stream = LocalResource::new(|| async move {
-      return AppResult::<()>::Err(AppError::RenderMePlease);
-    });
-
     Effect::new(move || {
       use_context::<RwSignal<Cached>>()
         .unwrap()
@@ -94,5 +109,3 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
   // subscribes
   Cached::get(use_context::<RwSignal<Cached>>().unwrap().read().deref())
 }
-
-pub mod latex_demo;
