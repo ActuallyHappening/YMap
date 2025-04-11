@@ -51,15 +51,43 @@ pub fn Main() -> impl IntoView {
 }
 
 #[component]
+pub fn ErrorBoundary(
+  children: Children,
+  #[prop(into, default = None)] name: Option<&'static str>,
+) -> impl IntoView {
+  let fallback = move |errors: ArcRwSignal<Errors>| {
+    errors
+      .read()
+      .iter()
+      .map(|(_id, err)| err.clone().into_inner())
+      .map(|err| match err.downcast_ref::<AppError>() {
+        None => leptos::either::Either::Left({
+          let ty = std::any::type_name_of_val(&err);
+          error!(?err, ?ty, ?name, "Handling an unknown error case!");
+          view! { <p style="color: red;">"An unknown error occurred"</p> }
+        }),
+        Some(err) => leptos::either::Either::Right(err.into_render()),
+      })
+      .collect_view()
+  };
+  view! { <leptos::error::ErrorBoundary fallback>{children()}</leptos::error::ErrorBoundary> }
+}
+
+#[component]
 pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
-  view! {}
+  debug!("ThingView rendering initial: {}", id.get_untracked());
+  view! {
+    <ErrorBoundary name="Latex Demo">
+      <latex_demo::LatexDemo id=id />
+    </ErrorBoundary>
+  }
 }
 
 #[derive(Clone)]
 struct RootOwner(Owner);
 
 /// Loads info, subscribes to the relevant signals
-pub async fn known_id<T>() -> Result<T, AppError>
+pub fn known_id<T>() -> Result<T, AppError>
 where
   T: KnownRecord + Clone + Unpin + std::fmt::Debug,
 {
@@ -68,6 +96,7 @@ where
   /// Stored as `RwSignal<Cached<T>>`
   #[derive(Debug)]
   enum Cached<T: KnownRecord> {
+    FirstTick,
     WaitingForRootLocalResource,
     CouldntStart(AppError),
     Done(Signal<Result<T, AppError>>),
@@ -79,6 +108,7 @@ where
   {
     fn get(&self) -> Result<T, AppError> {
       match self {
+        Cached::FirstTick => Err(AppError::FirstTimeGlobalState),
         Cached::WaitingForRootLocalResource => Err(AppError::FirstTimeGlobalState),
         Cached::CouldntStart(err) => Err(err.clone()),
         Cached::Done(sig) => sig.get(),
@@ -88,7 +118,9 @@ where
 
   if let Some(s) = use_context::<RwSignal<Cached<T>>>() {
     // uses 'caches' value
-    return Cached::get(&s.read());
+    let ret = Cached::get(&s.read());
+    debug!(?ret, "Retrieved cached value");
+    return ret;
     // note, if the db state changes then this may reflect old data
   }
 
@@ -96,6 +128,8 @@ where
   let root_owner = use_context::<RootOwner>().unwrap().0;
 
   root_owner.with(|| {
+    provide_context(RwSignal::new(Cached::<T>::FirstTick));
+
     let stream = LocalResource::new(|| {
       let db = DbConn::from_context();
       async move {
@@ -124,14 +158,9 @@ where
     where
       T: KnownRecord + std::fmt::Debug,
     {
-      if with_context::<Context<T>, _>(|_| ()).is_none() {
-        debug!("Initializing cache: {:?}", new_state);
-        provide_context(RwSignal::new(new_state));
-      } else {
-        let rw_sig = use_context::<Context<T>>().unwrap();
-        debug!("Updating cached signal: {:?}", new_state);
-        rw_sig.set(new_state);
-      }
+      let rw_sig = use_context::<Context<T>>().unwrap();
+      debug!("Updating cached signal: {:?}", new_state);
+      rw_sig.set(new_state);
     }
 
     // using Effect is easy to understand
@@ -151,7 +180,8 @@ where
     });
   });
 
-  Err(AppError::FirstTimeGlobalState)
+  // subscribes
+  Cached::get(use_context::<Context<T>>().unwrap().read().deref())
 }
 
 pub mod latex_demo;

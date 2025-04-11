@@ -20,6 +20,16 @@ pub enum AppError {
   FirstTimeGlobalState,
 }
 
+impl IntoRender for &AppError {
+  type Output = AnyView;
+
+  fn into_render(self) -> Self::Output {
+    let p = view! { <p> { self.to_string() } </p> };
+    let pre = view! { <pre> { format!("{:?}", self) } </pre> };
+    (p, pre).into_any()
+  }
+}
+
 impl From<db::Error> for AppError {
   fn from(error: db::Error) -> Self {
     Self::DbError(GenericError::from(error))

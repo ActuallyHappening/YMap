@@ -6,7 +6,7 @@ pub mod errors;
 
 use crate::prelude::*;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Thing<Payload> {
   id: ThingId,
   _debug_name: Option<String>,
