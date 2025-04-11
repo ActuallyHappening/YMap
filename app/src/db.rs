@@ -1,5 +1,7 @@
 use std::ops::Deref;
 
+use surrealdb::{Surreal, engine::any::Any};
+
 use crate::prelude::*;
 
 pub enum DbConn {

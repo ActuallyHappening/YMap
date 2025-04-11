@@ -1,20 +1,8 @@
 [workspace]
-members = [
-    "app",
-    "db",
-    "db/layers",
-    "generic-error",
-    "thing",
-    "thing/macros",
-    "utils",
-]
+members = ["app", "generic-error", "utils"]
 resolver = "3"
 
 
 [workspace.dependencies]
 utils = { path = "./utils" }
-surrealdb-layers = { path = "./db/layers" }
-db = { path = "./db" }
-thing = { path = "./thing" }
-thing-macros = { path = "./thing/macros" }
 generic-err = { path = "./generic-error" }
