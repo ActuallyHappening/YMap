@@ -16,6 +16,9 @@ pub enum AppError {
 
   #[error("Surreal custom: {0}")]
   Surreal(#[source] GenericError<surrealdb::Error>),
+  
+  #[error("Custom YAY")]
+  Custom,
 }
 
 impl From<surrealdb::Error> for AppError {

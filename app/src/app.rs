@@ -19,7 +19,7 @@ pub fn App() -> impl IntoView {
 }
 
 #[component]
-pub fn ErrorBoundary(
+pub fn MyErrorBoundary(
   children: Children,
   #[prop(into, default = None)] name: Option<&'static str>,
 ) -> impl IntoView {
@@ -44,9 +44,9 @@ pub fn ErrorBoundary(
 #[component]
 pub fn ThingView() -> impl IntoView {
   view! {
-    <ErrorBoundary name="Latex Demo">
+    <MyErrorBoundary name="Latex Demo">
       <latex_demo::LatexDemo />
-    </ErrorBoundary>
+    </MyErrorBoundary>
   }
 }
 
@@ -94,14 +94,7 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
     let stream = LocalResource::new(|| {
       let db = DbConn::from_context();
       async move {
-        let d: LatexDemoPage = db
-          .read()
-          .get_db()?
-          .select(surrealdb::RecordId::from(("thing", "6uwvf0js9234j0tnvp92")))
-          .await?
-          .unwrap();
-
-        AppResult::Ok(todo!())
+        return Err(AppError::Custom);
       }
     });
 
