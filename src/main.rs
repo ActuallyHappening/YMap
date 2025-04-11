@@ -30,6 +30,7 @@ pub fn App() -> impl IntoView {
   });
 
   let fallback = move |errors: ArcRwSignal<Errors>| {
+    tracing::debug!("Fallback called");
     errors
       .read()
       .iter()
