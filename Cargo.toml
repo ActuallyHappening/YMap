@@ -1,12 +1,9 @@
 [workspace]
 members = [
     "app",
-    "cas",
     "db",
     "db/layers",
     "generic-error",
-    "latex",
-    "mathquill/*",
     "thing",
     "thing/macros",
     "utils",
@@ -16,9 +13,6 @@ resolver = "3"
 
 [workspace.dependencies]
 utils = { path = "./utils" }
-mathquill-leptos = { path = "./mathquill/leptos" }
-cas = { path = "./cas" }
-latex-parser = { path = "./latex" }
 surrealdb-layers = { path = "./db/layers" }
 db = { path = "./db" }
 thing = { path = "./thing" }
