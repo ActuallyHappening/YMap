@@ -54,5 +54,8 @@ pub mod things {
     fn known() -> &'static str {
       WebsiteRoot::known()
     }
+    fn known_full() -> &'static str {
+      "thing:websiteroot"
+    }
   }
 }

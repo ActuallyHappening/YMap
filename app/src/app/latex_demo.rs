@@ -8,13 +8,13 @@ pub struct LatexDemoThing(Thing<LatexDemoPayload>);
 
 impl KnownRecord for LatexDemoThing {
   fn known() -> &'static str {
-    "thing:6uwvf0js9234j0tnvp92"
+    "6uwvf0js9234j0tnvp92"
   }
 }
 
 #[derive(PSerialize, PDeserialize, Clone, Debug)]
 pub struct LatexDemoPayload {
-  #[serde(rename(expr = "LatexDemoEntry::known()"))]
+  #[serde(rename(expr = "LatexDemoEntry::known_full()"))]
   demo: LatexDemoEntry,
 }
 
@@ -26,6 +26,9 @@ pub struct LatexDemoEntry {
 impl KnownPayloadEntry for LatexDemoEntry {
   fn known() -> &'static str {
     LatexDemoThing::known()
+  }
+  fn known_full() -> &'static str {
+    "thing:6uwvf0js9234j0tnvp92"
   }
 }
 
@@ -86,7 +89,11 @@ pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
       debug!("Latex demo id!");
       Some(ui.handle_error())
     } else {
-      debug!("Not same id");
+      debug!(
+        "Not same id: {} != {}",
+        id.get(),
+        LatexDemoThing::known_id()
+      );
       None
     }
   }

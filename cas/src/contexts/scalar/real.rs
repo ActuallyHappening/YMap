@@ -38,6 +38,9 @@ pub mod things {
     fn known() -> &'static str {
       "mrcrjzvzuoajtb1ka9xo"
     }
+    fn known_full() -> &'static str {
+      "thing:mrcrjzvzuoajtb1ka9xo"
+    }
   }
 }
 

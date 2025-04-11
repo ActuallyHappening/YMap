@@ -20,10 +20,10 @@ impl User {
 
 #[derive(PDeserialize)]
 pub struct UserPayload {
-  #[serde(rename(expr = "NameEn::known()"))]
+  #[serde(rename(expr = "NameEn::known_full()"))]
   name: NameEn,
 
-  #[serde(rename(expr = "UserInfo::known()"))]
+  #[serde(rename(expr = "UserInfo::known_full()"))]
   info: UserInfo,
 }
 
@@ -38,6 +38,9 @@ struct UserInfo {
 
 impl KnownPayloadEntry for UserInfo {
   fn known() -> &'static str {
+    "fbrngbalrk14hows7u15"
+  }
+  fn known_full() -> &'static str {
     "thing:fbrngbalrk14hows7u15"
   }
 }
@@ -51,6 +54,9 @@ pub struct UserPerms {
 
 impl KnownPayloadEntry for UserPerms {
   fn known() -> &'static str {
+    "6g1gkrhe5xgqhkmrsouz"
+  }
+  fn known_full() -> &'static str {
     "thing:6g1gkrhe5xgqhkmrsouz"
   }
 }

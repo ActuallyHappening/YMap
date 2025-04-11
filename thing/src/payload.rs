@@ -9,9 +9,14 @@ pub trait IsPayload {}
 /// Todo: write a trait to deserialize
 /// using this dynamic key
 pub trait KnownPayloadEntry: DeserializeOwned {
+  /// Key
   fn known() -> &'static str;
+  /// thing:key
+  fn known_full() -> &'static str;
 
   fn known_id() -> ThingId {
+    debug_assert!(Self::known_full().contains(Self::known()));
+    debug_assert!(Self::known_full().contains("thing:"));
     ThingId::new_known(Self::known().into())
   }
 }

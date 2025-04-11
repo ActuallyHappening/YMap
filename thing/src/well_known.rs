@@ -19,6 +19,9 @@ impl KnownPayloadEntry for NameEn {
   fn known() -> &'static str {
     "name-en"
   }
+  fn known_full() -> &'static str {
+    "thing:name-en"
+  }
 }
 
 impl std::fmt::Display for NameEn {
@@ -34,14 +37,17 @@ impl KnownPayloadEntry for DescriptionEn {
   fn known() -> &'static str {
     "description-en"
   }
+  fn known_full() -> &'static str {
+    "thing:description-en"
+  }
 }
 
 #[derive(thing_macros::Serialize, thing_macros::Deserialize)]
 pub struct DocumentedPayload {
-  #[serde(rename(expr = "NameEn::known()"))]
+  #[serde(rename(expr = "NameEn::known_full()"))]
   name: NameEn,
 
-  #[serde(rename(expr = "DescriptionEn::known()"))]
+  #[serde(rename(expr = "DescriptionEn::known_full()"))]
   description: DescriptionEn,
 }
 
