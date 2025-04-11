@@ -21,6 +21,14 @@ pub type AppResult<T> = Result<T, AppError>;
 pub fn App() -> impl IntoView {
   provide_context(RootOwner(Owner::current().unwrap()));
 
+  provide_context(RwSignal::new(AppError::StartsOffHere));
+
+  Effect::new(move || {
+    use_context::<RwSignal<AppError>>()
+      .unwrap()
+      .set(AppError::RenderMePlease);
+  });
+
   view! {
     <MyErrorBoundary>
       <LatexDemo />
@@ -66,12 +74,8 @@ pub fn get_err_from_context() -> AppError {
   }
   debug!("Didn't hit cache, loading for the first time");
 
-  // now we are initializing global state
-  let root_owner = use_context::<RootOwner>().unwrap().0;
-
+  let root_owner: Owner = use_context::<RootOwner>().unwrap().0;
   root_owner.with(|| {
-    provide_context(RwSignal::new(AppError::StartsOffHere));
-
     Effect::new(move || {
       use_context::<RwSignal<AppError>>()
         .unwrap()
