@@ -83,8 +83,10 @@ pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
   };
   move || {
     if id.get() == LatexDemoThing::known_id() {
+      debug!("Latex demo id!");
       Some(ui.handle_error())
     } else {
+      debug!("Not same id");
       None
     }
   }
