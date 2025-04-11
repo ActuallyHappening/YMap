@@ -1,8 +1,7 @@
 [workspace]
-members = ["app", "generic-error", "utils"]
+members = ["app", "utils"]
 resolver = "3"
 
 
 [workspace.dependencies]
 utils = { path = "./utils" }
-generic-err = { path = "./generic-error" }

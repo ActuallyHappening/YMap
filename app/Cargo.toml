@@ -13,5 +13,4 @@ console_error_panic_hook = "0.1.7"
 serde = { version = "1.0.219", features = ["derive"] }
 tracing = "0.1.41"
 thiserror = "2.0.12"
-generic-err = { workspace = true }
 color-eyre = "0.6.3"

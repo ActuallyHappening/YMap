@@ -11,68 +11,40 @@ use std::ops::Deref as _;
 pub use leptos::prelude::*;
 pub use utils::prelude::*;
 
-pub use serde::{Deserialize, Serialize};
-
 pub type AppResult<T> = Result<T, AppError>;
-pub use generic_err::GenericError;
 
 pub fn App() -> impl IntoView {
   provide_context(RootOwner(Owner::current().unwrap()));
 
   view! {
-    <MyErrorBoundary name="Latex Demo">
+    <MyErrorBoundary>
       <LatexDemo />
     </MyErrorBoundary>
   }
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct LatexDemoPage {
   pub doesnt_exist: String,
 }
 
 #[component]
 pub fn LatexDemo() -> impl IntoView {
-  let initial_latex = Signal::derive(move || known_id().map(|page| page.doesnt_exist));
-  let ui = move || -> AppResult<_> {
-    let latex = RwSignal::new(initial_latex.get()?);
-
-    Ok(view! {
-      <h1> "YMap" </h1>
-      <p> {latex} </p>
-    })
-  };
-  let ui = move || {
-    let ui = ui();
-    if let Err(err) = &ui {
-      debug!(?err, "Error the UI is rendering");
-    } else {
-      debug!("The ui is rendering a normal view");
-    }
-    ui
-  };
-
-  Some(ui)
+  move || {
+    let err = known_id();
+    debug!(?err, "Rendering error in ui");
+    Result::<(), _>::Err(err)
+  }
 }
 
 #[component]
-pub fn MyErrorBoundary(
-  children: Children,
-  #[prop(into, default = None)] name: Option<&'static str>,
-) -> impl IntoView {
+pub fn MyErrorBoundary(children: Children) -> impl IntoView {
   let fallback = move |errors: ArcRwSignal<Errors>| {
     errors
       .read()
       .iter()
       .map(|(_id, err)| err.clone().into_inner())
-      .map(|err| match err.downcast_ref::<AppError>() {
-        None => leptos::either::Either::Left({
-          let ty = std::any::type_name_of_val(&err);
-          error!(?err, ?ty, ?name, "Handling an unknown error case!");
-          view! { <p style="color: red;">"An unknown error occurred"</p> }
-        }),
-        Some(err) => leptos::either::Either::Right(err.into_render()),
-      })
+      .map(|err| err.downcast_ref::<AppError>().unwrap().into_render())
       .collect_view()
   };
   view! { <leptos::error::ErrorBoundary fallback>{children()}</leptos::error::ErrorBoundary> }
@@ -82,7 +54,7 @@ pub fn MyErrorBoundary(
 struct RootOwner(Owner);
 
 /// Loads info, subscribes to the relevant signals
-pub fn known_id() -> Result<LatexDemoPage, AppError> {
+pub fn known_id() -> AppError {
   /// Stored as `RwSignal<Cached<T>>`
   #[derive(Debug)]
   enum Cached {
@@ -91,10 +63,10 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
   }
 
   impl Cached {
-    fn get(&self) -> Result<LatexDemoPage, AppError> {
+    fn get(&self) -> AppError {
       match self {
-        Cached::StartsOffHere => Err(AppError::StartsOffHere),
-        Cached::RenderMePlease => Err(AppError::RenderMePlease),
+        Cached::StartsOffHere => AppError::StartsOffHere,
+        Cached::RenderMePlease => AppError::RenderMePlease,
       }
     }
   }
@@ -106,6 +78,7 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
     return ret;
     // note, if the db state changes then this may reflect old data
   }
+  debug!("Didn't hit cache, loading for the first time");
 
   // now we are initializing global state
   let root_owner = use_context::<RootOwner>().unwrap().0;
@@ -126,15 +99,6 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
 
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum AppError {
-  #[error("Waiting for database connection")]
-  DbWaiting,
-
-  #[error("Loading data from database ...")]
-  DataLoading,
-
-  #[error("Waiting for steam to be polled ...")]
-  LiveQueryStreamWaiting,
-
   #[error("Waiting until next tick ...")]
   StartsOffHere,
 
