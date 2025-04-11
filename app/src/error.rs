@@ -12,6 +12,12 @@ pub enum AppError {
 
   #[error("Loading data from database ...")]
   DataLoading,
+
+  #[error("Waiting for steam to be polled ...")]
+  LiveQueryStreamWaiting,
+
+  #[error("Waiting until next tick ...")]
+  FirstTimeGlobalState,
 }
 
 impl From<db::Error> for AppError {

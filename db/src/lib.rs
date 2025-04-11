@@ -72,7 +72,9 @@ mod things {
       Ok(thing)
     }
 
-    async fn known_thing_stream<T>(&self) -> Result<impl Stream<Item = Result<T, Error>>, Error>
+    async fn known_thing_stream<T>(
+      &self,
+    ) -> Result<impl Stream<Item = Result<T, Error>> + 'static, Error>
     where
       T: KnownRecord + Unpin + Debug,
     {

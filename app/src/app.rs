@@ -58,88 +58,100 @@ pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
 #[derive(Clone)]
 struct RootOwner(Owner);
 
-/// Loads info, will reactively update its value
-pub async fn known_id<T>() -> Signal<Result<T, AppError>>
+/// Loads info, subscribes to the relevant signals
+pub async fn known_id<T>() -> Result<T, AppError>
 where
-  T: KnownRecord + Clone + Unpin,
+  T: KnownRecord + Clone + Unpin + std::fmt::Debug,
 {
-  struct SimpleReactiveStorage<T>(ReadSignal<Result<T, AppError>>);
+  type Context<T> = RwSignal<Cached<T>>;
 
-  impl<T> Clone for SimpleReactiveStorage<T> {
-    fn clone(&self) -> Self {
-      Self(self.0.clone())
+  /// Stored as `RwSignal<Cached<T>>`
+  #[derive(Debug)]
+  enum Cached<T: KnownRecord> {
+    WaitingForRootLocalResource,
+    CouldntStart(AppError),
+    Done(Signal<Result<T, AppError>>),
+  }
+
+  impl<T> Cached<T>
+  where
+    T: KnownRecord + Clone,
+  {
+    fn get(&self) -> Result<T, AppError> {
+      match self {
+        Cached::WaitingForRootLocalResource => Err(AppError::FirstTimeGlobalState),
+        Cached::CouldntStart(err) => Err(err.clone()),
+        Cached::Done(sig) => sig.get(),
+      }
     }
   }
 
-  if let Some(s) = use_context::<SimpleReactiveStorage<T>>() {
-    // 'caches' value
-    return s.0.into();
+  if let Some(s) = use_context::<RwSignal<Cached<T>>>() {
+    // uses 'caches' value
+    return Cached::get(&s.read());
+    // note, if the db state changes then this may reflect old data
   }
 
   // now we are initializing global state
-
-  let current_owner = Owner::current().unwrap();
   let root_owner = use_context::<RootOwner>().unwrap().0;
 
-  // global state
-  // This is done with the root owner so these resources don't
-  // get cleaned up every time a leaf node that calls this
-  // is re-rendered.
-  // As a side note, because these are in the root, they are never going to be
-  // cleaned up.
-  let merged = root_owner.with(|| {
-    let initial = LocalResource::new(move || {
+  root_owner.with(|| {
+    let stream = LocalResource::new(|| {
       let db = DbConn::from_context();
       async move {
-        let db = db.read().guest()?;
-        let data: T = db.known_thing::<T>().await?;
-        AppResult::Ok(data)
-      }
-    });
-    // deltas
-    let deltas = LocalResource::new(move || {
-      let db = DbConn::from_context();
-      async move {
-        let db = db.read().guest()?;
+        let stream = db.read().guest()?.known_thing_stream::<T>().await?;
 
-        let id = T::known_id();
-        let live_query = db.get_db().query("LIVE SELECT * FROM $id").bind(("id", id));
-        let s = live_query
-          .await
-          .make_generic()
-          .map_err(AppError::LiveQueryStart)?
-          .stream::<Notification<T>>(0)
-          .make_generic()
-          .map_err(AppError::LiveQueryStream)?;
+        // let sig = root_owner.with(|| ReadSignal::from_stream(stream));
+        // make sure this is actually created off the root owner
+        let sig = ReadSignal::from_stream(stream);
 
-        AppResult::Ok(s)
+        // maps from db::Error to AppError
+        let mapped = Signal::derive(move || {
+          let sig = sig.read();
+          let res = sig
+            .deref()
+            .as_ref()
+            .ok_or(AppError::LiveQueryStreamWaiting)?
+            .as_ref()
+            .map(T::clone)?;
+          AppResult::Ok(res)
+        });
+        AppResult::Ok(mapped)
       }
     });
 
-    Signal::derive(move || {
-      let Some(initial) = initial.get() else {
-        return Err(AppError::DataLoading);
-      };
+    fn set_context<T>(new_state: Cached<T>)
+    where
+      T: KnownRecord + std::fmt::Debug,
+    {
+      if with_context::<Context<T>, _>(|_| ()).is_none() {
+        debug!("Initializing cache: {:?}", new_state);
+        provide_context(RwSignal::new(new_state));
+      } else {
+        let rw_sig = use_context::<Context<T>>().unwrap();
+        debug!("Updating cached signal: {:?}", new_state);
+        rw_sig.set(new_state);
+      }
+    }
 
-      let Some(stream) = deltas.read().deref() else {
-        return Err(AppError::DataLoading);
-      };
-
-      AppResult::Ok(todo!())
-    })
+    // using Effect is easy to understand
+    // but technically inefficient,
+    // TODO: think of a cleaner way of doing this
+    Effect::new(move || match stream.get() {
+      None => {
+        set_context(Cached::<T>::WaitingForRootLocalResource);
+      }
+      Some(stream) => {
+        let stream = stream.take();
+        match stream {
+          Err(err) => set_context(Cached::<T>::CouldntStart(err)),
+          Ok(actual_data) => set_context(Cached::<T>::Done(actual_data)),
+        }
+      }
+    });
   });
 
-  Signal::derive(move || {
-    // // should read from global state only
-
-    // let initial: T = initial.take().clone()?;
-    // let stream = stream.take()?;
-
-    // let initial = ReadSignal::from_stream(tokio_stream::once(
-    // ));
-
-    todo!()
-  })
+  Err(AppError::FirstTimeGlobalState)
 }
 
 pub mod latex_demo;

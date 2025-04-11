@@ -42,5 +42,4 @@ pub enum Error {
   LiveQueryItem(#[source] surrealdb::Error),
 
   #[error("Item deleted")]
-  LiveQueryItemDeleted(surrealdb::RecordId),
-}
+  LiveQueryItemDeleted(surrealdb::RecordId),}
