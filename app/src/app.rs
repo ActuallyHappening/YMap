@@ -1,13 +1,10 @@
 use std::ops::Deref as _;
 
 use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
-use generic_err::GenericErrorExt;
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
 };
-use mathquill_leptos::components::*;
-use surrealdb::Notification;
 use thing::well_known::KnownRecord;
 
 pub fn App() -> impl IntoView {
@@ -51,31 +48,7 @@ pub fn Main() -> impl IntoView {
 }
 
 #[component]
-pub fn ErrorBoundary(
-  children: Children,
-  #[prop(into, default = None)] name: Option<&'static str>,
-) -> impl IntoView {
-  let fallback = move |errors: ArcRwSignal<Errors>| {
-    errors
-      .read()
-      .iter()
-      .map(|(_id, err)| err.clone().into_inner())
-      .map(|err| match err.downcast_ref::<AppError>() {
-        None => leptos::either::Either::Left({
-          let ty = std::any::type_name_of_val(&err);
-          error!(?err, ?ty, ?name, "Handling an unknown error case!");
-          view! { <p style="color: red;">"An unknown error occurred"</p> }
-        }),
-        Some(err) => leptos::either::Either::Right(err.into_render()),
-      })
-      .collect_view()
-  };
-  view! { <leptos::error::ErrorBoundary fallback>{children()}</leptos::error::ErrorBoundary> }
-}
-
-#[component]
 pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
-  debug!("ThingView rendering initial: {}", id.get_untracked());
   view! {
     <ErrorBoundary name="Latex Demo">
       <latex_demo::LatexDemo id=id />

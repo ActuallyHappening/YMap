@@ -2,12 +2,13 @@ pub use leptos::prelude::*;
 pub use leptos_router::components::Redirect;
 pub use utils::prelude::*;
 
+pub use extension_traits::extension;
 pub use serde::{Deserialize, Serialize};
 
 pub use db::prelude::*;
 pub use thing::prelude::*;
 pub use thing::{Thing, ThingId};
 
-pub use crate::error::AppError;
-pub type AppResult<T> = Result<T, AppError>;
+pub use crate::error::ErrorBoundary;
+pub use crate::error::*;
 pub use generic_err::GenericError;

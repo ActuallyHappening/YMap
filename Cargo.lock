@@ -136,6 +136,7 @@ dependencies = [
  "console_error_panic_hook",
  "db",
  "email_address",
+ "extension-traits",
  "generic-err",
  "getrandom 0.3.2",
  "latex-parser",

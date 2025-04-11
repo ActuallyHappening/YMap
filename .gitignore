@@ -17,4 +17,5 @@
 !CHANGELOG.md
 !README.md
 !rustfmt.toml
+!rust-toolchain.toml
 !TODO.md

@@ -4,11 +4,11 @@ use thing::{payload::KnownPayloadEntry, well_known::KnownRecord};
 use crate::prelude::*;
 
 #[derive(Deserialize, Clone, Debug)]
-pub struct LatexDemoPage(Thing<LatexDemoPayload>);
+pub struct LatexDemoThing(Thing<LatexDemoPayload>);
 
-impl KnownRecord for LatexDemoPage {
+impl KnownRecord for LatexDemoThing {
   fn known() -> &'static str {
-    "6uwvf0js9234j0tnvp92"
+    "thing:6uwvf0js9234j0tnvp92"
   }
 }
 
@@ -25,18 +25,14 @@ pub struct LatexDemoEntry {
 
 impl KnownPayloadEntry for LatexDemoEntry {
   fn known() -> &'static str {
-    LatexDemoPage::known()
+    LatexDemoThing::known()
   }
 }
 
 #[component]
-pub fn LatexDemo(id: Signal<ThingId>) -> Option<impl IntoView> {
-  if id.get() != LatexDemoPage::known_id() {
-    return None;
-  }
-
+pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
   let initial_latex = Signal::derive(move || {
-    super::known_id::<LatexDemoPage>().map(|page| page.0.payload().demo.example_latex.clone())
+    super::known_id::<LatexDemoThing>().map(|page| page.0.payload().demo.example_latex.clone())
   });
   let ui = move || -> AppResult<_> {
     let latex = RwSignal::new(initial_latex.get()?);
@@ -85,15 +81,11 @@ pub fn LatexDemo(id: Signal<ThingId>) -> Option<impl IntoView> {
       } } </p>
     })
   };
-  let ui = move || {
-    let ui = ui();
-    if let Err(err) = &ui {
-      debug!(?err, "Error the UI is rendering");
+  move || {
+    if id.get() == LatexDemoThing::known_id() {
+      Some(ui.handle_error())
     } else {
-      debug!("The ui is rendering a normal view");
+      None
     }
-    ui
-  };
-
-  Some(ui)
+  }
 }
