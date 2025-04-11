@@ -21,6 +21,9 @@ pub enum AppError {
 
   #[error("Waiting until next tick ...")]
   FirstTimeGlobalState,
+
+  #[error("Couldn't load payload for thing with id {id}")]
+  KnownRecordWrongPayload { id: ThingId },
 }
 
 impl IntoRender for &AppError {

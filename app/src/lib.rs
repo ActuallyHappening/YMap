@@ -29,11 +29,16 @@ pub mod things {
   pub struct WebsiteRoot(Thing<WebsiteRootPayload>);
 
   impl KnownRecord for WebsiteRoot {
+    type Payload = WebsiteRootPayload;
+
     fn known() -> &'static str {
       "websiteroot"
     }
     fn known_id() -> ThingId {
       ThingId::new_known("websiteroot".into())
+    }
+    fn from_inner(inner: Thing<Self::Payload>) -> Self {
+      Self(inner)
     }
   }
 

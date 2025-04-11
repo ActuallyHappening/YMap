@@ -1,14 +1,22 @@
 use mathquill_leptos::components::MathQuillField;
-use thing::{payload::KnownPayloadEntry, well_known::KnownRecord};
+use thing::{
+  payload::{IsPayload, KnownPayloadEntry},
+  well_known::KnownRecord,
+};
 
-use crate::prelude::*;
+use crate::{db::known_thing, prelude::*};
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct LatexDemoThing(Thing<LatexDemoPayload>);
 
 impl KnownRecord for LatexDemoThing {
+  type Payload = LatexDemoPayload;
+
   fn known() -> &'static str {
     "6uwvf0js9234j0tnvp92"
+  }
+  fn from_inner(inner: Thing<Self::Payload>) -> Self {
+    Self(inner)
   }
 }
 
@@ -17,6 +25,8 @@ pub struct LatexDemoPayload {
   #[serde(rename(expr = "LatexDemoEntry::known_full()"))]
   demo: LatexDemoEntry,
 }
+
+impl IsPayload for LatexDemoPayload {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LatexDemoEntry {
@@ -35,7 +45,9 @@ impl KnownPayloadEntry for LatexDemoEntry {
 #[component]
 pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
   let initial_latex = Signal::derive(move || {
-    super::known_id::<LatexDemoThing>().map(|page| page.0.payload().demo.example_latex.clone())
+    known_thing::<LatexDemoThing>()
+      .get()
+      .map(|page| page.0.payload().demo.example_latex.clone())
   });
   let ui = move || -> AppResult<_> {
     let latex = RwSignal::new(initial_latex.get()?);
@@ -63,7 +75,6 @@ pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
     };
 
     Ok(view! {
-      <h1> "YMap" </h1>
       <MathQuillField on_edit=on_edit />
       <p> { move || format!("Raw latex: {}", latex.get()) } </p>
       <p> { move || match latex_ast() {

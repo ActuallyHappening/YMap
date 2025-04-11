@@ -34,7 +34,7 @@ pub mod user;
 mod things {
   use futures_core::Stream;
   use surrealdb::{Action, Notification};
-  use thing::well_known::KnownRecord;
+  use thing::{Thing, ThingId, payload::IsPayload, well_known::KnownRecord};
 
   use crate::{auth, prelude::*};
 
@@ -58,12 +58,11 @@ mod things {
 
   #[extension(pub trait ThingExt)]
   impl Db<auth::NoAuth> {
-    async fn known_thing<T>(&self) -> Result<T, Error>
+    async fn load_thing<P>(&self, id: ThingId) -> Result<Thing<P>, Error>
     where
-      T: KnownRecord,
+      P: IsPayload,
     {
-      let id = T::known_id();
-      let thing: Option<T> = self
+      let thing: Option<Thing<P>> = self
         .db()
         .select(id.clone().into_inner())
         .await
@@ -72,28 +71,28 @@ mod things {
       Ok(thing)
     }
 
-    async fn known_thing_stream<T>(
+    async fn load_thing_stream<P>(
       &self,
-    ) -> Result<impl Stream<Item = Result<T, Error>> + 'static, Error>
+      id: ThingId,
+    ) -> Result<impl Stream<Item = Result<Thing<P>, Error>> + 'static, Error>
     where
-      T: KnownRecord + Unpin + Debug,
+      P: IsPayload + Unpin + Debug,
     {
-      let id = T::known_id();
-      let initial: T = self.known_thing().await?;
+      let initial: Thing<P> = self.load_thing(id.clone()).await?;
       let deltas = self
         .get_db()
         .query(format!("LIVE SELECT * FROM thing WHERE id = {}", id))
         // .bind(("id", id.clone()))
         .await
         .map_err(Error::LiveQueryStart)?
-        .stream::<Notification<T>>(0)
+        .stream::<Notification<Thing<P>>>(0)
         .map_err(Error::LiveQueryStream)?;
 
       Ok(async_stream::stream! {
         yield Ok(initial);
 
         for await delta in deltas {
-          let delta: Mutation<T> = delta.map_err(Error::LiveQueryItem)?.into();
+          let delta: Mutation<Thing<P>> = delta.map_err(Error::LiveQueryItem)?.into();
           match delta {
             Mutation::Updated(item) => yield Ok(item),
             Mutation::Created(item) => {

@@ -4,7 +4,7 @@ use surrealdb_layers::Id;
 
 use super::ThingId;
 
-pub trait IsPayload {}
+pub trait IsPayload: DeserializeOwned + Send + Sync + 'static {}
 
 /// Todo: write a trait to deserialize
 /// using this dynamic key
