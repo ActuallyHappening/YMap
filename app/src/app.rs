@@ -1,9 +1,13 @@
+use std::ops::Deref as _;
+
 use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
+use generic_err::GenericErrorExt;
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
 };
 use mathquill_leptos::components::*;
+use surrealdb::Notification;
 use thing::well_known::KnownRecord;
 
 pub fn App() -> impl IntoView {
@@ -50,17 +54,73 @@ pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
 }
 
 /// Loads info, will reactively update its value
-pub async fn known_id<T>(current: ThingId) -> Signal<Result<T, AppError>>
+pub async fn known_id<T>() -> Signal<Result<T, AppError>>
 where
-  T: KnownRecord,
+  T: KnownRecord + Unpin,
 {
-  Signal::derive(move || {
+  struct SimpleReactiveStorage<T>(ReadSignal<Result<T, AppError>>);
+
+  impl<T> Clone for SimpleReactiveStorage<T> {
+    fn clone(&self) -> Self {
+      Self(self.0.clone())
+    }
+  }
+
+  if let Some(s) = use_context::<SimpleReactiveStorage<T>>() {
+    // 'caches' value
+    return s.0.into();
+  }
+
+  let initial = LocalResource::new(move || {
     let db = DbConn::from_context();
-    let db = db.read().guest()?;
+    async move {
+      let db = db.read().guest()?;
+      // let data: Option<T> = db
+      //   .read()
+      //   .guest()?
+      //   .get_db()
+      //   .select(T::known_id())
+      //   .await
+      //   .make_generic()
+      //   .map_err(AppError::LiveQueryInitial)?;
+      let data: T = db.known_thing::<T>().await?;
+      AppResult::Ok(data)
+    }
+  });
+  let deltas = LocalResource::new(move || {
+    let db = DbConn::from_context();
+    async move {
+      let db = db.read().guest()?;
 
-    db.known_thing::<T>();
+      let id = T::known_id();
+      let live_query = db.get_db().query("LIVE SELECT * FROM $id").bind(("id", id));
+      let s = live_query
+        .await
+        .make_generic()
+        .map_err(AppError::LiveQueryStart)?
+        .stream::<Notification<T>>(0)
+        .make_generic()
+        .map_err(AppError::LiveQueryStream)?;
 
-    todo
+      AppResult::Ok(s)
+    }
+  });
+
+  Signal::derive(move || {
+    let Some(initial) = initial.read().deref() else {
+      return Err(AppError::DataLoading);
+    };
+
+    let Some(stream) = deltas.read().deref() else {
+      return Err(AppError::DataLoading);
+    };
+    
+    
+
+    // let initial = ReadSignal::from_stream(tokio_stream::once(
+    // ));
+
+    todo!()
   })
 }
 

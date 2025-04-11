@@ -28,3 +28,4 @@ thing.workspace = true
 db.workspace = true
 generic-err = { workspace = true }
 email_address = "0.2.9"
+tokio-stream = "0.1.17"

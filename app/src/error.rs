@@ -9,6 +9,18 @@ pub enum Error {
 
   #[error("Couldn't connect to database")]
   DbError(#[source] GenericError<db::Error>),
+
+  #[error("Loading data from database ...")]
+  DataLoading,
+
+  #[error("Couldn't fetch initial data")]
+  LiveQueryInitial(#[source] GenericError<surrealdb::Error>),
+
+  #[error("Couldn't start a live query to the backend")]
+  LiveQueryStart(#[source] GenericError<surrealdb::Error>),
+
+  #[error("Couldn't stream")]
+  LiveQueryStream(#[source] GenericError<surrealdb::Error>),
 }
 
 impl From<db::Error> for Error {
