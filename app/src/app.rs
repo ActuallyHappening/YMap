@@ -1,20 +1,15 @@
 use std::ops::Deref as _;
 
-use crate::{db::DbConn, prelude::*};
+use crate::prelude::*;
 use latex_demo::LatexDemoPage;
 
 pub fn App() -> impl IntoView {
-  crate::db::DbConn::provide();
-
   provide_context(RootOwner(Owner::current().unwrap()));
 
   // let id = Signal::stored(surrealdb::RecordId::from(("thing", "6uwvf0js9234j0tnvp92")));
 
   view! {
     <ThingView/>
-    <footer>
-      <crate::db::Connect />
-    </footer>
   }
 }
 
