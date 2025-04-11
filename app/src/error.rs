@@ -1,3 +1,5 @@
+use db::prelude::surrealdb_layers;
+
 use crate::prelude::*;
 
 #[derive(Debug, thiserror::Error, Clone, Serialize, Deserialize)]
@@ -12,6 +14,12 @@ pub enum Error {
 impl From<db::Error> for Error {
   fn from(error: db::Error) -> Self {
     Self::DbError(GenericError::from(error))
+  }
+}
+
+impl From<&db::Error> for Error {
+  fn from(error: &db::Error) -> Self {
+    Self::DbError(GenericError::from_ref(error))
   }
 }
 

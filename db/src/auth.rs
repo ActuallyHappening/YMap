@@ -19,6 +19,12 @@ impl surrealdb_layers::Auth for NoAuth {
 #[derive(Clone)]
 pub struct User(Jwt);
 
+impl User {
+  pub(crate) fn new(jwt: Jwt) -> Self {
+    User(jwt)
+  }
+}
+
 impl surrealdb_layers::Auth for User {
   async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error> {
     db.authenticate(self.0.clone()).await?;

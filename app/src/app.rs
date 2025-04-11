@@ -22,6 +22,10 @@ pub fn App() -> impl IntoView {
         </Routes>
       </main>
     </Router>
+
+    <footer>
+      <crate::db::Connect />
+    </footer>
   }
 }
 

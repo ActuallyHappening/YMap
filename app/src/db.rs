@@ -1,14 +1,23 @@
 use std::ops::Deref;
 
-use db::auth;
-use generic_err::GenericErrorExt;
+use db::{Db, auth, creds};
 
 use crate::prelude::*;
 
 pub enum DbConn {
-  WaitingForGuest { prev_err: Option<db::Error> },
-  OkGuest(Db<auth::NoAuth>),
-  Err(db::Error),
+  WaitingForGuest {
+    prev_err: Option<db::Error>,
+  },
+  Guest(Result<Db<auth::NoAuth>, db::Error>),
+  WaitingForSignUp {
+    creds: creds::SignUpUser,
+    prev_err: Option<db::Error>,
+  },
+  WaitingForSignIn {
+    creds: creds::SignInUser,
+    prev_err: Option<db::Error>,
+  },
+  User(Result<Db<auth::User>, db::Error>),
 }
 
 impl DbConn {
@@ -20,69 +29,52 @@ impl DbConn {
     leptos::context::use_context().expect("Call DbConn::provide() above you first")
   }
 
-  pub fn guest(&self) -> Result<Db<auth::NoAuth>, GenericError<Error>> {
+  /// Will still magically be able to select correct records if signed in
+  pub fn guest(&self) -> Result<Db<auth::NoAuth>, AppError> {
     match self {
-      DbConn::OkGuest(db) => Ok(db.clone()),
-      DbConn::WaitingForGuest { prev_err: _ } => Err(Error::DbWaiting).make_generic(),
-      DbConn::Err(err) => Err(Error::DbError(GenericError::from_ref(err))).make_generic(),
+      DbConn::WaitingForGuest { .. }
+      | DbConn::WaitingForSignIn { .. }
+      | DbConn::WaitingForSignUp { .. } => Err(AppError::DbWaiting),
+      DbConn::Guest(res) => Ok(res.as_ref()?.clone()),
+      DbConn::User(res) => Ok(res.as_ref()?.clone().downgrade()),
     }
   }
 }
 
-#[derive(Clone)]
-enum StartConn {
-  Unneeded,
-  Guest(Result<Db<auth::NoAuth>, AppError>),
-}
-
 pub fn Connect() -> impl IntoView {
   let state = DbConn::from_context();
-  let newconn = LocalResource::new(move || {
-    let state = state.read();
-    let conn = matches!(state.deref(), DbConn::WaitingForGuest { prev_err: None });
-    async move {
-      if conn {
-        StartConn::Guest(
-          (async move || -> Result<Db<auth::NoAuth>, AppError> {
-            let db = db::Db::build().wss()?.await?.prod().await?.public();
+  move || match state.read().deref() {
+    DbConn::WaitingForGuest { .. } => {
+      let suspend = Suspend::new(async move {
+        let res = (async || -> Result<Db<auth::NoAuth>, db::Error> {
+          Ok(db::Db::build().wss()?.await?.prod().await?.public())
+        })()
+        .await;
 
-            Ok(db)
-          })()
-          .await,
-        )
-      } else {
-        StartConn::Unneeded
+        let msg = match &res {
+          Ok(_) => "Connected as guest successfully!".into(),
+          Err(err) => format!("Failed to connect as guest: {}", err),
+        };
+
+        DbConn::from_context().set(DbConn::Guest(res));
+
+        view! { <pre> {msg} </pre>}
+      });
+      view! {
+        <p> "Connecting as guest ..." </p>
+        {suspend}
       }
+      .into_any()
     }
-  });
-  let ui = move || {
-    let state = state.read();
-    let state = state.deref();
-    match state {
-      DbConn::WaitingForGuest { prev_err: None } => {
-        // start connection
-        let suspend = Suspend::new(async move {
-          let conn = newconn.await;
-          match conn {
-            StartConn::Unneeded => {
-              view! { <p> "Failed to connect: Didn't need to connect?" </p>}.into_any()
-            }
-            StartConn::Guest(Ok(db)) => {
-              DbConn::from_context().set(DbConn::OkGuest(db));
-              view! { <p> "Connected" </p> }.into_any()
-            }
-            StartConn::Guest(Err(err)) => {
-              view! { }
-            }
-          }
-        });
-        view! {
-          <p>"Connecting as guest ..."</p>
-          {suspend}
-        }
-      }
-      _ => todo!(),
+    DbConn::Guest(Ok(_)) => view! {
+      <p> "Connected (guest)" </p>
     }
-  };
-  ui
+    .into_any(),
+    DbConn::Guest(Err(_)) => view! {
+      <p> "Failed to connect (as guest)" </p>
+      <p> "Reload to try again" </p>
+    }
+    .into_any(),
+    _ => todo!(),
+  }
 }

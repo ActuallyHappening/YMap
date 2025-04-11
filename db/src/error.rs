@@ -23,6 +23,12 @@ pub enum Error {
   #[error("Couldn't find a known record {0}")]
   KnownRecordNotFound(surrealdb::RecordId),
 
+  #[error("Couldn't sing in")]
+  CouldntSignIn(surrealdb::Error),
+
+  #[error("Couldn't sign up")]
+  CouldntSignUp(surrealdb::Error),
+
   #[error("{0}")]
-  Inner(surrealdb_layers::Error),
+  Inner(#[from] surrealdb_layers::Error),
 }

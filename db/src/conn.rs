@@ -1,6 +1,8 @@
 use std::pin::Pin;
 
-use crate::{error::Error, prelude::*};
+use surrealdb_layers::Creds;
+
+use crate::{auth, creds, error::Error, prelude::*};
 
 use super::auth::NoAuth;
 
@@ -15,7 +17,7 @@ pub struct DbConnUrl {
 }
 
 impl surrealdb_layers::ConnBuilderUrl for DbConnUrl {
-  type Next = Pin<Box<dyn Future<Output = Result<DbConnNsDb, Error>>>>;
+  type Next = Pin<Box<dyn Future<Output = Result<DbConnNsDb, Error>> + Send + Sync>>;
 
   fn default_url(&self) -> Result<Url, surrealdb_layers::Error> {
     Ok("wss://eager-bee-06aqohg53hq27c0jg11k14gdbk.aws-use1.surreal.cloud".parse()?)
@@ -62,7 +64,29 @@ impl DbConnCreds {
   pub fn public(self) -> Db<NoAuth> {
     Db {
       db: self.conn,
-      phantom: PhantomData,
+      auth: NoAuth,
     }
+  }
+
+  pub async fn sign_in(self, sign_in: creds::SignInUser) -> Result<Db<auth::User>, Error> {
+    let auth = sign_in
+      .signin(&self.conn)
+      .await
+      .map_err(Error::CouldntSignIn)?;
+    Ok(Db {
+      db: self.conn,
+      auth,
+    })
+  }
+
+  pub async fn sign_up(self, sign_up: creds::SignUpUser) -> Result<Db<auth::User>, Error> {
+    let auth = sign_up
+      .signin(&self.conn)
+      .await
+      .map_err(Error::CouldntSignUp)?;
+    Ok(Db {
+      db: self.conn,
+      auth,
+    })
   }
 }

@@ -59,7 +59,22 @@ use crate::prelude::*;
 #[derive(Clone)]
 pub struct Db<Auth> {
   db: Surreal<Any>,
-  phantom: PhantomData<Auth>,
+  auth: Auth,
+}
+
+impl<Auth> Db<Auth> {
+  pub fn auth(&self) -> &Auth {
+    &self.auth
+  }
+}
+
+impl Db<auth::User> {
+  pub fn downgrade(self) -> Db<auth::NoAuth> {
+    Db {
+      db: self.db,
+      auth: auth::NoAuth,
+    }
+  }
 }
 
 impl<Auth> surrealdb_layers::GetDb for Db<Auth> {
