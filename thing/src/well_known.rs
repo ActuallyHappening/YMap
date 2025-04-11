@@ -1,8 +1,10 @@
+use serde::de::DeserializeOwned;
+
 use crate::prelude::*;
 
 use super::{ThingId, payload::KnownPayloadEntry};
 
-pub trait KnownRecord {
+pub trait KnownRecord: DeserializeOwned + Send + Sync + 'static {
   /// The known and static surrealdb key for this thing / record
   fn known() -> &'static str;
   fn known_id() -> ThingId {

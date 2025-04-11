@@ -38,14 +38,14 @@ mod things {
 
   #[extension(pub trait ThingExt)]
   impl Db<auth::NoAuth> {
-    async fn known_thing<P>(&self) -> Result<thing::Thing<P>, Error>
+    async fn known_thing<T>(&self) -> Result<T, Error>
     where
-      thing::Thing<P>: serde::de::DeserializeOwned + KnownRecord,
+      T: serde::de::DeserializeOwned + KnownRecord,
     {
-      let id = <thing::Thing<P>>::known_id();
-      let thing: Option<thing::Thing<P>> = self
+      let id = T::known_id();
+      let thing: Option<T> = self
         .db()
-        .select(id.clone())
+        .select(id.clone().into_inner())
         .await
         .map_err(|err| Error::CouldntSelect(err))?;
       let thing = thing.ok_or(Error::KnownRecordNotFound(id.into_inner()))?;

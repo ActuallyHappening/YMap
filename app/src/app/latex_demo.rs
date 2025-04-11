@@ -3,6 +3,7 @@ use thing::{payload::KnownPayloadEntry, well_known::KnownRecord};
 
 use crate::prelude::*;
 
+#[derive(Deserialize)]
 pub struct LatexDemoPage(Thing<LatexDemoPayload>);
 
 impl KnownRecord for LatexDemoPage {

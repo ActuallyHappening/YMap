@@ -1,4 +1,4 @@
-use crate::{prelude::*, things::WebsiteRoot};
+use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
@@ -49,8 +49,19 @@ pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
   view! {}
 }
 
-pub async fn known_id<T>(current: ThingId) -> Result<T, GenericError<Error>> {
-  todo!()
+/// Loads info, will reactively update its value
+pub async fn known_id<T>(current: ThingId) -> Signal<Result<T, AppError>>
+where
+  T: KnownRecord,
+{
+  Signal::derive(move || {
+    let db = DbConn::from_context();
+    let db = db.read().guest()?;
+
+    db.known_thing::<T>();
+
+    todo
+  })
 }
 
 pub mod latex_demo;
