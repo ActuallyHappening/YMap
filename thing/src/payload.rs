@@ -8,7 +8,7 @@ pub trait IsPayload {}
 
 /// Todo: write a trait to deserialize
 /// using this dynamic key
-pub trait IsPayloadEntry: DeserializeOwned {
+pub trait KnownPayloadEntry: DeserializeOwned {
   fn known() -> &'static str;
 
   fn known_id() -> ThingId {

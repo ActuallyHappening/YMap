@@ -135,6 +135,7 @@ dependencies = [
  "color-eyre",
  "console_error_panic_hook",
  "db",
+ "email_address",
  "generic-err",
  "getrandom 0.3.2",
  "latex-parser",
@@ -1182,6 +1183,7 @@ name = "db"
 version = "0.1.0"
 dependencies = [
  "color-eyre",
+ "email_address",
  "extension-traits",
  "serde",
  "serde-content",
@@ -1361,6 +1363,15 @@ checksum = "169ae1dd00fb612cf27fd069b3b10f325ea60ac551f08e5b931b4413972a847d"
 dependencies = [
  "paste",
  "pin-project-lite",
+]
+
+[[package]]
+name = "email_address"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e079f19b08ca6239f47f8ba8509c11cf3ea30095831f7fed61441475edd8c449"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

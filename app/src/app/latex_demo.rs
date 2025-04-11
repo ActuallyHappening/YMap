@@ -1,5 +1,5 @@
 use mathquill_leptos::components::MathQuillField;
-use thing::{payload::IsPayloadEntry, well_known::KnownRecord};
+use thing::{payload::KnownPayloadEntry, well_known::KnownRecord};
 
 use crate::prelude::*;
 
@@ -22,7 +22,7 @@ pub struct LatexDemoEntry {
   esxample_latex: String,
 }
 
-impl IsPayloadEntry for LatexDemoEntry {
+impl KnownPayloadEntry for LatexDemoEntry {
   fn known() -> &'static str {
     LatexDemoPage::known()
   }

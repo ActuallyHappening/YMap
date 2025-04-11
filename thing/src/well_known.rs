@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::{ThingId, payload::IsPayloadEntry};
+use super::{ThingId, payload::KnownPayloadEntry};
 
 pub trait KnownRecord {
   /// The known and static surrealdb key for this thing / record
@@ -13,16 +13,22 @@ pub trait KnownRecord {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct NameEn(String);
 
-impl IsPayloadEntry for NameEn {
+impl KnownPayloadEntry for NameEn {
   fn known() -> &'static str {
     "name-en"
+  }
+}
+
+impl std::fmt::Display for NameEn {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.0)
   }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DescriptionEn(String);
 
-impl IsPayloadEntry for DescriptionEn {
+impl KnownPayloadEntry for DescriptionEn {
   fn known() -> &'static str {
     "description-en"
   }
@@ -53,7 +59,7 @@ pub mod website {
 
   use crate::{
     Thing, ThingId,
-    payload::{IsPayload, IsPayloadEntry},
+    payload::{IsPayload, KnownPayloadEntry},
     prelude::*,
   };
 

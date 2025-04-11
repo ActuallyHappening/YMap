@@ -19,7 +19,7 @@ pub mod db;
 pub mod error;
 pub mod things {
   use thing::{
-    payload::{IsPayload, IsPayloadEntry},
+    payload::{IsPayload, KnownPayloadEntry},
     well_known::KnownRecord,
   };
 
@@ -49,7 +49,7 @@ pub mod things {
 
   impl IsPayload for WebsiteRootPayload {}
 
-  impl IsPayloadEntry for WebsiteInfo {
+  impl KnownPayloadEntry for WebsiteInfo {
     fn known() -> &'static str {
       WebsiteRoot::known()
     }

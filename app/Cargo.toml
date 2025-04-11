@@ -27,3 +27,4 @@ leptos_router = "0.7.8"
 thing.workspace = true
 db.workspace = true
 generic-err = { workspace = true }
+email_address = "0.2.9"

@@ -1,5 +1,7 @@
 //! Specific to YMap abstractions
 
+#![allow(async_fn_in_trait)]
+
 pub mod prelude {
   #![allow(unused_imports)]
 
@@ -21,6 +23,7 @@ pub mod prelude {
   pub use thing::prelude::*;
 
   pub use crate::Db;
+  pub use crate::things::ThingExt as _;
 }
 
 pub use error::Error;
@@ -29,6 +32,8 @@ pub mod error;
 pub mod user;
 
 mod things {
+  use thing::well_known::KnownRecord;
+
   use crate::{auth, prelude::*};
 
   #[extension(pub trait ThingExt)]

@@ -35,14 +35,24 @@ impl<P> Thing<P> {
   pub fn parents(&self) -> Vec<ThingId> {
     self.parents.clone()
   }
+}
 
-  pub fn payload(&self) -> &P {
+pub trait Payload {
+  type Payload;
+
+  fn payload(&self) -> &Self::Payload;
+}
+
+impl<P> Payload for Thing<P> {
+  type Payload = P;
+
+  fn payload(&self) -> &Self::Payload {
     &self.payload
   }
 }
 
-pub mod well_known;
 pub mod payload;
+pub mod well_known;
 
 pub use id::ThingId;
 pub mod id;

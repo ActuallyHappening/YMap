@@ -17,7 +17,7 @@ pub use from_latex::*;
 mod expr;
 mod from_latex;
 pub mod things {
-  use thing::payload::IsPayloadEntry;
+  use thing::payload::KnownPayloadEntry;
 
   use crate::prelude::*;
 
@@ -34,7 +34,7 @@ pub mod things {
     raw_latex: String,
   }
 
-  impl IsPayloadEntry for SingleVarOneEqPayload {
+  impl KnownPayloadEntry for SingleVarOneEqPayload {
     fn known() -> &'static str {
       "mrcrjzvzuoajtb1ka9xo"
     }
