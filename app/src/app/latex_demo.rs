@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct LatexDemoPage {
-  doesnt_exist: String,
+  pub doesnt_exist: String,
 }
 
 #[component]

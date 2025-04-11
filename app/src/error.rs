@@ -12,13 +12,13 @@ pub enum AppError {
   LiveQueryStreamWaiting,
 
   #[error("Waiting until next tick ...")]
-  FirstTimeGlobalState,
+  StartsOffHere,
 
   #[error("Surreal custom: {0}")]
   Surreal(#[source] GenericError<surrealdb::Error>),
-  
-  #[error("Custom YAY")]
-  Custom,
+
+  #[error("Render me please!")]
+  RenderMePlease,
 }
 
 impl From<surrealdb::Error> for AppError {
