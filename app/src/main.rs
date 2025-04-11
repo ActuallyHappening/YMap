@@ -6,5 +6,5 @@ fn main() {
 
   tracing::info!("Initialized logging on front-end");
 
-  app::main::main()
+  app::main()
 }
