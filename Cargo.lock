@@ -47,10 +47,8 @@ checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
 name = "app"
 version = "0.1.0"
 dependencies = [
- "color-eyre",
  "console_error_panic_hook",
  "leptos",
- "serde",
  "thiserror 2.0.12",
  "tracing",
  "utils",

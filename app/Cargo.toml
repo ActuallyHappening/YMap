@@ -10,7 +10,5 @@ publish = false
 utils = { workspace = true }
 leptos = { version = "0.7.8", features = ["csr", "tracing"] }
 console_error_panic_hook = "0.1.7"
-serde = { version = "1.0.219", features = ["derive"] }
 tracing = "0.1.41"
 thiserror = "2.0.12"
-color-eyre = "0.6.3"
