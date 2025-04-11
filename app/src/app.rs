@@ -1,6 +1,14 @@
 use std::ops::Deref as _;
 
-use crate::prelude::*;
+pub use leptos::prelude::*;
+pub use leptos_router::components::Redirect;
+pub use utils::prelude::*;
+
+pub use serde::{Deserialize, Serialize};
+
+pub type AppResult<T> = Result<T, AppError>;
+pub use generic_err::GenericError;
+
 
 pub fn App() -> impl IntoView {
   provide_context(RootOwner(Owner::current().unwrap()));
@@ -108,4 +116,41 @@ pub fn known_id() -> Result<LatexDemoPage, AppError> {
 
   // subscribes
   Cached::get(use_context::<RwSignal<Cached>>().unwrap().read().deref())
+}
+
+#[derive(Debug, thiserror::Error, Clone)]
+pub enum AppError {
+  #[error("Waiting for database connection")]
+  DbWaiting,
+
+  #[error("Loading data from database ...")]
+  DataLoading,
+
+  #[error("Waiting for steam to be polled ...")]
+  LiveQueryStreamWaiting,
+
+  #[error("Waiting until next tick ...")]
+  StartsOffHere,
+
+  #[error("Surreal custom: {0}")]
+  Surreal(#[source] GenericError<surrealdb::Error>),
+
+  #[error("Render me please!")]
+  RenderMePlease,
+}
+
+impl From<surrealdb::Error> for AppError {
+  fn from(error: surrealdb::Error) -> Self {
+    Self::Surreal(GenericError::from(error))
+  }
+}
+
+impl IntoRender for &AppError {
+  type Output = AnyView;
+
+  fn into_render(self) -> Self::Output {
+    let p = view! { <p> { self.to_string() } </p> };
+    let pre = view! { <pre> { format!("{:?}", self) } </pre> };
+    (p, pre).into_any()
+  }
 }
