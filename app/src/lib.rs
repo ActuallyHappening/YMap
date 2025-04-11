@@ -9,7 +9,6 @@ pub fn main() {
 use std::ops::Deref as _;
 
 pub use leptos::prelude::*;
-pub use leptos_router::components::Redirect;
 pub use utils::prelude::*;
 
 pub use serde::{Deserialize, Serialize};
@@ -139,17 +138,8 @@ pub enum AppError {
   #[error("Waiting until next tick ...")]
   StartsOffHere,
 
-  #[error("Surreal custom: {0}")]
-  Surreal(#[source] GenericError<surrealdb::Error>),
-
   #[error("Render me please!")]
   RenderMePlease,
-}
-
-impl From<surrealdb::Error> for AppError {
-  fn from(error: surrealdb::Error) -> Self {
-    Self::Surreal(GenericError::from(error))
-  }
 }
 
 impl IntoRender for &AppError {
