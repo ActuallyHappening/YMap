@@ -124,6 +124,10 @@ impl MathField {
   pub fn latex(&self) -> String {
     self.0.latex()
   }
+
+  pub fn set_latex(&self, latex: &str) {
+    self.0.set_latex(latex);
+  }
 }
 
 /// Wrapper around [mathquill_js_sys::StaticMath]

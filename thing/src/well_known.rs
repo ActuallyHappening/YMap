@@ -16,7 +16,7 @@ pub trait KnownRecord: DeserializeOwned + Send + Sync + 'static {
   fn from_inner(inner: Thing<Self::Payload>) -> Self;
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct NameEn(String);
 
 impl KnownPayloadEntry for NameEn {
@@ -34,7 +34,7 @@ impl std::fmt::Display for NameEn {
   }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct DescriptionEn(String);
 
 impl KnownPayloadEntry for DescriptionEn {
@@ -46,14 +46,22 @@ impl KnownPayloadEntry for DescriptionEn {
   }
 }
 
-#[derive(thing_macros::Serialize, thing_macros::Deserialize)]
+impl std::fmt::Display for DescriptionEn {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}
+
+#[derive(thing_macros::Serialize, thing_macros::Deserialize, Clone, Debug)]
 pub struct DocumentedPayload {
   #[serde(rename(expr = "NameEn::known_full()"))]
-  name: NameEn,
+  pub name: NameEn,
 
   #[serde(rename(expr = "DescriptionEn::known_full()"))]
-  description: DescriptionEn,
+  pub description: DescriptionEn,
 }
+
+impl IsPayload for DocumentedPayload {}
 
 pub mod science {
   pub mod math {

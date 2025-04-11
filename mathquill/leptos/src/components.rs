@@ -3,7 +3,8 @@ use std::ops::Deref as _;
 use crate::prelude::*;
 
 #[component]
-pub fn MathQuillField(#[prop(into)] on_edit: Callback<String>) -> impl IntoView {
+pub fn MathQuillField(latex: RwSignal<String>) -> impl IntoView {
+  let sig = latex;
   let node_ref = NodeRef::<leptos::html::Span>::new();
   let handlers_drop_handle = RwSignal::new_local(None);
 
@@ -17,13 +18,15 @@ pub fn MathQuillField(#[prop(into)] on_edit: Callback<String>) -> impl IntoView 
         .get_field(&node_ref.get_untracked().unwrap().into())
         .expect("Not to be unmounted at this point, since mathquill is calling us");
       let latex = field.latex();
-      on_edit.run(latex);
+      // on_edit.run(latex);
+      sig.set(latex);
     });
 
     let field = mathquill.mount_field(&el, &config);
 
     handlers_drop_handle.set(Some(config));
 
+    field.set_latex(&latex.get_untracked());
     let current = field.latex();
     info!(?current, "MathQuillField mounted");
   });

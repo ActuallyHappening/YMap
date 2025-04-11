@@ -53,9 +53,10 @@ pub fn Main() -> impl IntoView {
 #[component]
 pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
   view! {
-    <ErrorBoundary name="Latex Demo">
+    // <ErrorBoundary name="Latex Demo">
+      <description::DescriptionView id=id />
       <latex_demo::LatexDemo id=id />
-    </ErrorBoundary>
+    // </ErrorBoundary>
   }
 }
 
