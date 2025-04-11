@@ -6,8 +6,6 @@ pub fn main() {
   tracing::info!("Finished hydration");
 }
 
-use std::ops::Deref as _;
-
 pub use leptos::prelude::*;
 pub use utils::prelude::*;
 
@@ -55,28 +53,10 @@ struct RootOwner(Owner);
 
 /// Loads info, subscribes to the relevant signals
 pub fn known_id() -> AppError {
-  /// Stored as `RwSignal<Cached<T>>`
-  #[derive(Debug)]
-  enum Cached {
-    StartsOffHere,
-    RenderMePlease,
-  }
-
-  impl Cached {
-    fn get(&self) -> AppError {
-      match self {
-        Cached::StartsOffHere => AppError::StartsOffHere,
-        Cached::RenderMePlease => AppError::RenderMePlease,
-      }
-    }
-  }
-
-  if let Some(s) = use_context::<RwSignal<Cached>>() {
-    // uses 'caches' value
-    let ret = Cached::get(&s.read());
+  if let Some(s) = use_context::<RwSignal<AppError>>() {
+    let ret = s.get();
     debug!(?ret, "Retrieved cached value");
     return ret;
-    // note, if the db state changes then this may reflect old data
   }
   debug!("Didn't hit cache, loading for the first time");
 
@@ -84,17 +64,17 @@ pub fn known_id() -> AppError {
   let root_owner = use_context::<RootOwner>().unwrap().0;
 
   root_owner.with(|| {
-    provide_context(RwSignal::new(Cached::StartsOffHere));
+    provide_context(RwSignal::new(AppError::StartsOffHere));
 
     Effect::new(move || {
-      use_context::<RwSignal<Cached>>()
+      use_context::<RwSignal<AppError>>()
         .unwrap()
-        .set(Cached::RenderMePlease);
+        .set(AppError::RenderMePlease);
     });
   });
 
   // subscribes
-  Cached::get(use_context::<RwSignal<Cached>>().unwrap().read().deref())
+  use_context::<RwSignal<AppError>>().unwrap().get()
 }
 
 #[derive(Debug, thiserror::Error, Clone)]
