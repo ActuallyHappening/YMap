@@ -16,6 +16,8 @@ surrealdb-layers.workspace = true
 extension-traits = "2.0.0"
 thing.workspace = true
 email_address = "0.2.9"
+futures-core = "0.3.31"
+async-stream = "0.3.6"
 
 [dev-dependencies]
 color-eyre = "0.6.3"

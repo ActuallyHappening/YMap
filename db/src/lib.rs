@@ -32,15 +32,35 @@ pub mod error;
 pub mod user;
 
 mod things {
+  use futures_core::Stream;
+  use surrealdb::{Action, Notification};
   use thing::well_known::KnownRecord;
 
   use crate::{auth, prelude::*};
+
+  #[derive(Serialize, Deserialize, Debug)]
+  enum Mutation<T> {
+    Created(T),
+    Updated(T),
+    Deleted(T),
+  }
+
+  impl<T> From<Notification<T>> for Mutation<T> {
+    fn from(notification: Notification<T>) -> Self {
+      match notification.action {
+        Action::Create => Mutation::Created(notification.data),
+        Action::Update => Mutation::Updated(notification.data),
+        Action::Delete => Mutation::Deleted(notification.data),
+        _ => unreachable!(),
+      }
+    }
+  }
 
   #[extension(pub trait ThingExt)]
   impl Db<auth::NoAuth> {
     async fn known_thing<T>(&self) -> Result<T, Error>
     where
-      T: serde::de::DeserializeOwned + KnownRecord,
+      T: KnownRecord,
     {
       let id = T::known_id();
       let thing: Option<T> = self
@@ -50,6 +70,41 @@ mod things {
         .map_err(|err| Error::CouldntSelect(err))?;
       let thing = thing.ok_or(Error::KnownRecordNotFound(id.into_inner()))?;
       Ok(thing)
+    }
+
+    async fn known_thing_stream<T>(&self) -> Result<impl Stream<Item = Result<T, Error>>, Error>
+    where
+      T: KnownRecord + Unpin + Debug,
+    {
+      let id = T::known_id();
+      let initial: T = self.known_thing().await?;
+      let deltas = self
+        .get_db()
+        .query("LIVE SELECT * FROM $id")
+        .bind(("id", id.clone()))
+        .await
+        .map_err(Error::LiveQueryStart)?
+        .stream::<Notification<T>>(0)
+        .map_err(Error::LiveQueryStream)?;
+
+      Ok(async_stream::stream! {
+        yield Ok(initial);
+
+        for await delta in deltas {
+          let delta: Mutation<T> = delta.map_err(Error::LiveQueryItem)?.into();
+          match delta {
+            Mutation::Updated(item) => yield Ok(item),
+            Mutation::Created(item) => {
+              warn!(?id, "Why is a thing being created in a live query?");
+              yield Ok(item)
+            },
+            Mutation::Deleted(item) => {
+              error!(?item, ?id, "Why is a thing being deleted in a live query? oh oooh");
+              yield Err(Error::LiveQueryItemDeleted(id.clone().into_inner()))
+            },
+          }
+        }
+      })
     }
   }
 }

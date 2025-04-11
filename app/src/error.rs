@@ -3,7 +3,7 @@ use db::prelude::surrealdb_layers;
 use crate::prelude::*;
 
 #[derive(Debug, thiserror::Error, Clone, Serialize, Deserialize)]
-pub enum Error {
+pub enum AppError {
   #[error("Waiting for database connection")]
   DbWaiting,
 
@@ -12,30 +12,21 @@ pub enum Error {
 
   #[error("Loading data from database ...")]
   DataLoading,
-
-  #[error("Couldn't fetch initial data")]
-  LiveQueryInitial(#[source] GenericError<surrealdb::Error>),
-
-  #[error("Couldn't start a live query to the backend")]
-  LiveQueryStart(#[source] GenericError<surrealdb::Error>),
-
-  #[error("Couldn't stream")]
-  LiveQueryStream(#[source] GenericError<surrealdb::Error>),
 }
 
-impl From<db::Error> for Error {
+impl From<db::Error> for AppError {
   fn from(error: db::Error) -> Self {
     Self::DbError(GenericError::from(error))
   }
 }
 
-impl From<&db::Error> for Error {
+impl From<&db::Error> for AppError {
   fn from(error: &db::Error) -> Self {
     Self::DbError(GenericError::from_ref(error))
   }
 }
 
-impl From<surrealdb_layers::Error> for Error {
+impl From<surrealdb_layers::Error> for AppError {
   fn from(value: surrealdb_layers::Error) -> Self {
     Self::DbError(GenericError::from(db::Error::Inner(value)))
   }

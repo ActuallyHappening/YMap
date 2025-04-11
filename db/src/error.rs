@@ -31,4 +31,16 @@ pub enum Error {
 
   #[error("{0}")]
   Inner(#[from] surrealdb_layers::Error),
+
+  #[error("Couldn't start a live query to the backend")]
+  LiveQueryStart(#[source] surrealdb::Error),
+
+  #[error("Couldn't begin streaming a live query from the backend")]
+  LiveQueryStream(#[source] surrealdb::Error),
+
+  #[error("Couldn't deserialize item in a live query")]
+  LiveQueryItem(#[source] surrealdb::Error),
+
+  #[error("Item deleted")]
+  LiveQueryItemDeleted(surrealdb::RecordId),
 }

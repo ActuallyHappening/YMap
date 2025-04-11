@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-pub use error::Error;
+pub use error::AppError;
 
 pub mod prelude;
 pub mod main {

@@ -14,6 +14,8 @@ pub fn App() -> impl IntoView {
   leptos_meta::provide_meta_context();
   crate::db::DbConn::provide();
 
+  provide_context(RootOwner(Owner::current().unwrap()));
+
   view! {
     <Router>
       <main>
@@ -53,10 +55,13 @@ pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
   view! {}
 }
 
+#[derive(Clone)]
+struct RootOwner(Owner);
+
 /// Loads info, will reactively update its value
 pub async fn known_id<T>() -> Signal<Result<T, AppError>>
 where
-  T: KnownRecord + Unpin,
+  T: KnownRecord + Clone + Unpin,
 {
   struct SimpleReactiveStorage<T>(ReadSignal<Result<T, AppError>>);
 
@@ -71,51 +76,64 @@ where
     return s.0.into();
   }
 
-  let initial = LocalResource::new(move || {
-    let db = DbConn::from_context();
-    async move {
-      let db = db.read().guest()?;
-      // let data: Option<T> = db
-      //   .read()
-      //   .guest()?
-      //   .get_db()
-      //   .select(T::known_id())
-      //   .await
-      //   .make_generic()
-      //   .map_err(AppError::LiveQueryInitial)?;
-      let data: T = db.known_thing::<T>().await?;
-      AppResult::Ok(data)
-    }
-  });
-  let deltas = LocalResource::new(move || {
-    let db = DbConn::from_context();
-    async move {
-      let db = db.read().guest()?;
+  // now we are initializing global state
 
-      let id = T::known_id();
-      let live_query = db.get_db().query("LIVE SELECT * FROM $id").bind(("id", id));
-      let s = live_query
-        .await
-        .make_generic()
-        .map_err(AppError::LiveQueryStart)?
-        .stream::<Notification<T>>(0)
-        .make_generic()
-        .map_err(AppError::LiveQueryStream)?;
+  let current_owner = Owner::current().unwrap();
+  let root_owner = use_context::<RootOwner>().unwrap().0;
 
-      AppResult::Ok(s)
-    }
+  // global state
+  // This is done with the root owner so these resources don't
+  // get cleaned up every time a leaf node that calls this
+  // is re-rendered.
+  // As a side note, because these are in the root, they are never going to be
+  // cleaned up.
+  let merged = root_owner.with(|| {
+    let initial = LocalResource::new(move || {
+      let db = DbConn::from_context();
+      async move {
+        let db = db.read().guest()?;
+        let data: T = db.known_thing::<T>().await?;
+        AppResult::Ok(data)
+      }
+    });
+    // deltas
+    let deltas = LocalResource::new(move || {
+      let db = DbConn::from_context();
+      async move {
+        let db = db.read().guest()?;
+
+        let id = T::known_id();
+        let live_query = db.get_db().query("LIVE SELECT * FROM $id").bind(("id", id));
+        let s = live_query
+          .await
+          .make_generic()
+          .map_err(AppError::LiveQueryStart)?
+          .stream::<Notification<T>>(0)
+          .make_generic()
+          .map_err(AppError::LiveQueryStream)?;
+
+        AppResult::Ok(s)
+      }
+    });
+
+    Signal::derive(move || {
+      let Some(initial) = initial.get() else {
+        return Err(AppError::DataLoading);
+      };
+
+      let Some(stream) = deltas.read().deref() else {
+        return Err(AppError::DataLoading);
+      };
+
+      AppResult::Ok(todo!())
+    })
   });
 
   Signal::derive(move || {
-    let Some(initial) = initial.read().deref() else {
-      return Err(AppError::DataLoading);
-    };
+    // // should read from global state only
 
-    let Some(stream) = deltas.read().deref() else {
-      return Err(AppError::DataLoading);
-    };
-    
-    
+    // let initial: T = initial.take().clone()?;
+    // let stream = stream.take()?;
 
     // let initial = ReadSignal::from_stream(tokio_stream::once(
     // ));
