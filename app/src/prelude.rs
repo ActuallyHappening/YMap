@@ -6,5 +6,6 @@ pub use serde::{Deserialize, Serialize};
 pub use thing::prelude::*;
 pub use thing::{Thing, ThingId};
 
+pub use crate::error::Error as AppError;
 pub use crate::error::Error;
 pub use generic_err::GenericError;

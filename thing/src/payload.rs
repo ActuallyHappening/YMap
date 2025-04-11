@@ -1,6 +1,6 @@
 use serde::{Deserializer, de::DeserializeOwned};
 
-use crate::layers::Id;
+use surrealdb_layers::Id;
 
 use super::ThingId;
 

@@ -1182,11 +1182,13 @@ name = "db"
 version = "0.1.0"
 dependencies = [
  "color-eyre",
+ "extension-traits",
  "serde",
  "serde-content",
  "serde_json",
  "surrealdb",
  "surrealdb-layers",
+ "thing",
  "thiserror 2.0.12",
  "tokio",
  "url",
@@ -4833,7 +4835,6 @@ name = "thing"
 version = "0.1.0"
 dependencies = [
  "color-eyre",
- "db",
  "extension-traits",
  "serde",
  "surrealdb",

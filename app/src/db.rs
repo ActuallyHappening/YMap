@@ -29,20 +29,29 @@ impl DbConn {
   }
 }
 
+#[derive(Clone)]
+enum StartConn {
+  Unneeded,
+  Guest(Result<Db<auth::NoAuth>, AppError>),
+}
+
 pub fn Connect() -> impl IntoView {
   let state = DbConn::from_context();
   let newconn = LocalResource::new(move || {
     let state = state.read();
     let conn = matches!(state.deref(), DbConn::WaitingForGuest { prev_err: None });
-    async {
+    async move {
       if conn {
-        Some((async move || -> Result<Db<auth::NoAuth>, db::Error> {
-          let db = db::Db::build().wss()?.await;
+        StartConn::Guest(
+          (async move || -> Result<Db<auth::NoAuth>, AppError> {
+            let db = db::Db::build().wss()?.await?.prod().await?.public();
 
-          Ok(todo!())
-        })())
+            Ok(db)
+          })()
+          .await,
+        )
       } else {
-        None
+        StartConn::Unneeded
       }
     }
   });
@@ -52,6 +61,25 @@ pub fn Connect() -> impl IntoView {
     match state {
       DbConn::WaitingForGuest { prev_err: None } => {
         // start connection
+        let suspend = Suspend::new(async move {
+          let conn = newconn.await;
+          match conn {
+            StartConn::Unneeded => {
+              view! { <p> "Failed to connect: Didn't need to connect?" </p>}.into_any()
+            }
+            StartConn::Guest(Ok(db)) => {
+              DbConn::from_context().set(DbConn::OkGuest(db));
+              view! { <p> "Connected" </p> }.into_any()
+            }
+            StartConn::Guest(Err(err)) => {
+              view! { }
+            }
+          }
+        });
+        view! {
+          <p>"Connecting as guest ..."</p>
+          {suspend}
+        }
       }
       _ => todo!(),
     }

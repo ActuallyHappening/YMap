@@ -13,6 +13,8 @@ thiserror = "2.0.12"
 url = "2.5.4"
 serde-content = "0.1.2"
 surrealdb-layers.workspace = true
+extension-traits = "2.0.0"
+thing.workspace = true
 
 [dev-dependencies]
 color-eyre = "0.6.3"

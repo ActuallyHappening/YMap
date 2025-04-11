@@ -9,20 +9,45 @@ pub mod prelude {
   pub(crate) use std::marker::PhantomData;
   pub(crate) use std::str::FromStr;
 
+  pub(crate) use extension_traits::extension;
   pub(crate) use serde::{Deserialize, Serialize};
   pub(crate) use url::Url;
 
+  pub(crate) use crate::Error;
   pub(crate) use utils::prelude::*;
 
   pub use surrealdb_layers;
-  pub use surrealdb_layers as layers;
   pub use surrealdb_layers::prelude::*;
+  pub use thing::prelude::*;
 
   pub use crate::Db;
 }
 
 pub use error::Error;
 pub mod error;
+
+pub mod user;
+
+mod things {
+  use crate::{auth, prelude::*};
+
+  #[extension(pub trait ThingExt)]
+  impl Db<auth::NoAuth> {
+    async fn known_thing<P>(&self) -> Result<thing::Thing<P>, Error>
+    where
+      thing::Thing<P>: serde::de::DeserializeOwned + KnownRecord,
+    {
+      let id = <thing::Thing<P>>::known_id();
+      let thing: Option<thing::Thing<P>> = self
+        .db()
+        .select(id.clone())
+        .await
+        .map_err(|err| Error::CouldntSelect(err))?;
+      let thing = thing.ok_or(Error::KnownRecordNotFound(id.into_inner()))?;
+      Ok(thing)
+    }
+  }
+}
 
 use crate::prelude::*;
 
@@ -38,137 +63,6 @@ impl<Auth> surrealdb_layers::GetDb for Db<Auth> {
   }
 }
 
-pub mod creds {
-  //! Creds are what gets you your authentication
-
-  use crate::prelude::*;
-
-  use super::auth;
-
-  pub struct NoCreds;
-
-  impl surrealdb_layers::Creds for NoCreds {
-    type Auth = auth::NoAuth;
-
-    async fn signin(&self, db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
-      db.invalidate().await?;
-      Ok(auth::NoAuth)
-    }
-  }
-
-  #[allow(dead_code)]
-  pub struct User {
-    email: String,
-    plaintext_password: String,
-  }
-
-  impl surrealdb_layers::Creds for User {
-    type Auth = auth::User;
-
-    async fn signin(&self, _db: &Surreal<Any>) -> Result<Self::Auth, surrealdb::Error> {
-      // https://surrealdb.com/docs/surrealdb/security/authentication#record-users
-      todo!()
-    }
-  }
-}
-
-pub mod auth {
-  //! Auth is the current users session
-
-  use crate::prelude::*;
-
-  use surrealdb::{Surreal, engine::any::Any, opt::auth::Jwt};
-
-  /// Public db
-  #[derive(Clone)]
-  pub struct NoAuth;
-
-  impl surrealdb_layers::Auth for NoAuth {
-    async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error> {
-      db.invalidate().await?;
-      Ok(NoAuth)
-    }
-  }
-
-  /// Get acutal info from session
-  #[derive(Clone)]
-  pub struct User(Jwt);
-
-  impl surrealdb_layers::Auth for User {
-    async fn authenticate(&self, db: &Surreal<Any>) -> Result<Self, surrealdb::Error> {
-      db.authenticate(self.0.clone()).await?;
-      Ok(User(self.0.clone()))
-    }
-  }
-}
-
-pub mod conn {
-  use std::pin::Pin;
-
-  use crate::{error::Error, prelude::*};
-
-  use super::auth::NoAuth;
-
-  impl Db<()> {
-    pub fn build() -> DbConnUrl {
-      DbConnUrl { _priv: () }
-    }
-  }
-
-  pub struct DbConnUrl {
-    _priv: (),
-  }
-
-  impl surrealdb_layers::ConnBuilderUrl for DbConnUrl {
-    type Next = Pin<Box<dyn Future<Output = Result<DbConnNsDb, Error>>>>;
-
-    fn default_url(&self) -> Result<Url, surrealdb_layers::Error> {
-      Ok("wss://eager-bee-06aqohg53hq27c0jg11k14gdbk.aws-use1.surreal.cloud".parse()?)
-    }
-
-    fn url(self, url: Url) -> Self::Next {
-      Box::pin(async {
-        surrealdb::engine::any::connect(url.to_string())
-          .await
-          .map(|conn| DbConnNsDb { conn })
-          .map_err(|err| Error::CouldntConnectToUrl { url, err })
-      })
-    }
-  }
-
-  /// Connected
-  pub struct DbConnNsDb {
-    conn: Surreal<Any>,
-  }
-
-  impl DbConnNsDb {
-    pub async fn prod(self) -> Result<DbConnCreds, Error> {
-      let ns = "ymap";
-      let db = "prod";
-      self
-        .conn
-        .use_ns(ns)
-        .use_db(db)
-        .await
-        .map_err(|err| Error::CouldntUseNsDb {
-          ns: ns.to_owned(),
-          db: db.to_owned(),
-          err,
-        })?;
-      Ok(DbConnCreds { conn: self.conn })
-    }
-  }
-
-  pub struct DbConnCreds {
-    conn: Surreal<Any>,
-  }
-
-  impl DbConnCreds {
-    pub fn public(self) -> Db<NoAuth> {
-      Db {
-        db: self.conn,
-        phantom: PhantomData,
-      }
-    }
-  }
-}
+pub mod auth;
+pub mod conn;
+pub mod creds;

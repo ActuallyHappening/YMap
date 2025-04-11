@@ -42,31 +42,6 @@ impl<P> Thing<P> {
 }
 
 pub mod well_known;
-mod db {
-  use crate::{errors::Error, prelude::*};
-  use db::auth::NoAuth;
-  use serde::de::DeserializeOwned;
-
-  use super::{Thing, well_known::KnownRecord};
-
-  #[extension(pub trait ThingExt)]
-  impl Db<NoAuth> {
-    async fn known_thing<P>(&self) -> Result<Thing<P>, Error>
-    where
-      Thing<P>: DeserializeOwned + KnownRecord,
-    {
-      let id = <Thing<P>>::known_id();
-      let thing: Option<Thing<P>> = self
-        .db()
-        .select(id.clone())
-        .await
-        .map_err(|err| Error::CouldntSelect(err))?;
-      let thing = thing.ok_or(Error::KnownRecordNotFound(id.into_inner()))?;
-      Ok(thing)
-    }
-  }
-}
-
 pub mod payload;
 
 pub use id::ThingId;
