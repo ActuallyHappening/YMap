@@ -27,6 +27,7 @@ pub mod prelude {
 }
 
 pub use error::Error;
+use thing::ThingId;
 pub mod error;
 
 pub mod user;
@@ -130,6 +131,20 @@ impl Db<auth::User> {
       db: self.db,
       auth: auth::NoAuth,
     }
+  }
+}
+
+impl<Auth> Db<Auth> {
+  pub async fn root_things(&self) -> Result<Vec<ThingId>, Error> {
+    Ok(
+      self
+        .get_db()
+        .query("fn::root_things()")
+        .await
+        .map_err(Error::CouldntListRootThings)?
+        .take(0)
+        .map_err(Error::CouldntListRootThings)?,
+    )
   }
 }
 

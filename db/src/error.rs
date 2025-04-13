@@ -42,4 +42,8 @@ pub enum Error {
   LiveQueryItem(#[source] surrealdb::Error),
 
   #[error("Item deleted")]
-  LiveQueryItemDeleted(surrealdb::RecordId),}
+  LiveQueryItemDeleted(surrealdb::RecordId),
+
+  #[error("Couldn't get root things")]
+  CouldntListRootThings(#[source] surrealdb::Error),
+}

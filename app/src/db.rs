@@ -1,3 +1,16 @@
+//! To select the parent ids of a record:
+//! - Duplicated
+//! SElECT -> parent -> thing AS parents FROM thing:fbrngbalrk14hows7u15;
+//! To load the actual things that are the parents:
+//! SElECT -> parent -> thing.* AS parents FROM thing:fbrngbalrk14hows7u15;
+//!
+//! RELATE thing:child -> parent -> thing:parent
+//!         in                          out
+//!
+//! -- $non_root is any id mentioned as a child in the relational db
+//! LET $non_root = <set>(SELECT in FROM parent).map(|$val| $val.in);
+//! SELECT * FROM thing WHERE !$non_root.matches(id).any();
+
 use std::ops::Deref;
 
 use db::{Db, auth, creds};
@@ -80,6 +93,53 @@ pub fn Connect() -> impl IntoView {
   }
 }
 
+/// Only reactively updates to DB changes,
+/// not a LIVE updating signal (yet)
+pub fn root_things() -> Signal<AppResult<Vec<ThingId>>> {
+  Signal::derive(move || {
+    // cache in context
+    #[derive(Clone)]
+    enum Cache {
+      FirstTick,
+      WaitingForRootLocalResource,
+      Done(AppResult<Vec<ThingId>>),
+    }
+    impl Cache {
+      fn get(self) -> AppResult<Vec<ThingId>> {
+        match self {
+          Cache::FirstTick => Err(AppError::FirstTimeGlobalState),
+          Cache::WaitingForRootLocalResource => Err(AppError::DataLoading),
+          Cache::Done(res) => res,
+        }
+      }
+    }
+
+    if let Some(c) = use_context::<RwSignal<Cache>>() {
+      return c.get().get();
+    } else {
+      let root_owner = expect_context::<RootOwner>().0;
+      root_owner.with(|| {
+        provide_context(RwSignal::new(Cache::FirstTick));
+
+        let resource = LocalResource::new(|| {
+          let db = DbConn::from_context();
+          async move {
+            let data = db.read().guest()?.root_things().await?;
+            AppResult::Ok(data)
+          }
+        });
+
+        Effect::new(move || match resource.get() {
+          None => expect_context::<RwSignal<Cache>>().set(Cache::WaitingForRootLocalResource),
+          Some(data) => expect_context::<RwSignal<Cache>>().set(Cache::Done(data.take())),
+        });
+      });
+      todo!()
+    }
+  })
+}
+
+/// LIVE updates signal
 pub fn load_payload<P>(id: Signal<ThingId>) -> Signal<Result<Thing<P>, AppError>>
 where
   P: IsPayload + std::fmt::Debug + Clone + Unpin,
@@ -87,6 +147,19 @@ where
   Signal::derive(move || raw_load_payload(id.get()))
 }
 
+/// LIVE updates signal
+pub fn known_thing<T>() -> Signal<Result<T, AppError>>
+where
+  T: KnownRecord,
+  <T as KnownRecord>::Payload: Unpin + std::fmt::Debug + Clone,
+{
+  Signal::derive(move || {
+    let payload = raw_load_payload(T::known_id())?;
+    Ok(T::from_inner(payload))
+  })
+}
+
+/// Subscribes
 fn raw_load_payload<P>(id: ThingId) -> Result<Thing<P>, AppError>
 where
   P: IsPayload + Clone + std::fmt::Debug + Unpin,
@@ -175,16 +248,4 @@ where
       ContextCache::Done(sig) => sig.get(),
     }
   }
-}
-
-/// Loads info, subscribes to the relevant signals
-pub fn known_thing<T>() -> Signal<Result<T, AppError>>
-where
-  T: KnownRecord,
-  <T as KnownRecord>::Payload: Unpin + std::fmt::Debug + Clone,
-{
-  Signal::derive(move || {
-    let payload = raw_load_payload(T::known_id())?;
-    Ok(T::from_inner(payload))
-  })
 }

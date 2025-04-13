@@ -53,7 +53,6 @@ pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
     let latex = initial_latex.get()?;
     info!(?latex, "Showing latex demo");
     let latex = RwSignal::new(latex);
-    let on_edit = Callback::new(move |new_latex: String| latex.set(new_latex));
     let latex_ast = move || latex_parser::LatexTokens::parse_from_latex(&latex.read());
     let ir_1 = move || -> Result<_, cas::contexts::scalar::real::Error> {
       let latex = latex_ast()?;
@@ -77,7 +76,7 @@ pub fn LatexDemo(id: Signal<ThingId>) -> impl IntoView {
     };
 
     Ok(view! {
-      <MathQuillField on_edit=on_edit initial=latex.get_untracked() />
+      <MathQuillField latex />
       <p> { move || format!("Raw latex: {}", latex.get()) } </p>
       <p> { move || match latex_ast() {
         Ok(ast) => format!("Successfully parsed: {:?}", ast),
