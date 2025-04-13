@@ -11,7 +11,7 @@
 //! LET $non_root = <set>(SELECT in FROM parent).map(|$val| $val.in);
 //! SELECT * FROM thing WHERE !$non_root.matches(id).any();
 
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 use db::{Db, auth, creds};
 use thing::{payload::IsPayload, well_known::KnownRecord};
@@ -105,7 +105,7 @@ pub fn root_things() -> Signal<AppResult<Vec<ThingId>>> {
       Done(AppResult<Vec<ThingId>>),
     }
     impl Cache {
-      fn get(self) -> AppResult<Vec<ThingId>> {
+      fn resolve(self) -> AppResult<Vec<ThingId>> {
         match self {
           Cache::FirstTick => Err(AppError::FirstTimeGlobalState),
           Cache::WaitingForRootLocalResource => Err(AppError::DataLoading),
@@ -115,7 +115,7 @@ pub fn root_things() -> Signal<AppResult<Vec<ThingId>>> {
     }
 
     if let Some(c) = use_context::<RwSignal<Cache>>() {
-      return c.get().get();
+      c.get().resolve()
     } else {
       let root_owner = expect_context::<RootOwner>().0;
       root_owner.with(|| {
@@ -134,7 +134,7 @@ pub fn root_things() -> Signal<AppResult<Vec<ThingId>>> {
           Some(data) => expect_context::<RwSignal<Cache>>().set(Cache::Done(data.take())),
         });
       });
-      todo!()
+      expect_context::<RwSignal<Cache>>().get().resolve()
     }
   })
 }
@@ -159,22 +159,93 @@ where
   })
 }
 
+struct Context<P: Send + Sync + 'static>(RwSignal<HashMap<ThingId, PayloadCache<P>>>);
+
+impl<P: IsPayload> Clone for Context<P> {
+  fn clone(&self) -> Self {
+    Self(self.0.clone())
+  }
+}
+
+fn root_owner() -> Owner {
+  expect_context::<RootOwner>().0
+}
+
+impl<P: IsPayload> Context<P> {
+  fn get_or_init() -> Self {
+    root_owner().with(|| {
+      if use_context::<Self>().is_none() {
+        provide_context::<Self>(Self(RwSignal::new(HashMap::default())));
+      }
+      expect_context::<Self>()
+    })
+  }
+
+  pub fn use_context(id: ThingId) -> Option<PayloadCache<P>> {
+    Self::get_or_init().0.get().get(&id).map(|p| p.clone())
+  }
+  pub fn expect_context(id: ThingId) -> PayloadCache<P> {
+    Self::use_context(id).expect(
+      "You called Context::expect_context, but an entry with the specified ThingId wasn't found",
+    )
+  }
+  pub fn set_context(id: ThingId, payload: PayloadCache<P>) {
+    Self::get_or_init().0.update(|map| {
+      map.insert(id, payload);
+    });
+  }
+}
+
+/// Stored as `RwSignal<Cached<T>>`
+#[derive(Debug)]
+enum PayloadCache<P: Send + Sync + 'static> {
+  FirstTick,
+  WaitingForRootLocalResource,
+  CouldntStart(AppError),
+  Done(ArcSignal<Result<Thing<P>, AppError>>),
+}
+
+impl<P: IsPayload> Clone for PayloadCache<P> {
+  fn clone(&self) -> Self {
+    match self {
+      PayloadCache::FirstTick => PayloadCache::FirstTick,
+      PayloadCache::WaitingForRootLocalResource => PayloadCache::WaitingForRootLocalResource,
+      PayloadCache::CouldntStart(err) => PayloadCache::CouldntStart(err.clone()),
+      PayloadCache::Done(sig) => PayloadCache::Done(ArcSignal::clone(sig)),
+    }
+  }
+}
+
+impl<P> PayloadCache<P>
+where
+  P: IsPayload + Clone,
+{
+  fn resolve(&self) -> Result<Thing<P>, AppError> {
+    match self {
+      PayloadCache::FirstTick => Err(AppError::FirstTimeGlobalState),
+      PayloadCache::WaitingForRootLocalResource => Err(AppError::FirstTimeGlobalState),
+      PayloadCache::CouldntStart(err) => Err(err.clone()),
+      PayloadCache::Done(sig) => sig.get(),
+    }
+  }
+}
+
 /// Subscribes
 fn raw_load_payload<P>(id: ThingId) -> Result<Thing<P>, AppError>
 where
   P: IsPayload + Clone + std::fmt::Debug + Unpin,
 {
-  if let Some(s) = use_context::<RwSignal<ContextCache<P>>>() {
-    return ContextCache::get(&s.read());
+  if let Some(s) = Context::<P>::use_context(id.clone()) {
+    return s.resolve();
   }
 
   // now we are initializing global state
-  let root_owner = expect_context::<RootOwner>().0;
-  root_owner.with(|| {
-    provide_context(RwSignal::new(ContextCache::<P>::FirstTick));
+  root_owner().with(|| {
+    Context::<P>::set_context(id.clone(), PayloadCache::<P>::FirstTick);
 
+    let id2 = id.clone();
     let stream = LocalResource::new(move || {
-      let id = id.clone();
+      let id = id2.clone();
       let db = DbConn::from_context();
       async move {
         let stream = db.read().guest()?.load_thing_stream::<P>(id).await?;
@@ -195,57 +266,27 @@ where
       }
     });
 
-    fn set_context<T>(new_state: ContextCache<T>)
-    where
-      T: Send + Sync + 'static + std::fmt::Debug,
-    {
-      let rw_sig = expect_context::<Context<T>>();
-      debug!("Updating cached signal: {:?}", new_state);
-      rw_sig.set(new_state);
-    }
-
     // using Effect is easy to understand
     // but technically inefficient,
     // TODO: think of a cleaner way of doing this
+    let id2 = id.clone();
     Effect::new(move || match stream.get() {
       None => {
-        set_context(ContextCache::<P>::WaitingForRootLocalResource);
+        Context::<P>::set_context(id2.clone(), PayloadCache::<P>::WaitingForRootLocalResource);
       }
       Some(stream) => {
         let stream = stream.take();
         match stream {
-          Err(err) => set_context(ContextCache::<P>::CouldntStart(err)),
-          Ok(actual_data) => set_context(ContextCache::<P>::Done(actual_data)),
+          Err(err) => Context::<P>::set_context(id2.clone(), PayloadCache::<P>::CouldntStart(err)),
+          Ok(actual_data) => Context::<P>::set_context(
+            id2.clone(),
+            PayloadCache::<P>::Done(ArcSignal::from(actual_data)),
+          ),
         }
       }
     });
   });
 
   // subscribes
-  ContextCache::get(use_context::<Context<P>>().unwrap().read().deref())
-}
-
-type Context<T> = RwSignal<ContextCache<T>>;
-
-/// Stored as `RwSignal<Cached<T>>`
-#[derive(Debug)]
-enum ContextCache<P: Send + Sync + 'static> {
-  FirstTick,
-  WaitingForRootLocalResource,
-  CouldntStart(AppError),
-  Done(Signal<Result<Thing<P>, AppError>>),
-}
-
-impl<P> ContextCache<P>
-where
-  P: IsPayload + Clone,
-{
-  fn get(&self) -> Result<Thing<P>, AppError> {
-    match self {
-      ContextCache::FirstTick => Err(AppError::FirstTimeGlobalState),
-      ContextCache::WaitingForRootLocalResource => Err(AppError::FirstTimeGlobalState),
-      ContextCache::CouldntStart(err) => Err(err.clone()),
-      ContextCache::Done(sig) => sig.get(),
-    }
-  }
+  Context::<P>::expect_context(id.clone()).resolve()
 }

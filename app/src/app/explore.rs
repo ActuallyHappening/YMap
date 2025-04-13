@@ -8,34 +8,46 @@ use crate::{
 /// See a things children
 pub fn Explore() -> impl IntoView {
   let root_things = root_things();
+  let thing_previews = move || {
+    root_things.get().map(|things| {
+      things
+        .into_iter()
+        .map(|id| view! { <ThingPreview id=id /> })
+        .collect_view()
+    })
+  };
   view! {
     <h1> "Explore the YMap knowledge database"</h1>
+    { thing_previews.handle_error() }
   }
 }
 
 #[component]
 fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
   let description = load_payload::<DocumentedPayload>(id);
+  let cls = style! {
+    div {
+      max-width: 6rem;
+      border: 1px solid black;
+    }
+    div > p {
+      text-wrap: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  };
   let ui = move || -> AppResult<_> {
     let desc = description.get()?;
     let title = desc.payload().name.to_string();
     let description = desc.payload().description.to_string();
-    let cls = style! {
-      div {
-        max-width: 6rem;
-      }
-      div > p {
-        text-wrap: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-    };
-    Ok(view! { class=cls,
-      <div>
-        <h2>{title}</h2>
-        <p>{description}</p>
-      </div>
+    Ok(view! {
+      <h2>{title}</h2>
+      <p>{description}</p>
     })
   };
-  ui.handle_error()
+  view! {
+    <div class=cls>
+      { ui.handle_error() }
+    </div>
+  }
 }

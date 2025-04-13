@@ -10,7 +10,6 @@ use crate::prelude::*;
 pub struct Thing<Payload> {
   id: ThingId,
   _debug_name: Option<String>,
-  parents: Vec<ThingId>,
   payload: Payload,
 }
 
@@ -30,10 +29,6 @@ impl<P> surrealdb_layers::GetId for Thing<P> {
 impl<P> Thing<P> {
   pub fn _debug_name(&self) -> Option<String> {
     self._debug_name.clone()
-  }
-
-  pub fn parents(&self) -> Vec<ThingId> {
-    self.parents.clone()
   }
 }
 
