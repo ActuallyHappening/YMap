@@ -29,3 +29,32 @@
         }
     }
 }
+
+@layer aggressive-resets {
+    * :not(table *, script, style, title, meta) {
+        display: flex;
+
+        margin: 0;
+        padding: 0;
+        /* width: 100%; */
+        /* height: 100%; */
+
+        /* This is apparently safe and wise https://www.w3schools.com/csS/css3_box-sizing.asp */
+        box-sizing: border-box;
+
+        list-style: none;
+        /* font: inherit; */
+        text-align: center;
+
+        user-select: none;
+        text-decoration: none;
+        /* color: var(--text-primary); */
+
+        display: flex;
+        /* Flex alignment defaults */
+        flex-direction: column;
+        align-items: center;
+        align-content: space-around;
+        justify-content: space-evenly;
+    }
+}
