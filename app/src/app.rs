@@ -22,7 +22,7 @@ pub fn App() -> impl IntoView {
       <main>
         <Routes fallback=|| "404 Not Found">
           <Route path=path!("/") view=|| view! { <Redirect path="/explore" /> } />
-          <Route path=path!("/explore") view=explore::Explore />
+          <Route path=path!("/explore") view=explore::ExploreRoot />
           <ParentRoute path=path!("/thing") view=Outlet>
             <Route path=path!("") view=|| view! { <Redirect path="/explore" /> } />
             <Route path=path!(":id") view=|| view! { <Main /> } />

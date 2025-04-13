@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// See a things children
-pub fn Explore() -> impl IntoView {
+pub fn ExploreRoot() -> impl IntoView {
   let root_things = root_things();
   let thing_previews = move || {
     root_things.get().map(|things| {
