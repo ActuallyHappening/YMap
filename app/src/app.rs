@@ -8,6 +8,7 @@ use leptos_router::{
 use thing::well_known::KnownRecord;
 
 pub mod description;
+pub mod explore;
 pub mod latex_demo;
 
 pub fn App() -> impl IntoView {
@@ -20,9 +21,10 @@ pub fn App() -> impl IntoView {
     <Router>
       <main>
         <Routes fallback=|| "404 Not Found">
-          <Route path=path!("/") view=|| view! { <Redirect path=format!("/thing/{}", WebsiteRoot::known()) /> } />
+          <Route path=path!("/") view=|| view! { <Redirect path="/explore" /> } />
+          <Route path=path!("/explore") view=explore::Explore />
           <ParentRoute path=path!("/thing") view=Outlet>
-            <Route path=path!("") view=|| view! { <Redirect path=format!("/thing/{}", WebsiteRoot::known()) /> } />
+            <Route path=path!("") view=|| view! { <Redirect path="/explore" /> } />
             <Route path=path!(":id") view=|| view! { <Main /> } />
           </ParentRoute>
         </Routes>

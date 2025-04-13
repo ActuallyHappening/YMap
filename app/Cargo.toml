@@ -30,3 +30,4 @@ generic-err = { workspace = true }
 email_address = "0.2.9"
 tokio-stream = "0.1.17"
 extension-traits = "2.0.0"
+stylers = { version = "1.0.0-alpha", path = "/home/ah/Desktop/stylers/stylers" }

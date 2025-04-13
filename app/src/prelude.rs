@@ -4,6 +4,7 @@ pub use utils::prelude::*;
 
 pub use extension_traits::extension;
 pub use serde::{Deserialize, Serialize};
+pub use stylers::style;
 
 pub use db::prelude::*;
 pub use thing::prelude::*;
