@@ -113,11 +113,11 @@ impl IR3Expr<Ident> {
     };
 
     if op1.is_higher_or_eq_precedence(op2) {
-      let lhs = IR3BinaryOp::new(prev.into(), op1, current.into()).into();
-      IR3Expr::recursive_from_ir2(lhs, op2, next_expr, next).into()
+      let lhs = IR3BinaryOp::new(prev, op1, current.into()).into();
+      IR3Expr::recursive_from_ir2(lhs, op2, next_expr, next)
     } else {
       let rhs = IR3Expr::recursive_from_ir2(current.into(), op2, next_expr, next);
-      IR3BinaryOp::new(prev.into(), op1, rhs).into()
+      IR3BinaryOp::new(prev, op1, rhs).into()
     }
   }
 

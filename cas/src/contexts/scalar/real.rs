@@ -57,7 +57,7 @@ impl RealScalarStorage {
     let context = ContextOneVarEq::infer_variable(&latex);
     // let eq = Equation::from_tokens(&context, &latex);
 
-    let mut world = World::new();
+    let world = World::new();
 
     // let first_line = world.spawn(Line {
     //   eq:
@@ -177,13 +177,13 @@ where
 {
   pub fn lookup_ident(&self, ident: Var) -> Option<VariableStatus> {
     if ident == self.solve_for {
-      return Some(VariableStatus::SolveFor);
+      Some(VariableStatus::SolveFor)
     } else {
       self
         .constants
         .get(&ident)
         .cloned()
-        .map(|expr| VariableStatus::Constant(expr))
+        .map(VariableStatus::Constant)
     }
   }
 }

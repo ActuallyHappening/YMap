@@ -37,7 +37,7 @@ pub mod user;
 mod things {
   use futures_core::Stream;
   use surrealdb::{Action, Notification};
-  use thing::{Thing, ThingId, payload::IsPayload, well_known::KnownRecord};
+  use thing::{Thing, ThingId, payload::IsPayload};
 
   use crate::{auth, prelude::*};
 
@@ -69,7 +69,7 @@ mod things {
         .db()
         .select(id.clone().into_inner())
         .await
-        .map_err(|err| Error::CouldntSelect(err))?;
+        .map_err(Error::CouldntSelect)?;
       let thing = thing.ok_or(Error::KnownRecordNotFound(id.into_inner()))?;
       Ok(thing)
     }
@@ -145,15 +145,13 @@ impl<Auth> Db<Auth> {
   /// };
   /// ```
   pub async fn root_things(&self) -> Result<Vec<ThingId>, Error> {
-    Ok(
-      self
+    self
         .get_db()
         .query("fn::root_things()")
         .await
         .map_err(Error::CouldntListRootThings)?
         .take(0)
-        .map_err(Error::CouldntListRootThings)?,
-    )
+        .map_err(Error::CouldntListRootThings)
   }
 
   /// ```surql
@@ -162,16 +160,14 @@ impl<Auth> Db<Auth> {
   /// };
   /// ```
   pub async fn parents_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
-    Ok(
-      self
+    self
         .get_db()
         .query("fn::parents_of_thing($id)")
         .bind(("id", id))
         .await
         .map_err(Error::CouldntListParents)?
         .take(0)
-        .map_err(Error::CouldntListParents)?,
-    )
+        .map_err(Error::CouldntListParents)
   }
 
   /// ```surql
@@ -180,16 +176,14 @@ impl<Auth> Db<Auth> {
   /// };
   /// ```
   pub async fn children_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
-    Ok(
-      self
+    self
         .get_db()
         .query("fn::children_of_thing($id)")
         .bind(("id", id))
         .await
         .map_err(Error::CouldntListChildren)?
         .take(0)
-        .map_err(Error::CouldntListChildren)?,
-    )
+        .map_err(Error::CouldntListChildren)
   }
 }
 
@@ -224,8 +218,7 @@ impl<Auth> Db<Auth> {
     child: ThingId,
     parents: Vec<ThingId>,
   ) -> Result<Vec<ParentId>, Error> {
-    Ok(
-      self
+    self
         .get_db()
         .query("fn::relate_parents($child, $parents)")
         .bind(("child", child))
@@ -233,8 +226,7 @@ impl<Auth> Db<Auth> {
         .await
         .map_err(Error::CouldntRelateParents)?
         .take(0)
-        .map_err(Error::CouldntRelateParents)?,
-    )
+        .map_err(Error::CouldntRelateParents)
   }
 }
 

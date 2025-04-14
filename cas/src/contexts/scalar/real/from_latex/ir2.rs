@@ -82,7 +82,7 @@ where
 {
   let first = tokens.next().ok_or(Error::NoTokens)?;
   match first {
-    IR1Expr::Expr(expr) => Ok(ResolvedExpr::Single(IR2Flat::from_ir1(expr)?.into())),
+    IR1Expr::Expr(expr) => Ok(ResolvedExpr::Single(IR2Flat::from_ir1(expr)?)),
     // since this is the first, must be an unary
     IR1Expr::Op(op) => match op {
       // these can act as unary
@@ -110,7 +110,7 @@ where
         }
       }
       // these can't act as unary
-      OpKind::Mul | OpKind::Div | OpKind::Exp => return Err(Error::CantListOperators),
+      OpKind::Mul | OpKind::Div | OpKind::Exp => Err(Error::CantListOperators),
     },
   }
 }

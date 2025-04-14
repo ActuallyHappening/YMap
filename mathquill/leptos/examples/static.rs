@@ -1,4 +1,4 @@
-use leptos::{leptos_dom::logging::console_log, prelude::*};
+use leptos::prelude::*;
 use mathquill_leptos::components::MathQuillStatic;
 
 // please note, you will still need to load the library,

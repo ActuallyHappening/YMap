@@ -26,6 +26,7 @@ pub mod things {
   use crate::prelude::*;
 
   #[derive(Deserialize)]
+  #[allow(unused)]
   pub struct WebsiteRoot(Thing<WebsiteRootPayload>);
 
   impl KnownRecord for WebsiteRoot {

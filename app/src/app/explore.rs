@@ -67,9 +67,9 @@ fn ExploreThings(#[prop(into)] ids: Signal<Vec<ThingId>>) -> impl IntoView {
       .collect_view()
   };
   view! {
-    <ul class="explore-things-hbn273869dchk374">
+    <div class="explore-things-hbn273869dchk374">
       { thing_previews }
-    </ul>
+    </div>
   }
 }
 
@@ -89,8 +89,8 @@ fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
     })
   };
   view! {
-    <li class="thing-preview-oui2397840CH729384CH432h">
+    <div class="thing-preview-oui2397840CH729384CH432h">
       { ui.handle_error() }
-    </li>
+    </div>
   }
 }

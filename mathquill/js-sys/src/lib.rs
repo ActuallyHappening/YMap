@@ -33,7 +33,7 @@ impl MathQuill {
       return None;
     }
     // if res.is_instance_of::<MathField>() {
-    return Some(res.unchecked_into());
+    Some(res.unchecked_into())
     // } else {
     //   warn!(
     //     ?res,
@@ -53,7 +53,7 @@ impl MathQuill {
       return None;
     }
     // if res.is_instance_of::<StaticMath>() {
-    return Some(res.unchecked_into());
+    Some(res.unchecked_into())
     // } else {
     //   warn!(
     //     ?res,

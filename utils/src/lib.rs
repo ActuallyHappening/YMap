@@ -2,6 +2,7 @@ pub mod prelude;
 pub mod tracing;
 
 mod toplevel {
+  #[cfg(target_arch = "wasm32")]
   use crate::prelude::*;
 
   #[cfg(target_arch = "wasm32")]

@@ -1,11 +1,8 @@
-use std::ops::Deref as _;
-
-use crate::{db::DbConn, prelude::*, things::WebsiteRoot};
+use crate::prelude::*;
 use leptos_router::{
   components::{Outlet, ParentRoute, Route, Router, Routes},
   path,
 };
-use thing::well_known::KnownRecord;
 
 pub mod description;
 pub mod explore;
@@ -23,7 +20,7 @@ pub fn App() -> impl IntoView {
         <Routes fallback=|| "404 Not Found">
           <Route path=path!("/") view=|| view! { <Redirect path="/explore" /> } />
           // <Route path=path!("/explore") view=explore::ExploreRoot />
-          <ParentRoute path=path!("/explore") view=Outlet>
+          <ParentRoute path=path!("/explore") view=explore::Explore>
             <Route path=path!("") view=explore::ExploreRoot />
             <Route path=path!(":id") view=explore::ExploreChild />
           </ParentRoute>
@@ -46,10 +43,6 @@ pub mod things {
     app::{description, latex_demo},
     prelude::*,
   };
-
-  async fn add_parent(child: ThingId, parent: ThingId) -> AppResult<()> {
-    todo!()
-  }
 
   pub fn ThingView() -> impl IntoView {
     let id = Signal::derive(move || {

@@ -257,7 +257,7 @@ fn exp(input: &str) -> IResult<&str, LatexToken> {
         multispace0,
         preceded(tag("^"), delimited(ws(tag("{")), tokens, ws(tag("}")))),
       ),
-      |tokens| LatexToken::Exp(tokens),
+      LatexToken::Exp,
     ),
     map(preceded(multispace0, tag("^")), |_str| {
       LatexToken::Exp(vec![])
@@ -337,7 +337,7 @@ where
     .ok_or(E::from_error_kind(input, nom::error::ErrorKind::Char))
     .map_err(|err| nom::Err::Error(err))?;
   if char.is_alphabetic() {
-    return Ok((&input[1..], LatexToken::Ident(Ident::AlphabeticChar(char))));
+    Ok((&input[1..], LatexToken::Ident(Ident::AlphabeticChar(char))))
   } else {
     Err(nom::Err::Error(E::from_error_kind(
       input,
