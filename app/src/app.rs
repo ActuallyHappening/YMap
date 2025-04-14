@@ -38,6 +38,23 @@ pub fn App() -> impl IntoView {
   }
 }
 
+fn params_id() -> Signal<AppResult<ThingId>> {
+  Signal::derive(move || {
+    let str = leptos_router::hooks::use_params_map()
+      .get()
+      .get("id")
+      .expect("Only render ExploreChild with :id path param");
+    let id: ThingId =
+      format!("thing:{}", str)
+        .parse()
+        .map_err(|err| AppError::CouldntParseRecordId {
+          str: std::sync::Arc::from(str),
+          err: GenericError::from(err),
+        })?;
+    AppResult::Ok(id)
+  })
+}
+
 pub mod things;
 
 #[derive(Clone)]

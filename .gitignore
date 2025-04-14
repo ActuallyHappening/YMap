@@ -10,6 +10,9 @@
 !latex
 !generic-error
 
+# can remove
+!testing
+
 !.env.toml
 !.gitignore
 !Cargo.lock

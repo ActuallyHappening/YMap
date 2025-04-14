@@ -1,26 +1,22 @@
 use crate::{
-  app::{description, latex_demo},
+  app::{description, latex_demo, params_id},
   db::DbConn,
   prelude::*,
 };
 
 pub fn ThingView() -> impl IntoView {
-  let id = Signal::derive(move || {
-    ThingId::new_known(
-      leptos_router::hooks::use_params_map()
-        .get()
-        .get("id")
-        .expect("Only render main with :id path param")
-        .into(),
-    )
-  });
-  view! {
-    <FullView id=id />
-  }
+  let id = params_id();
+  let ui = move || {
+    let id = id.get()?;
+    AppResult::Ok(view! {
+      <FullView id=id />
+    })
+  };
+  ui.handle_error()
 }
 
 #[component]
-fn FullView(id: Signal<ThingId>) -> impl IntoView {
+fn FullView(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
   view! {
     // <ErrorBoundary name="Latex Demo">
       <description::DescriptionView id=id />

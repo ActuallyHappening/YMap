@@ -5,6 +5,8 @@ use crate::{
   prelude::*,
 };
 
+use super::params_id;
+
 /// Used to wrap the /explore route
 pub fn Explore() -> impl IntoView {
   view! {
@@ -26,22 +28,14 @@ pub fn ExploreRoot() -> impl IntoView {
 }
 
 pub fn ExploreChild() -> impl IntoView {
-  let id = Signal::derive(move || {
-    ThingId::new_known(
-      leptos_router::hooks::use_params_map()
-        .get()
-        .get("id")
-        .expect("Only render ExploreChild with :id path param")
-        .into(),
-    )
-  });
+  let id = params_id();
   let ids = LocalResource::new(move || {
     let child = id.get();
     async move {
       let children = DbConn::from_context()
         .read()
         .guest()?
-        .children_of_thing(child)
+        .children_of_thing(child?)
         .await?;
       AppResult::Ok(children)
     }

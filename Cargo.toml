@@ -6,7 +6,7 @@ members = [
     "db/layers",
     "generic-error",
     "latex",
-    "mathquill/*",
+    "mathquill/*", "testing",
     "thing",
     "thing/macros",
     "utils",
