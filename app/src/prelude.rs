@@ -1,12 +1,11 @@
 #![deny(ambiguous_glob_reexports)]
 
 pub use leptos::prelude::*;
-pub use leptos_router::components::Redirect;
+pub use leptos_router::components::*;
 pub use utils::prelude::*;
 
 pub use extension_traits::extension;
 pub use serde::{Deserialize, Serialize};
-pub use stylers::style;
 
 pub use db::prelude::*;
 pub use thing::prelude::*;

@@ -146,7 +146,6 @@ dependencies = [
  "leptos_router",
  "mathquill-leptos",
  "serde",
- "stylers",
  "surrealdb",
  "thing",
  "thiserror 2.0.12",
@@ -1327,15 +1326,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 
 [[package]]
-name = "document-features"
-version = "0.2.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95249b50c6c185bee49034bcb378a49dc2b5dff0be90ff6616d31d64febab05d"
-dependencies = [
- "litrs",
-]
-
-[[package]]
 name = "downcast-rs"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1764,12 +1754,6 @@ name = "gimli"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
-
-[[package]]
-name = "glob"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "gloo-net"
@@ -2595,12 +2579,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "levenshtein"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db13adb97ab515a3691f56e4dbab09283d0b86cb45abd991d8634a9d6f501760"
-
-[[package]]
 name = "lexicmp"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2654,15 +2632,6 @@ name = "litemap"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
-
-[[package]]
-name = "litrs"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
-dependencies = [
- "proc-macro2",
-]
 
 [[package]]
 name = "lock_api"
@@ -4599,59 +4568,6 @@ dependencies = [
  "quote",
  "rustversion",
  "syn 2.0.100",
-]
-
-[[package]]
-name = "stylers"
-version = "1.0.0-alpha"
-dependencies = [
- "camino",
- "color-eyre",
- "document-features",
- "glob",
- "proc-macro2",
- "stylers_core 1.0.2",
- "stylers_macro",
- "syn 2.0.100",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "stylers_core"
-version = "1.0.2"
-dependencies = [
- "levenshtein",
- "proc-macro2",
- "quote",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "tracing",
-]
-
-[[package]]
-name = "stylers_core"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fd79a61aa2757b6df658d33847e54b432afa140cddf927d982c4c7b842029b8"
-dependencies = [
- "levenshtein",
- "proc-macro2",
- "quote",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
-]
-
-[[package]]
-name = "stylers_macro"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7ca4407a87334ba23a42802d4934d2ff736c3c542ec83c409b147d8111d20a0"
-dependencies = [
- "litrs",
- "proc-macro2",
- "quote",
- "stylers_core 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

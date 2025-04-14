@@ -1,4 +1,3 @@
-use leptos_router::components::A;
 use thing::well_known::DocumentedPayload;
 
 use crate::{
@@ -6,32 +5,24 @@ use crate::{
   prelude::*,
 };
 
-const CLS: &str = style! {
-  div {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: stretch;
+/// Used to wrap the /explore route
+pub fn Explore() -> impl IntoView {
+  view! {
+    <div class="explore-root-erwouifnjk7fh">
+      <h1> "Explore the YMap knowledge database"</h1>
+      <Outlet />
+    </div>
   }
-};
+}
 
 /// See a things children
 pub fn ExploreRoot() -> impl IntoView {
   let root_things = root_things();
-  let thing_previews = move || {
-    root_things.get().map(|things| {
-      things
-        .into_iter()
-        .map(|id| view! { <ThingPreview id=id /> })
-        .collect_view()
-    })
+  let ui = move || {
+    let ids = root_things.get()?;
+    AppResult::Ok(view! { <ExploreThings ids=ids /> })
   };
-  let cls = CLS;
-  view! {
-    <h1> "Explore the YMap knowledge database"</h1>
-    <div class=cls>
-      { thing_previews.handle_error() }
-    </div>
-  }
+  ui.handle_error()
 }
 
 pub fn ExploreChild() -> impl IntoView {
@@ -59,7 +50,7 @@ pub fn ExploreChild() -> impl IntoView {
     None => Err(AppError::DataLoading),
     Some(ids) => {
       let ids = ids.take()?;
-      Ok(view! { <Explore ids=ids /> })
+      Ok(view! { <ExploreThings ids=ids /> })
     }
   };
   ui.handle_error()
@@ -67,7 +58,7 @@ pub fn ExploreChild() -> impl IntoView {
 
 /// Preview of thigns
 #[component]
-fn Explore(#[prop(into)] ids: Signal<Vec<ThingId>>) -> impl IntoView {
+fn ExploreThings(#[prop(into)] ids: Signal<Vec<ThingId>>) -> impl IntoView {
   let thing_previews = move || {
     ids
       .get()
@@ -75,31 +66,16 @@ fn Explore(#[prop(into)] ids: Signal<Vec<ThingId>>) -> impl IntoView {
       .map(|id| view! { <ThingPreview id=id /> })
       .collect_view()
   };
-  let cls = CLS;
   view! {
-    <h1> "Explore the YMap knowledge database"</h1>
-    <div class=cls>
+    <ul class="explore-things-hbn273869dchk374">
       { thing_previews }
-    </div>
+    </ul>
   }
 }
 
 #[component]
 fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
   let description = load_payload::<DocumentedPayload>(id);
-  let cls = style! {
-    div {
-      display: block;
-      width: 15rem;
-      height: 10rem;
-      border: 1px solid black;
-    }
-    div > :deep(p), :deep(pre) {
-      // text-wrap: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-  };
   let ui = move || -> AppResult<_> {
     let desc = description.get()?;
     let title = desc.payload().name.to_string();
@@ -113,9 +89,8 @@ fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
     })
   };
   view! {
-    class=cls,
-    <div>
+    <li class="thing-preview-oui2397840CH729384CH432h">
       { ui.handle_error() }
-    </div>
+    </li>
   }
 }

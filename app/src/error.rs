@@ -32,7 +32,7 @@ impl IntoRender for &AppError {
   fn into_render(self) -> Self::Output {
     let p = view! { <p> { self.to_string() } </p> };
     let pre = view! { <pre> { format!("{:?}", self) } </pre> };
-    (p, pre).into_any()
+    view! {<div class="error-hSDFKLJHhfhKLJDSFh732FH"> {p} {pre} </div>}.into_any()
   }
 }
 

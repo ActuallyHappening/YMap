@@ -1,9 +1,9 @@
 [alias]
 r = [
-  "run",
-  # "-Zcodegen-backend",
-  # "--config",
-  # "profile.dev.codegen-backend = \"cranelift\"",
+    "run",
+    # "-Zcodegen-backend",
+    # "--config",
+    # "profile.dev.codegen-backend = \"cranelift\"",
 ]
 xdb = ["r", "-p", "xdb", "--"]
 xserver = ["r", "-p", "xserver", "--"]
@@ -19,16 +19,19 @@ color = "always"
 [build]
 # rustflags = ['--cfg=getrandom_backend="wasm_js"']
 
-# very nice, I can't believe its this simpl!
+[target.'cfg(debug_assertions)']
+rustflags = ["--cfg=erase_components"]
+
+# very nice, I can't believe its this simple!
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg=getrandom_backend=\"wasm_js\""]
 
 [target.x86_64-unknown-linux-gnu]
 linker = "/usr/bin/clang"
 rustflags = [
-  "-C",
-  "link-arg=--ld-path=/usr/bin/mold",
-  "-Csplit-debuginfo=unpacked",
+    "-C",
+    "link-arg=--ld-path=/usr/bin/mold",
+    "-Csplit-debuginfo=unpacked",
 ]
 
 # # lld must be installed! Run: `brew install lld`
