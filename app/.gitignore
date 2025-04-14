@@ -3,6 +3,7 @@
 !.gitignore
 !Cargo.toml
 !index.html
+!Trunk.toml
 
 !src
 !styles

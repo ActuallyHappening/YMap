@@ -1,0 +1,151 @@
+@layer baseline-resets;
+@layer aggressive-resets;
+@layer standard-colours, hovered-colours, brand-themed;
+@layer baseline-resets {
+  /* Set core body defaults */
+  body {
+    min-height: 100vh;
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    line-height: 1.5;
+  }
+  /* A elements that don't have a class get default styles */
+  a:not([class]) {
+    text-decoration-skip-ink: auto;
+  }
+  /* Make images easier to work with */
+  img {
+    max-width: 100%;
+    display: block;
+  }
+  /* Remove all animations and transitions for people that prefer not to see them */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+@layer aggressive-resets {
+  * :not(table *, script, style, title, meta) {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    /* width: 100%; */
+    /* height: 100%; */
+    /* This is apparently safe and wise https://www.w3schools.com/csS/css3_box-sizing.asp */
+    box-sizing: border-box;
+    list-style: none;
+    /* font: inherit; */
+    text-align: center;
+    user-select: none;
+    text-decoration: none;
+    /* color: var(--text-primary); */
+    display: flex;
+    /* Flex alignment defaults */
+    flex-direction: column;
+    align-items: center;
+    align-content: space-around;
+    justify-content: space-evenly;
+  }
+}
+html {
+  --colour-black: black;
+  --colour-white: white;
+  --colour-brand-primary: #ff69b4;
+  --colour-accent-red: #ff0000;
+  --colour-background: var(--colour-white);
+  --colour-text-black: var(--colour-black);
+  --colour-link-black: var(--color-text-black);
+  --colour-link-black-hovered: var(--colour-brand-primary);
+  --colour-link-black-current: var(--colour-brand-primary);
+  --border-radius: 0.5rem;
+  --border-width: 0.2rem;
+  --padding: 0.2rem;
+  --margin: 0.2rem;
+  --size-h1: 3rem;
+  --icon-width: 2rem;
+  --font-standard: "League Spartan";
+  --font-accent: "Archivo Black";
+}
+
+@layer standard-colour {
+  hr {
+    width: 100%;
+    border-top: 1px solid var(--colour-black);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  html,
+body {
+    background-color: var(--colour-background);
+  }
+  html,
+body,
+p,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span {
+    font-family: var(--font-standard);
+    color: var(--colour-text-black);
+  }
+}
+@layer hovered-colours {
+  a {
+    font-family: var(--font-standard);
+  }
+  a:not(:hover) {
+    color: var(--colour-link-black) !important;
+  }
+  a:hover {
+    color: var(--colour-link-black-hovered) !important;
+  }
+  a[aria-current=page] {
+    color: var(--colour-link-black-current) !important;
+  }
+}
+@layer brand-themed {
+  *:not(.mathquill *) {
+    border-radius: var(--border-radius);
+    border: 0px solid black;
+  }
+  button {
+    padding: var(--padding);
+    margin: var(--margin);
+  }
+  h1 {
+    font-size: var(--size-h1);
+  }
+  input,
+textarea {
+    outline: none;
+  }
+}
+/* @use "stylers"; */
+.error-hSDFKLJHhfhKLJDSFh732FH {
+  overflow: hidden;
+}
+.error-hSDFKLJHhfhKLJDSFh732FH > p {
+  color: red;
+}
+
+.explore-root-erwouifnjk7fh > .explore-things-hbn273869dchk374 {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.explore-root-erwouifnjk7fh > .explore-things-hbn273869dchk374 > .thing-preview-oui2397840CH729384CH432h {
+  display: block;
+  min-width: 15rem;
+  min-height: 10rem;
+  border: 1px solid black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

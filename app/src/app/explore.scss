@@ -1,20 +1,20 @@
 .explore-root-erwouifnjk7fh {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: stretch;
-
     & > .explore-things-hbn273869dchk374 {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: stretch;
+
         & > .thing-preview-oui2397840CH729384CH432h {
             display: block;
-            width: 15rem;
-            height: 10rem;
+            min-width: 15rem;
+            min-height: 10rem;
             border: 1px solid black;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
             & > h2,
             a,
             p {
-                text-overflow: ellipsis;
-                overflow: hidden;
             }
         }
     }

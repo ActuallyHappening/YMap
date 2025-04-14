@@ -1,0 +1,7 @@
+# [[hooks]]
+# stage = "post_build"
+# command = "/home/ah/.cargo/bin/nu"
+# command_arguments = ["/home/ah/Desktop/YMap/app/styles/build-staging.nu"]
+
+[watch]
+watch = ["/home/ah/Desktop/YMap/app/index.html"]
