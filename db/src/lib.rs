@@ -26,6 +26,8 @@ pub mod prelude {
   pub use crate::things::ThingExt as _;
 }
 
+use std::collections::HashSet;
+
 pub use error::Error;
 use serde::de::DeserializeOwned;
 use surrealdb_layers::Table;
@@ -192,7 +194,7 @@ impl<Auth> Db<Auth> {
   pub async fn create_thing<P>(
     &self,
     thing: ThingBuilder<P>,
-    parents: Vec<ThingId>,
+    parents: HashSet<ThingId>,
   ) -> Result<(Thing<P>, Vec<ParentId>), Error>
   where
     P: Serialize + DeserializeOwned + IsPayload,
@@ -216,9 +218,18 @@ impl<Auth> Db<Auth> {
   pub async fn relate_parents(
     &self,
     child: ThingId,
-    parents: Vec<ThingId>,
+    parents: HashSet<ThingId>,
   ) -> Result<Vec<ParentId>, Error> {
     let parents_len = parents.len();
+    debug!(
+      "Calling fn::relate_parents({}, [{}])",
+      child,
+      parents
+        .iter()
+        .map(|id| id.to_string())
+        .collect::<Vec<_>>()
+        .join(", ")
+    );
     let ret: Vec<ParentId> = self
       .get_db()
       .query("fn::relate_parents($child, $parents)")
@@ -228,7 +239,11 @@ impl<Auth> Db<Auth> {
       .map_err(Error::CouldntRelateParents)?
       .take(0)
       .map_err(Error::CouldntRelateParents)?;
-    debug_assert_eq!(parents_len, ret.len());
+    #[cfg(debug_assertions)]
+    if parents_len != ret.len() {
+      error!(?ret);
+      panic!("Expected {} parents, got {}", parents_len, ret.len());
+    }
     Ok(ret)
   }
 }

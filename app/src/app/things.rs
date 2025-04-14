@@ -1,3 +1,5 @@
+use db::auth;
+
 use crate::{
   app::{description, latex_demo, params_id},
   db::DbConn,
@@ -29,20 +31,20 @@ fn FullView(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
 
 #[component]
 fn ManualAddParent(id: Signal<ThingId>) -> impl IntoView {
-  let add_parent = Action::new_local(move |info: &(ThingId, ThingId)| {
-    let (child, parent) = info.clone();
-    info!(?child, ?parent, "Linking child to parent");
-    let db = DbConn::from_context();
-    async move {
-      // let parent = db
-      //   .read()
-      //   .guest()?
-      //   .relate_parents(child, vec![parent])
-      //   .await?;
-      // AppResult::Ok(parent[0].clone())
-      AppResult::Ok(todo!())
-    }
-  });
+  let db = DbConn::from_context();
+  let add_parent = Action::new_local(
+    move |info: &(ThingId, ThingId, AppResult<Db<auth::NoAuth>>)| {
+      let (child, parent, db) = info.clone();
+      info!(?child, ?parent, "Linking child to parent");
+      async move {
+        let parent = db?
+          .relate_parents(child, [parent].into_iter().collect())
+          .await?;
+        AppResult::Ok(parent[0].clone())
+        // AppResult::Ok(todo!())
+      }
+    },
+  );
   let add_parent_computation = move || {
     let Some(res) = add_parent.value().get() else {
       return Err(AppError::None);
@@ -60,7 +62,7 @@ fn ManualAddParent(id: Signal<ThingId>) -> impl IntoView {
           str: std::sync::Arc::from(parent_id.get()),
         }))),
       Ok(parent) => {
-        add_parent.dispatch((id.get(), parent));
+        add_parent.dispatch((id.get(), parent, db.read().guest()));
       }
     }
   };
