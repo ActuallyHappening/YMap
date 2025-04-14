@@ -35,15 +35,24 @@ fn FullView(id: Signal<ThingId>) -> impl IntoView {
 fn ManualAddParent(id: Signal<ThingId>) -> impl IntoView {
   let add_parent = Action::new_local(move |info: &(ThingId, ThingId)| {
     let (child, parent) = info.clone();
+    info!(?child, ?parent, "Linking child to parent");
     let db = DbConn::from_context();
     async move {
-      db.read()
-        .guest()?
-        .relate_parents(child, vec![parent])
-        .await?;
-      AppResult::Ok(())
+      // let parent = db
+      //   .read()
+      //   .guest()?
+      //   .relate_parents(child, vec![parent])
+      //   .await?;
+      // AppResult::Ok(parent[0].clone())
+      AppResult::Ok(todo!())
     }
   });
+  let add_parent_computation = move || {
+    let Some(res) = add_parent.value().get() else {
+      return Err(AppError::None);
+    };
+    res.map(|parent_id| view! { <p> {format!("Successfully linked this record with a parent ({})", parent_id)} </p> } )
+  };
   let parent_id = RwSignal::new(String::new());
   let on_click = move |_| {
     let res = parent_id.get().parse::<ThingId>();
@@ -61,11 +70,12 @@ fn ManualAddParent(id: Signal<ThingId>) -> impl IntoView {
   };
   view! {
     <div>
-    <label for="parent-id">"Manually add a parent:"</label>
+      <label for="parent-id">"Manually add a parent:"</label>
       <input type="text" name="parent-id" placeholder="Parent ID" bind:value=parent_id />
       <button on:click=on_click>
         "Add parent"
       </button>
+      { add_parent_computation.handle_error() }
     </div>
   }
 }

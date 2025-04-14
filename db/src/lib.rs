@@ -146,12 +146,12 @@ impl<Auth> Db<Auth> {
   /// ```
   pub async fn root_things(&self) -> Result<Vec<ThingId>, Error> {
     self
-        .get_db()
-        .query("fn::root_things()")
-        .await
-        .map_err(Error::CouldntListRootThings)?
-        .take(0)
-        .map_err(Error::CouldntListRootThings)
+      .get_db()
+      .query("fn::root_things()")
+      .await
+      .map_err(Error::CouldntListRootThings)?
+      .take(0)
+      .map_err(Error::CouldntListRootThings)
   }
 
   /// ```surql
@@ -161,13 +161,13 @@ impl<Auth> Db<Auth> {
   /// ```
   pub async fn parents_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
     self
-        .get_db()
-        .query("fn::parents_of_thing($id)")
-        .bind(("id", id))
-        .await
-        .map_err(Error::CouldntListParents)?
-        .take(0)
-        .map_err(Error::CouldntListParents)
+      .get_db()
+      .query("fn::parents_of_thing($id)")
+      .bind(("id", id))
+      .await
+      .map_err(Error::CouldntListParents)?
+      .take(0)
+      .map_err(Error::CouldntListParents)
   }
 
   /// ```surql
@@ -177,13 +177,13 @@ impl<Auth> Db<Auth> {
   /// ```
   pub async fn children_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
     self
-        .get_db()
-        .query("fn::children_of_thing($id)")
-        .bind(("id", id))
-        .await
-        .map_err(Error::CouldntListChildren)?
-        .take(0)
-        .map_err(Error::CouldntListChildren)
+      .get_db()
+      .query("fn::children_of_thing($id)")
+      .bind(("id", id))
+      .await
+      .map_err(Error::CouldntListChildren)?
+      .take(0)
+      .map_err(Error::CouldntListChildren)
   }
 }
 
@@ -218,15 +218,18 @@ impl<Auth> Db<Auth> {
     child: ThingId,
     parents: Vec<ThingId>,
   ) -> Result<Vec<ParentId>, Error> {
-    self
-        .get_db()
-        .query("fn::relate_parents($child, $parents)")
-        .bind(("child", child))
-        .bind(("parents", parents))
-        .await
-        .map_err(Error::CouldntRelateParents)?
-        .take(0)
-        .map_err(Error::CouldntRelateParents)
+    let parents_len = parents.len();
+    let ret: Vec<ParentId> = self
+      .get_db()
+      .query("fn::relate_parents($child, $parents)")
+      .bind(("child", child))
+      .bind(("parents", parents))
+      .await
+      .map_err(Error::CouldntRelateParents)?
+      .take(0)
+      .map_err(Error::CouldntRelateParents)?;
+    debug_assert_eq!(parents_len, ret.len());
+    Ok(ret)
   }
 }
 

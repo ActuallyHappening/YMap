@@ -31,12 +31,19 @@ pub enum AppError {
     #[source]
     err: GenericError<surrealdb::Error>,
   },
+
+  /// Won't render anything on error
+  #[error("YOU SHOULD NEVER SEE THIS")]
+  None,
 }
 
 impl IntoRender for &AppError {
   type Output = AnyView;
 
   fn into_render(self) -> Self::Output {
+    if matches!(self, AppError::None) {
+      return ().into_any();
+    }
     let p = view! { <p> { self.to_string() } </p> };
     let pre = view! { <p> { format!("{:?}", self) } </p> };
     view! {<details class="error-hSDFKLJHhfhKLJDSFh732FH"> <summary>"An error occurred: " {p}</summary> {pre} </details>}
