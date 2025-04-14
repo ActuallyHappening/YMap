@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use surrealdb::opt::IntoResource;
+use surrealdb::opt::{CreateResource, IntoResource};
 
 use crate::prelude::*;
 
@@ -26,6 +26,12 @@ impl surrealdb_layers::Id for ThingId {
 }
 
 impl<P> IntoResource<Option<Thing<P>>> for ThingId {
+  fn into_resource(self) -> surrealdb::Result<surrealdb::opt::Resource> {
+    IntoResource::<Option<Thing<P>>>::into_resource(self.0)
+  }
+}
+
+impl<P> CreateResource<Option<Thing<P>>> for ThingId {
   fn into_resource(self) -> surrealdb::Result<surrealdb::opt::Resource> {
     IntoResource::<Option<Thing<P>>>::into_resource(self.0)
   }

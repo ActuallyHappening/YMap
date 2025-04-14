@@ -44,12 +44,21 @@ pub enum Error {
   #[error("Item deleted")]
   LiveQueryItemDeleted(surrealdb::RecordId),
 
+  #[error("Couldn't create thing")]
+  CouldntCreateThing(#[source] surrealdb::Error),
+  
+  #[error("Failed to create thing")]
+  CreatedThingNone,
+
   #[error("Couldn't get root things")]
   CouldntListRootThings(#[source] surrealdb::Error),
-  
+
   #[error("Couldn't list parents")]
   CouldntListParents(#[source] surrealdb::Error),
 
   #[error("Couldn't list children")]
   CouldntListChildren(#[source] surrealdb::Error),
+
+  #[error("Couldn't relate parents")]
+  CouldntRelateParents(#[source] surrealdb::Error),
 }

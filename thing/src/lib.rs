@@ -1,8 +1,22 @@
 #![allow(unused_imports, async_fn_in_trait)]
 
-pub mod prelude;
+pub use id::ThingId;
 
 pub mod errors;
+pub mod id;
+pub mod parent;
+pub mod payload;
+pub mod prelude;
+pub mod well_known;
+pub mod builder {
+  use crate::prelude::*;
+
+  /// Used for creating new [`Thing`]s
+  #[derive(Serialize, Debug)]
+  pub struct ThingBuilder<P> {
+    pub payload: P,
+  }
+}
 
 use crate::prelude::*;
 
@@ -45,10 +59,3 @@ impl<P> Payload for Thing<P> {
     &self.payload
   }
 }
-
-pub mod parent;
-pub mod payload;
-pub mod well_known;
-
-pub use id::ThingId;
-pub mod id;

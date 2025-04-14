@@ -1,7 +1,7 @@
 #![allow(async_fn_in_trait, unused_imports)]
 
 pub mod prelude {
-  pub use super::{ConnBuilderUrl as _, GetDb as _, Id as _, Table as _};
+  pub use super::{ConnBuilderUrl as _, GetDb as _, GetId as _, Id as _, Table as _};
   pub use surrealdb::Surreal;
   pub use surrealdb::engine::any::Any;
 }

@@ -27,7 +27,9 @@ pub mod prelude {
 }
 
 pub use error::Error;
-use thing::ThingId;
+use serde::de::DeserializeOwned;
+use surrealdb_layers::Table;
+use thing::{Thing, ThingId, builder::ThingBuilder, parent::ParentId, payload::IsPayload};
 pub mod error;
 
 pub mod user;
@@ -195,14 +197,44 @@ impl<Auth> Db<Auth> {
 impl<Auth> Db<Auth> {
   pub async fn create_thing<P>(
     &self,
-    thing: Thing<P>,
+    thing: ThingBuilder<P>,
     parents: Vec<ThingId>,
-  ) -> Result<Thing<P>, Error> {
-    todo!()
+  ) -> Result<(Thing<P>, Vec<ParentId>), Error>
+  where
+    P: Serialize + DeserializeOwned + IsPayload,
+  {
+    let thing: Thing<P> = self
+      .get_db()
+      .create(Thing::<()>::TABLE)
+      .content(thing)
+      .await
+      .map_err(Error::CouldntCreateThing)?
+      .ok_or(Error::CreatedThingNone)?;
+    let parents = self.relate_parents(thing.id(), parents).await?;
+    Ok((thing, parents))
   }
 
-  pub async fn relate_parents(&self, child: ThingId, parents: Vec<ThingId>) -> Result<(), Error> {
-    todo!()
+  /// ```surql
+  /// DEFINE FUNCTION OVERWRITE fn::relate_parents($child: record<thing>, $parents: set<record<thing>>) {
+  ///   RETURN (RELATE $child -> parent -> $parents);
+  /// };
+  /// ```
+  pub async fn relate_parents(
+    &self,
+    child: ThingId,
+    parents: Vec<ThingId>,
+  ) -> Result<Vec<ParentId>, Error> {
+    Ok(
+      self
+        .get_db()
+        .query("fn::relate_parents($child, $parents)")
+        .bind(("child", child))
+        .bind(("parents", parents))
+        .await
+        .map_err(Error::CouldntRelateParents)?
+        .take(0)
+        .map_err(Error::CouldntRelateParents)?,
+    )
   }
 }
 
