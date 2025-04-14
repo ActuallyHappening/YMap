@@ -46,6 +46,7 @@ impl<P> Payload for Thing<P> {
   }
 }
 
+pub mod parent;
 pub mod payload;
 pub mod well_known;
 

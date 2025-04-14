@@ -134,6 +134,7 @@ impl Db<auth::User> {
   }
 }
 
+/// Select primitives
 impl<Auth> Db<Auth> {
   /// ```surql
   /// DEFINE FUNCTION OVERWRITE fn::root_things() {
@@ -187,6 +188,21 @@ impl<Auth> Db<Auth> {
         .take(0)
         .map_err(Error::CouldntListChildren)?,
     )
+  }
+}
+
+/// Create primitives
+impl<Auth> Db<Auth> {
+  pub async fn create_thing<P>(
+    &self,
+    thing: Thing<P>,
+    parents: Vec<ThingId>,
+  ) -> Result<Thing<P>, Error> {
+    todo!()
+  }
+
+  pub async fn relate_parents(&self, child: ThingId, parents: Vec<ThingId>) -> Result<(), Error> {
+    todo!()
   }
 }
 

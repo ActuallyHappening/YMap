@@ -12,6 +12,7 @@ surrealdb-layers.workspace = true
 extension-traits = "2.0.0"
 thiserror = "2.0.12"
 thing-macros.workspace = true
+time = { version = "0.3.41", features = ["serde"] }
 
 [dev-dependencies]
 color-eyre = "0.6.3"
