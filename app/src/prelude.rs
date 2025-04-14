@@ -1,3 +1,5 @@
+#![deny(ambiguous_glob_reexports)]
+
 pub use leptos::prelude::*;
 pub use leptos_router::components::Redirect;
 pub use utils::prelude::*;
@@ -10,6 +12,6 @@ pub use db::prelude::*;
 pub use thing::prelude::*;
 pub use thing::{Thing, ThingId};
 
-pub use crate::error::ErrorBoundary;
+pub use crate::error::AppErrorBoundary;
 pub use crate::error::*;
 pub use generic_err::GenericError;

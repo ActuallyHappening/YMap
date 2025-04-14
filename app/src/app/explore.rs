@@ -2,7 +2,7 @@ use leptos_router::components::A;
 use thing::well_known::DocumentedPayload;
 
 use crate::{
-  db::{load_payload, root_things},
+  db::{DbConn, load_payload, root_things},
   prelude::*,
 };
 
@@ -40,30 +40,46 @@ pub fn ExploreChild() -> impl IntoView {
       leptos_router::hooks::use_params_map()
         .get()
         .get("id")
-        .expect("Only render main with :id path param")
+        .expect("Only render ExploreChild with :id path param")
         .into(),
     )
   });
-  view! { <Explore id=id /> }
+  let ids = LocalResource::new(move || {
+    let child = id.get();
+    async move {
+      let children = DbConn::from_context()
+        .read()
+        .guest()?
+        .children_of_thing(child)
+        .await?;
+      AppResult::Ok(children)
+    }
+  });
+  let ui = move || match ids.get() {
+    None => Err(AppError::DataLoading),
+    Some(ids) => {
+      let ids = ids.take()?;
+      Ok(view! { <Explore ids=ids /> })
+    }
+  };
+  ui.handle_error()
 }
 
-/// See a things children
+/// Preview of thigns
 #[component]
-fn Explore(id: Signal<ThingId>) -> impl IntoView {
-  let root_things = root_things();
+fn Explore(#[prop(into)] ids: Signal<Vec<ThingId>>) -> impl IntoView {
   let thing_previews = move || {
-    root_things.get().map(|things| {
-      things
-        .into_iter()
-        .map(|id| view! { <ThingPreview id=id /> })
-        .collect_view()
-    })
+    ids
+      .get()
+      .into_iter()
+      .map(|id| view! { <ThingPreview id=id /> })
+      .collect_view()
   };
   let cls = CLS;
   view! {
     <h1> "Explore the YMap knowledge database"</h1>
     <div class=cls>
-      { thing_previews.handle_error() }
+      { thing_previews }
     </div>
   }
 }
@@ -90,8 +106,8 @@ fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
     // let description = desc.payload().description.to_string();
     Ok(view! {
       <h2>{title}</h2>
-      <A href=format!("/thing/{}", id.get())>"Go to"</A>
-      <A href=format!("/explore/{}", id.get())>"Explore"</A>
+      <A href=format!("/thing/{}", id.get().key())>"Go to"</A>
+      <A href=format!("/explore/{}", id.get().key())>"Explore"</A>
       <p>{move || id.get().to_string()}</p>
       // <p>{description}</p>
     })

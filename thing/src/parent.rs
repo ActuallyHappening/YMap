@@ -48,5 +48,9 @@ mod id {
     fn new_known(key: surrealdb::RecordIdKey) -> Self {
       Self((Parent::TABLE, key).into())
     }
+
+    fn get_key(&self) -> &surrealdb::RecordIdKey {
+      self.0.key()
+    }
   }
 }

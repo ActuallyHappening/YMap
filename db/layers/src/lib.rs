@@ -54,6 +54,10 @@ pub trait Id:
   const TABLE: &str = Self::Table::TABLE;
 
   fn new_known(key: surrealdb::RecordIdKey) -> Self;
+  fn get_key(&self) -> &surrealdb::RecordIdKey;
+  fn key(&self) -> surrealdb::RecordIdKey {
+    self.get_key().clone()
+  }
 }
 
 /// For your db wrapper types, allows you to access the underlying db,

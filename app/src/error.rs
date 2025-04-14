@@ -68,7 +68,7 @@ impl From<surrealdb_layers::Error> for AppError {
 }
 
 #[component]
-pub fn ErrorBoundary(
+pub fn AppErrorBoundary(
   children: Children,
   #[prop(into, default = None)] name: Option<&'static str>,
 ) -> impl IntoView {

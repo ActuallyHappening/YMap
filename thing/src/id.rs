@@ -23,6 +23,10 @@ impl surrealdb_layers::Id for ThingId {
   fn new_known(key: surrealdb::RecordIdKey) -> Self {
     Self((Thing::<()>::TABLE, key).into())
   }
+
+  fn get_key(&self) -> &surrealdb::RecordIdKey {
+    self.0.key()
+  }
 }
 
 impl<P> IntoResource<Option<Thing<P>>> for ThingId {
