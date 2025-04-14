@@ -22,10 +22,14 @@ pub fn App() -> impl IntoView {
       <main>
         <Routes fallback=|| "404 Not Found">
           <Route path=path!("/") view=|| view! { <Redirect path="/explore" /> } />
-          <Route path=path!("/explore") view=explore::ExploreRoot />
+          // <Route path=path!("/explore") view=explore::ExploreRoot />
+          <ParentRoute path=path!("/explore") view=Outlet>
+            <Route path=path!("") view=explore::ExploreRoot />
+            <Route path=path!(":id") view=explore::ExploreChild />
+          </ParentRoute>
           <ParentRoute path=path!("/thing") view=Outlet>
             <Route path=path!("") view=|| view! { <Redirect path="/explore" /> } />
-            <Route path=path!(":id") view=|| view! { <Main /> } />
+            <Route path=path!(":id") view=|| view! { <things::ThingView /> } />
           </ParentRoute>
         </Routes>
       </main>
@@ -37,28 +41,39 @@ pub fn App() -> impl IntoView {
   }
 }
 
-pub fn Main() -> impl IntoView {
-  let id = Signal::derive(move || {
-    ThingId::new_known(
-      leptos_router::hooks::use_params_map()
-        .get()
-        .get("id")
-        .expect("Only render main with :id path param")
-        .into(),
-    )
-  });
-  view! {
-    <ThingView id=id />
-  }
-}
+pub mod things {
+  use crate::{
+    app::{description, latex_demo},
+    prelude::*,
+  };
 
-#[component]
-pub fn ThingView(id: Signal<ThingId>) -> impl IntoView {
-  view! {
-    // <ErrorBoundary name="Latex Demo">
-      <description::DescriptionView id=id />
-      <latex_demo::LatexDemo id=id />
-    // </ErrorBoundary>
+  async fn add_parent(child: ThingId, parent: ThingId) -> AppResult<()> {
+    todo!()
+  }
+
+  pub fn ThingView() -> impl IntoView {
+    let id = Signal::derive(move || {
+      ThingId::new_known(
+        leptos_router::hooks::use_params_map()
+          .get()
+          .get("id")
+          .expect("Only render main with :id path param")
+          .into(),
+      )
+    });
+    view! {
+      <FullView id=id />
+    }
+  }
+
+  #[component]
+  fn FullView(id: Signal<ThingId>) -> impl IntoView {
+    view! {
+      // <ErrorBoundary name="Latex Demo">
+        <description::DescriptionView id=id />
+        <latex_demo::LatexDemo id=id />
+      // </ErrorBoundary>
+    }
   }
 }
 

@@ -46,4 +46,10 @@ pub enum Error {
 
   #[error("Couldn't get root things")]
   CouldntListRootThings(#[source] surrealdb::Error),
+  
+  #[error("Couldn't list parents")]
+  CouldntListParents(#[source] surrealdb::Error),
+
+  #[error("Couldn't list children")]
+  CouldntListChildren(#[source] surrealdb::Error),
 }

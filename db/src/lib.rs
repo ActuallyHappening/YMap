@@ -135,6 +135,12 @@ impl Db<auth::User> {
 }
 
 impl<Auth> Db<Auth> {
+  /// ```surql
+  /// DEFINE FUNCTION OVERWRITE fn::root_things() {
+  ///   let $mentioned_as_children = <set>(SELECT in FROM parent).map(|$val| $val.in);
+  ///   RETURN (SELECT id FROM thing WHERE !($mentioned_as_children.matches(id).any())).map(|$id| $id.id);
+  /// };
+  /// ```
   pub async fn root_things(&self) -> Result<Vec<ThingId>, Error> {
     Ok(
       self
@@ -144,6 +150,42 @@ impl<Auth> Db<Auth> {
         .map_err(Error::CouldntListRootThings)?
         .take(0)
         .map_err(Error::CouldntListRootThings)?,
+    )
+  }
+
+  /// ```surql
+  /// DEFINE FUNCTION OVERWRITE fn::parents_of_thing($id: record<thing>) {
+  ///   RETURN (SELECT -> parent -> thing AS parents FROM $id).map(|$val| $val.parents)[0];
+  /// };
+  /// ```
+  pub async fn parents_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
+    Ok(
+      self
+        .get_db()
+        .query("fn::parents_of_thing($id)")
+        .bind(("id", id))
+        .await
+        .map_err(Error::CouldntListParents)?
+        .take(0)
+        .map_err(Error::CouldntListParents)?,
+    )
+  }
+
+  /// ```surql
+  /// DEFINE FUNCTION OVERWRITE fn::children_of_thing($id: record<thing>) {
+  ///   RETURN (SELECT <- parent <- thing AS children FROM $id).map(|$val| $val.children)[0];
+  /// };
+  /// ```
+  pub async fn children_of_thing(&self, id: ThingId) -> Result<Vec<ThingId>, Error> {
+    Ok(
+      self
+        .get_db()
+        .query("fn::children_of_thing($id)")
+        .bind(("id", id))
+        .await
+        .map_err(Error::CouldntListChildren)?
+        .take(0)
+        .map_err(Error::CouldntListChildren)?,
     )
   }
 }
