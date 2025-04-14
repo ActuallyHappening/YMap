@@ -172,6 +172,7 @@ fn root_owner() -> Owner {
 }
 
 impl<P: IsPayload> Context<P> {
+  /// Root
   fn get_or_init() -> Self {
     root_owner().with(|| {
       if use_context::<Self>().is_none() {
@@ -181,14 +182,17 @@ impl<P: IsPayload> Context<P> {
     })
   }
 
+  /// Root
   pub fn use_context(id: ThingId) -> Option<PayloadCache<P>> {
-    Self::get_or_init().0.get().get(&id).map(|p| p.clone())
+    root_owner().with(|| Self::get_or_init().0.get().get(&id).map(|p| p.clone()))
   }
+  /// Root
   pub fn expect_context(id: ThingId) -> PayloadCache<P> {
     Self::use_context(id).expect(
       "You called Context::expect_context, but an entry with the specified ThingId wasn't found",
     )
   }
+  /// Root
   pub fn set_context(id: ThingId, payload: PayloadCache<P>) {
     Self::get_or_init().0.update(|map| {
       map.insert(id, payload);
@@ -235,9 +239,17 @@ fn raw_load_payload<P>(id: ThingId) -> Result<Thing<P>, AppError>
 where
   P: IsPayload + Clone + std::fmt::Debug + Unpin,
 {
+  debug!(
+    "Loading raw payload for id {:?} {} (payload type {:?})",
+    id,
+    id,
+    std::any::type_name::<P>()
+  );
   if let Some(s) = Context::<P>::use_context(id.clone()) {
+    trace!("Cached");
     return s.resolve();
   }
+  trace!("Not cached, initializing");
 
   // now we are initializing global state
   root_owner().with(|| {
