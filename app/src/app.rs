@@ -38,37 +38,7 @@ pub fn App() -> impl IntoView {
   }
 }
 
-pub mod things {
-  use crate::{
-    app::{description, latex_demo},
-    prelude::*,
-  };
-
-  pub fn ThingView() -> impl IntoView {
-    let id = Signal::derive(move || {
-      ThingId::new_known(
-        leptos_router::hooks::use_params_map()
-          .get()
-          .get("id")
-          .expect("Only render main with :id path param")
-          .into(),
-      )
-    });
-    view! {
-      <FullView id=id />
-    }
-  }
-
-  #[component]
-  fn FullView(id: Signal<ThingId>) -> impl IntoView {
-    view! {
-      // <ErrorBoundary name="Latex Demo">
-        <description::DescriptionView id=id />
-        <latex_demo::LatexDemo id=id />
-      // </ErrorBoundary>
-    }
-  }
-}
+pub mod things;
 
 #[derive(Clone)]
 pub(crate) struct RootOwner(pub Owner);

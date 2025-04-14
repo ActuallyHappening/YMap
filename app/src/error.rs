@@ -24,6 +24,13 @@ pub enum AppError {
 
   #[error("Couldn't load payload for thing with id {id}")]
   KnownRecordWrongPayload { id: ThingId },
+
+  #[error("Please provide a valid record id")]
+  CouldntParseRecordId {
+    str: std::sync::Arc<str>,
+    #[source]
+    err: GenericError<surrealdb::Error>,
+  },
 }
 
 impl IntoRender for &AppError {
@@ -31,8 +38,9 @@ impl IntoRender for &AppError {
 
   fn into_render(self) -> Self::Output {
     let p = view! { <p> { self.to_string() } </p> };
-    let pre = view! { <pre> { format!("{:?}", self) } </pre> };
-    view! {<div class="error-hSDFKLJHhfhKLJDSFh732FH"> {p} {pre} </div>}.into_any()
+    let pre = view! { <p> { format!("{:?}", self) } </p> };
+    view! {<details class="error-hSDFKLJHhfhKLJDSFh732FH"> <summary>"An error occurred: " {p}</summary> {pre} </details>}
+      .into_any()
   }
 }
 

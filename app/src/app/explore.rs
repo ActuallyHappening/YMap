@@ -82,15 +82,15 @@ fn ThingPreview(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
     // let description = desc.payload().description.to_string();
     Ok(view! {
       <h2>{title}</h2>
-      <A href=format!("/thing/{}", id.get().key())>"Go to"</A>
-      <A href=format!("/explore/{}", id.get().key())>"Explore"</A>
-      <p>{move || id.get().to_string()}</p>
       // <p>{description}</p>
     })
   };
   view! {
     <div class="thing-preview-oui2397840CH729384CH432h">
       { ui.handle_error() }
+      <A href=format!("/thing/{}", id.get().key())>"Go to"</A>
+      <A href=format!("/explore/{}", id.get().key())>"Explore"</A>
+      <p>{move || id.get().to_string()}</p>
     </div>
   }
 }
