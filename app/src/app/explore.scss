@@ -1,20 +1,26 @@
 .explore-root-erwouifnjk7fh {
-    & > .explore-things-hbn273869dchk374 {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: stretch;
+    flex-direction: row;
 
-        & > .thing-preview-oui2397840CH729384CH432h {
-            display: block;
-            min-width: 15rem;
-            min-height: 10rem;
-            border: 1px solid black;
-            overflow: hidden;
-            text-overflow: ellipsis;
+    & > .expore-content-fdsh7432589FHDbdf {
+        flex-direction: column;
 
-            & > h2,
-            a,
-            p {
+        & > .explore-things-hbn273869dchk374 {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: stretch;
+
+            & > .thing-preview-oui2397840CH729384CH432h {
+                display: block;
+                min-width: 15rem;
+                min-height: 10rem;
+                border: 1px solid black;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                & > h2,
+                a,
+                p {
+                }
             }
         }
     }

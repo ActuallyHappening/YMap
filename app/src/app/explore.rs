@@ -11,8 +11,10 @@ use super::params_id;
 pub fn Explore() -> impl IntoView {
   view! {
     <div class="explore-root-erwouifnjk7fh">
-      <h1> "Explore the YMap knowledge database"</h1>
-      <Outlet />
+      <div class="expore-content-fdsh7432589FHDbdf">
+        <h1> "Explore the YMap knowledge database"</h1>
+        <Outlet />
+      </div>
     </div>
   }
 }

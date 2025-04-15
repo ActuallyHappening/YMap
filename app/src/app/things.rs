@@ -18,7 +18,7 @@ pub fn ThingView() -> impl IntoView {
 }
 
 #[component]
-fn FullView(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
+pub fn FullView(#[prop(into)] id: Signal<ThingId>) -> impl IntoView {
   view! {
     // <ErrorBoundary name="Latex Demo">
       <description::DescriptionView id=id />
