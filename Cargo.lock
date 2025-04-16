@@ -1729,9 +1729,11 @@ name = "dioxus"
 version = "0.1.0"
 dependencies = [
  "dioxus 0.6.3",
+ "generic-err",
  "getrandom 0.3.2",
  "surrealdb",
  "thing",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

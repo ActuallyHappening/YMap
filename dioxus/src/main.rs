@@ -1,5 +1,6 @@
 pub mod components;
 mod prelude;
+pub mod errors;
 
 use crate::prelude::*;
 

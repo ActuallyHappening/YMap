@@ -8,9 +8,11 @@ edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.6.0", features = ["router"] }
+generic-err.workspace = true
 getrandom = { version = "0.3", features = ["wasm_js"] }
 surrealdb = "2.2.2"
 thing.workspace = true
+thiserror = "2.0.12"
 
 [features]
 default = ["web"]
