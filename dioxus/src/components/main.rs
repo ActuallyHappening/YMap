@@ -7,6 +7,7 @@ pub fn Main() -> Element {
     document::Stylesheet { href: CSS }
     main {
       class: "main-2e9f4c7a71b86fd843771c927a6be20e",
+      components::navbar::NavBar {}
       components::sidebar::SideBar {}
       div {
         "Main"

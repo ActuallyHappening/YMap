@@ -1,0 +1,8 @@
+#navbar-6465feb77a19f9ff0cf92f0936729085 {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    flex-direction: row;
+    background-color: var(--colour-secondary);
+    height: 3rem;
+}
