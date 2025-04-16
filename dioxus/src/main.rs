@@ -20,9 +20,21 @@ mod routes {
 
   #[derive(Routable, Clone, PartialEq)]
   pub enum Route {
+    #[layout(components::main::Main)]
     #[redirect("/", || Route::ExploreRoot)]
     #[route("/explore")]
     ExploreRoot,
+
+    #[route("/:..route")]
+    PageNotFound { route: Vec<String> },
+  }
+
+  #[component]
+  fn PageNotFound(route: Vec<String>) -> Element {
+    rsx! {
+      h1 { "Page not found" }
+      p { "The page you requested doesn't exist" }
+    }
   }
 }
 
@@ -30,6 +42,6 @@ mod routes {
 fn App() -> Element {
   rsx! {
     document::Stylesheet { href: CSS }
-    components::main::Main {}
+    Router::<Route> {}
   }
 }
