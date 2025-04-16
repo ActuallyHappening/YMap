@@ -1,0 +1,8 @@
+.thing-a22e93084e3bef59733a6ba8f99c7e63 {
+    display: block;
+    min-width: 15rem;
+    min-height: 10rem;
+    border: 1px solid var(--colour-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

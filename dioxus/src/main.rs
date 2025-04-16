@@ -1,8 +1,5 @@
-mod prelude {
-  pub use crate::components;
-  pub use dioxus::prelude::*;
-}
 pub mod components;
+mod prelude;
 
 use crate::prelude::*;
 
@@ -21,9 +18,9 @@ mod routes {
   #[derive(Routable, Clone, PartialEq)]
   pub enum Route {
     #[layout(components::main::Main)]
-    #[redirect("/", || Route::ExploreRoot)]
+    #[redirect("/", || Route::ExploreRoot {})]
     #[route("/explore")]
-    ExploreRoot,
+    ExploreRoot {},
 
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },

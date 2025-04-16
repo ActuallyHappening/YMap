@@ -8,6 +8,9 @@ edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.6.0", features = ["router"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
+surrealdb = "2.2.2"
+thing.workspace = true
 
 [features]
 default = ["web"]
