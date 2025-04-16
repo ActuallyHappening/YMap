@@ -6,7 +6,7 @@ pub fn NavBar() -> Element {
 
   rsx! {
     document::Stylesheet { href: CSS }
-    div {
+    nav {
       id: "navbar-6465feb77a19f9ff0cf92f0936729085"
     }
   }

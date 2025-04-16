@@ -1,4 +1,7 @@
-.main-2e9f4c7a71b86fd843771c927a6be20e {
+#main-2e9f4c7a71b86fd843771c927a6be20e {
     flex-direction: row;
     justify-content: space-between;
+    & > #main-content-8d5361af431d152c99c7c7e39814ff2b {
+        flex-direction: column;
+    }
 }
