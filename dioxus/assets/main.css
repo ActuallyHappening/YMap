@@ -1,8 +1,6 @@
 @layer baseline {
     /* App-wide styling */
     body {
-        background-color: #0f1116;
-        color: #ffffff;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
 
@@ -22,7 +20,8 @@
     }
 
     html,
-    body {
+    body,
+    main {
         margin: 0;
         padding: 0;
 
@@ -44,5 +43,26 @@
 
         /* This is apparently safe and wise https://www.w3schools.com/csS/css3_box-sizing.asp */
         box-sizing: border-box;
+    }
+}
+
+@layer brand {
+    :root {
+        --colour-brand-h: 210;
+
+        --colour-primary: hsl(var(--colour-brand-h) 50% 90%);
+        --colour-secondary: hsl(calc(var(--colour-brand-h) + 0) 50% 10%);
+        --colour-tertiary: hsl(calc(var(--colour-brand-h) + 60) 80% 20%);
+        --colour-accent: hsl(calc(var(--colour-brand-h) - 60) 80% 20%);
+    }
+    .dark {
+        --colour-primary: hsl(var(--colour-brand-h) 50% 10%);
+        --colour-secondary: hsl(calc(var(--colour-brand-h) + 0) 50% 90%);
+        --colour-tertiary: hsl(calc(var(--colour-brand-h) + 60) 80% 80%);
+        --colour-accent: hsl(calc(var(--colour-brand-h) - 60) 80% 80%);
+    }
+
+    body {
+        background-color: var(--colour-primary);
     }
 }
