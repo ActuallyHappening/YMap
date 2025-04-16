@@ -2,6 +2,7 @@
 
 !.cargo
 !app
+!dioxus
 !utils
 !mathquill
 !db

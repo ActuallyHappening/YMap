@@ -6,10 +6,12 @@ members = [
     "db/layers",
     "generic-error",
     "latex",
-    "mathquill/*", "testing",
+    "mathquill/*",
+    "testing",
     "thing",
     "thing/macros",
     "utils",
+    "dioxus", "dioxus",
 ]
 resolver = "3"
 
@@ -24,3 +26,15 @@ db = { path = "./db" }
 thing = { path = "./thing" }
 thing-macros = { path = "./thing/macros" }
 generic-err = { path = "./generic-error" }
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
