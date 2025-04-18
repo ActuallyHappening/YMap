@@ -254,6 +254,15 @@ impl<Auth> surrealdb_layers::GetDb for Db<Auth> {
   }
 }
 
+impl<Auth> std::fmt::Debug for Db<Auth>
+where
+  Auth: std::fmt::Debug,
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Db").field("auth", &self.auth).finish()
+  }
+}
+
 pub mod auth;
 pub mod conn;
 pub mod creds;

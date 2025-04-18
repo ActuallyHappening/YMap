@@ -1,6 +1,6 @@
 pub mod components;
-mod prelude;
 pub mod errors;
+mod prelude;
 
 use crate::prelude::*;
 
@@ -40,6 +40,16 @@ mod routes {
 fn App() -> Element {
   rsx! {
     document::Stylesheet { href: CSS }
+    
     Router::<Route> {}
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct NeverEq<T>(T);
+
+impl<T> PartialEq for NeverEq<T> {
+  fn eq(&self, _other: &Self) -> bool {
+    false
   }
 }

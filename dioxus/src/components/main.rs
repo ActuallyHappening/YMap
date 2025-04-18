@@ -1,5 +1,6 @@
 use crate::{prelude::*, Route};
 
+/// Outlet
 #[component]
 pub fn Main() -> Element {
   static CSS: Asset = asset!("/src/components/main.css");

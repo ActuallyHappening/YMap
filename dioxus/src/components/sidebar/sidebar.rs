@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-mod db;
+mod db_status;
 
 #[component]
 pub fn SideBar() -> Element {
@@ -10,6 +10,8 @@ pub fn SideBar() -> Element {
     div {
       class: "sidebar-905d91c3b13f1d6d5124584221b162dc",
       "Sidebar!"
+      components::db::DbConnector { }
+      components::sidebar::db_status::DbConnectionStatus { }
     }
   }
 }

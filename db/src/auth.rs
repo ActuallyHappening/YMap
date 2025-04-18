@@ -5,7 +5,7 @@ use crate::prelude::*;
 use surrealdb::{Surreal, engine::any::Any, opt::auth::Jwt};
 
 /// Public db
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NoAuth;
 
 impl surrealdb_layers::Auth for NoAuth {
@@ -16,7 +16,7 @@ impl surrealdb_layers::Auth for NoAuth {
 }
 
 /// Get acutal info from session
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct User(Jwt);
 
 impl User {

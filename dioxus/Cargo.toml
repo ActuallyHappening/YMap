@@ -13,6 +13,8 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 surrealdb = "2.2.2"
 thing.workspace = true
 thiserror = "2.0.12"
+db.workspace = true
+tracing = "0.1.41"
 
 [features]
 default = ["web"]
