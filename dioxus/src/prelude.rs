@@ -6,4 +6,4 @@ pub use generic_err::prelude::*;
 pub use thing::prelude::*;
 pub use thing::{Thing, ThingId};
 
-pub use crate::errors::AppError;
+pub use crate::errors::*;

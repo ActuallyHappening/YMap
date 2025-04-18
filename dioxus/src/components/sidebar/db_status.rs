@@ -1,4 +1,7 @@
-use crate::{components::db::DbConn, prelude::*};
+use crate::{
+  components::db::{DbConn, Waiting},
+  prelude::*,
+};
 
 #[component]
 pub fn DbConnectionStatus() -> Element {
@@ -6,8 +9,7 @@ pub fn DbConnectionStatus() -> Element {
 
   match db {
     DbConn::Initial => rsx! { p { "Waiting" } },
-    DbConn::WaitingForGuest => rsx! { p { "Connecting to db as guest ..." } },
-    DbConn::Err(err) => rsx! { p { "Error in connection to database: {err}" } },
+    DbConn::Waiting(Waiting::Guest) => rsx! { p { "Connecting to db as guest ..." } },
     DbConn::Connected(_) => rsx! { p { "Connected to database" } },
   }
 }

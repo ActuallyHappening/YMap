@@ -1,14 +1,12 @@
-use crate::prelude::*;
+use crate::{errors::AppErrorBoundary, prelude::*};
 use db::{auth, Db};
 
-async fn connect_to_db(current: DbConn) -> Result<Option<DbConn>, AppError> {
+async fn connect_to_db(current: Waiting) -> Result<Connected, AppError> {
   match current {
-    DbConn::Initial | DbConn::WaitingForGuest => {
+    Waiting::Guest => {
       let conn = db::Db::build().wss()?.await?.prod().await?.public();
-      Ok(Some(DbConn::Connected(conn)))
+      Ok(Connected::Guest(conn))
     }
-    DbConn::Connected(_) => Ok(None),
-    DbConn::Err(err) => Err(err),
   }
 }
 
@@ -34,9 +32,18 @@ impl DbConnGlobal {
 #[derive(Clone, Debug)]
 pub enum DbConn {
   Initial,
-  WaitingForGuest,
-  Err(AppError),
-  Connected(Db<auth::NoAuth>),
+  Waiting(Waiting),
+  Connected(Connected),
+}
+
+#[derive(Clone, Debug)]
+pub enum Waiting {
+  Guest,
+}
+
+#[derive(Clone, Debug)]
+pub enum Connected {
+  Guest(Db<auth::NoAuth>),
 }
 
 impl DbConn {
@@ -47,30 +54,37 @@ impl DbConn {
 
 #[component]
 pub fn DbConnector() -> Element {
-  let handle_error = |errors: ErrorContext| errors.show().unwrap_or(rsx! { p { "{errors:?}"}});
   rsx! {
-    ErrorBoundary {
-      handle_error: handle_error,
-      DbConnectorInner {}
+    AppErrorBoundary {
+      DbConnectorInner { }
     }
   }
 }
 
+/// Will render errors only
 #[component]
 fn DbConnectorInner() -> Element {
   let mut current = DbConnGlobal::use_context();
-  let db = use_resource(move || connect_to_db(current.conn.cloned()));
-  let state_ui = use_memo(move || {
-    crate::NeverEq(match db() {
-      None => Err(AppError::Waiting("db to connect")).show(|_| rsx! { p { "Connecting to db ..."}}),
-      Some(Ok(db)) => Ok(db),
-      Some(Err(err)) => Err(err).show(|err| rsx! { p { "Error connecting to database: {err}" }}),
-    })
+  let db = use_resource(move || async move {
+    match current.conn.cloned() {
+      DbConn::Initial => connect_to_db(Waiting::Guest).await.map(Some),
+      DbConn::Waiting(w) => connect_to_db(w).await.map(Some),
+      DbConn::Connected(_c) => Ok(None),
+    }
   });
-  let db = state_ui().0?;
-  if let Some(db) = &db {
-    tracing::debug!(?db, "Updating global conn state");
-    current.conn.set(db.clone());
-  }
-  rsx! {}
+  let ui = use_memo(move || {
+    let Some(db) = db() else {
+      return rsx! { p { "Waiting" } };
+    };
+    let new = match db {
+      Err(err) => return rsx! { p { "Error connecting to database: {err}"}},
+      Ok(db) => db,
+    };
+    if let Some(new) = new {
+      tracing::debug!(?new, "Updating global conn state");
+      current.conn.set(DbConn::Connected(new));
+    }
+    rsx! {}
+  });
+  ui()
 }

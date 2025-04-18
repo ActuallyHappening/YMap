@@ -27,8 +27,6 @@ thing = { path = "./thing" }
 thing-macros = { path = "./thing/macros" }
 generic-err = { path = "./generic-error" }
 
-[profile]
-
 [profile.wasm-dev]
 inherits = "dev"
 opt-level = 1

@@ -1,5 +1,17 @@
+use crate::prelude::*;
 use db::prelude::surrealdb_layers;
 use generic_err::GenericError;
+
+#[component]
+pub fn AppErrorBoundary(children: Element) -> Element {
+  let handle_error = |errors: ErrorContext| errors.show().unwrap_or(rsx! { p { "{errors:?}"}});
+  rsx! {
+    ErrorBoundary {
+      handle_error: handle_error,
+      { children }
+    }
+  }
+}
 
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum AppError {

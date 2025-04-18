@@ -163,6 +163,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "app-dioxus"
+version = "0.1.0"
+dependencies = [
+ "db",
+ "dioxus",
+ "generic-err",
+ "getrandom 0.3.2",
+ "surrealdb",
+ "thing",
+ "thiserror 2.0.12",
+ "tracing",
+ "utils",
+]
+
+[[package]]
 name = "approx"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1722,21 +1737,6 @@ dependencies = [
  "block-buffer",
  "crypto-common",
  "subtle",
-]
-
-[[package]]
-name = "dioxus"
-version = "0.1.0"
-dependencies = [
- "db",
- "dioxus 0.6.3",
- "generic-err",
- "getrandom 0.3.2",
- "surrealdb",
- "thing",
- "thiserror 2.0.12",
- "tracing",
- "utils",
 ]
 
 [[package]]
