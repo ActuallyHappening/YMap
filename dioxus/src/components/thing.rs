@@ -1,4 +1,6 @@
-use crate::prelude::*;
+use thing::well_known::DocumentedPayload;
+
+use crate::{components::db::DbConn, prelude::*};
 
 #[component]
 pub fn ThingPreview(id: ThingId) -> Element {
@@ -8,7 +10,9 @@ pub fn ThingPreview(id: ThingId) -> Element {
   rsx! {
     div {
       class: "thing-a22e93084e3bef59733a6ba8f99c7e63",
-      h2 { "{id}"}
+      AppErrorBoundary {
+        Description { id: id }
+      }
       Link {
         to: "/thing/{key}",
         "Go to"
@@ -18,5 +22,31 @@ pub fn ThingPreview(id: ThingId) -> Element {
         "Explore"
       }
     }
+  }
+}
+
+#[component]
+fn Description(id: ThingId) -> Element {
+  let db = DbConn::use_context();
+  let documentation = use_resource(move || {
+    let id = id.clone();
+    async move {
+      let thing: Thing<DocumentedPayload> = db
+        .cloned()
+        .guest()?
+        .select_thing::<DocumentedPayload>(id.clone())
+        .await?
+        .ok_or(AppError::ThingDoesntExist(id))?;
+      AppResult::Ok(thing)
+    }
+  })
+  .suspend()?()?;
+  let name = documentation.payload().name.to_string();
+  let description = documentation.payload().description.to_string();
+  rsx! {
+    // div {
+      h1 { "{name}" },
+      p { "{description}" }
+    // }
   }
 }

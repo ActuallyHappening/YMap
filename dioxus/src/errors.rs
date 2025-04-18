@@ -13,14 +13,18 @@ pub fn AppErrorBoundary(children: Element) -> Element {
   }
 }
 
+pub type AppResult<T> = Result<T, AppError>;
+
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum AppError {
-  /// Use on `use_resource` when its an `Option::None`
-  #[error("Waiting for {0}")]
-  Waiting(&'static str),
+  #[error("Db conn: {0}")]
+  DbConn(components::db::DbConnError),
 
   #[error("Couldn't connect to database: {0}")]
   CouldntConnect(#[source] GenericError<db::Error>),
+  
+  #[error("Thing with id {0} doesn't exist")]
+  ThingDoesntExist(ThingId)
 }
 
 impl From<db::Error> for AppError {

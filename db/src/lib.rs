@@ -140,6 +140,19 @@ impl Db<auth::User> {
 
 /// Select primitives
 impl<Auth> Db<Auth> {
+  pub async fn select_thing<P>(&self, id: ThingId) -> Result<Option<Thing<P>>, Error>
+  where
+    Thing<P>: DeserializeOwned,
+  {
+    Ok(
+      self
+        .get_db()
+        .select(id)
+        .await
+        .map_err(Error::CouldntSelect)?,
+    )
+  }
+
   /// ```surql
   /// DEFINE FUNCTION OVERWRITE fn::root_things() {
   ///   let $mentioned_as_children = <set>(SELECT in FROM parent).map(|$val| $val.in);

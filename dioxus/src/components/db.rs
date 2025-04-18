@@ -47,8 +47,33 @@ pub enum Connected {
 }
 
 impl DbConn {
-  pub fn use_context() -> Self {
-    use_context::<DbConnGlobal>().conn.cloned()
+  pub fn use_context() -> Signal<Self> {
+    use_context::<DbConnGlobal>().conn
+  }
+
+  pub fn guest(self) -> Result<Db<auth::NoAuth>, AppError> {
+    match self {
+      DbConn::Initial => Err(AppError::DbConn(DbConnError::Initial)),
+      DbConn::Waiting(Waiting::Guest) => {
+        Err(AppError::DbConn(DbConnError::Waiting(Waiting::Guest)))
+      }
+      DbConn::Connected(Connected::Guest(db)) => Ok(db),
+    }
+  }
+}
+
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum DbConnError {
+  #[error("Waiting for db (initial)")]
+  Initial,
+
+  #[error("Waiting for db")]
+  Waiting(Waiting),
+}
+
+impl From<DbConnError> for AppError {
+  fn from(value: DbConnError) -> Self {
+    AppError::DbConn(value)
   }
 }
 
