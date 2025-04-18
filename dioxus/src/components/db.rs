@@ -12,12 +12,14 @@ async fn connect_to_db(current: DbConn) -> Result<Option<DbConn>, AppError> {
   }
 }
 
+/// Don't use directly
 #[derive(Clone, Debug)]
-struct DbConnGlobal {
+pub(crate) struct DbConnGlobal {
   conn: Signal<DbConn>,
 }
 
 impl DbConnGlobal {
+  /// Call before anything else relies on this context
   pub(crate) fn use_root_context() -> Self {
     use_root_context(|| DbConnGlobal {
       conn: Signal::new_in_scope(DbConn::Initial, ScopeId::APP),
@@ -45,6 +47,17 @@ impl DbConn {
 
 #[component]
 pub fn DbConnector() -> Element {
+  let handle_error = |errors: ErrorContext| errors.show().unwrap_or(rsx! { p { "{errors:?}"}});
+  rsx! {
+    ErrorBoundary {
+      handle_error: handle_error,
+      DbConnectorInner {}
+    }
+  }
+}
+
+#[component]
+fn DbConnectorInner() -> Element {
   let mut current = DbConnGlobal::use_context();
   let db = use_resource(move || connect_to_db(current.conn.cloned()));
   let state_ui = use_memo(move || {

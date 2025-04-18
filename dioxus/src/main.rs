@@ -5,10 +5,9 @@ mod prelude;
 use crate::prelude::*;
 
 fn main() {
+  utils::tracing::install_tracing("info,dioxus=trace").unwrap();
   dioxus::launch(App);
 }
-
-static CSS: Asset = asset!("/assets/main.css");
 
 pub use routes::Route;
 mod routes {
@@ -38,9 +37,13 @@ mod routes {
 
 #[component]
 fn App() -> Element {
+  static CSS: Asset = asset!("/assets/main.css");
+
+  components::db::DbConnGlobal::use_root_context();
+
   rsx! {
     document::Stylesheet { href: CSS }
-    
+
     Router::<Route> {}
   }
 }
