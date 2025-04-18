@@ -22,6 +22,9 @@ mod routes {
     #[route("/explore")]
     ExploreRoot {},
 
+    #[end_route]
+    Thing { id },
+
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },
   }
