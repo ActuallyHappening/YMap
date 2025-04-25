@@ -15,6 +15,14 @@ impl ThingId {
   pub fn into_inner(self) -> surrealdb::RecordId {
     self.0
   }
+
+  pub fn parse_key(key: &str) -> Result<Self, surrealdb::Error> {
+    Ok(ThingId(surrealdb::RecordId::from_str(&format!(
+      "{}:{}",
+      Thing::<()>::TABLE,
+      key
+    ))?))
+  }
 }
 
 impl surrealdb_layers::Id for ThingId {

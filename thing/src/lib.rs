@@ -21,7 +21,7 @@ pub mod builder {
 use crate::prelude::*;
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Thing<Payload> {
+pub struct Thing<Payload = ()> {
   id: ThingId,
   _debug_name: Option<String>,
   payload: Payload,

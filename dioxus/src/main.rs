@@ -14,16 +14,22 @@ mod routes {
   use crate::prelude::*;
 
   use components::explore::ExploreRoot;
+  use components::thing::ThingPreviewString;
 
+  #[rustfmt::skip]
   #[derive(Routable, Clone, PartialEq)]
   pub enum Route {
     #[layout(components::main::Main)]
+
     #[redirect("/", || Route::ExploreRoot {})]
     #[route("/explore")]
     ExploreRoot {},
 
-    #[end_route]
-    Thing { id },
+    #[nest("/thing")]
+      #[redirect("/", || Route::ExploreRoot { })]
+      #[route("/:id_key")]
+      ThingPreviewString { id_key: String },
+    #[end_nest]
 
     #[route("/:..route")]
     PageNotFound { route: Vec<String> },
@@ -31,9 +37,11 @@ mod routes {
 
   #[component]
   fn PageNotFound(route: Vec<String>) -> Element {
+    let debug = route.join("/");
     rsx! {
       h1 { "Page not found" }
       p { "The page you requested doesn't exist" }
+      p { "{debug}" }
     }
   }
 }

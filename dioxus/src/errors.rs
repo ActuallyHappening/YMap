@@ -22,9 +22,12 @@ pub enum AppError {
 
   #[error("Couldn't connect to database: {0}")]
   CouldntConnect(#[source] GenericError<db::Error>),
-  
+
   #[error("Thing with id {0} doesn't exist")]
-  ThingDoesntExist(ThingId)
+  ThingDoesntExist(ThingId),
+
+  #[error("Couldn't parse route key: {0}")]
+  ParseRouteKey(#[source] GenericError<surrealdb::Error>),
 }
 
 impl From<db::Error> for AppError {

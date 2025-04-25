@@ -3,6 +3,16 @@ use thing::well_known::DocumentedPayload;
 use crate::{components::db::DbConn, prelude::*};
 
 #[component]
+pub fn ThingPreviewString(id_key: String) -> Element {
+  let id = ThingId::parse_key(&id_key)
+    .make_generic()
+    .map_err(AppError::ParseRouteKey)?;
+  rsx! {
+    ThingPreview { id: id }
+  }
+}
+
+#[component]
 pub fn ThingPreview(id: ThingId) -> Element {
   let key = id.key();
   // let title = "French (Language)";
