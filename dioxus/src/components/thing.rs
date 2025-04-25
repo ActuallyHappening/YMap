@@ -20,8 +20,10 @@ pub fn ThingPreview(id: ThingId) -> Element {
   rsx! {
     div {
       class: "thing-a22e93084e3bef59733a6ba8f99c7e63",
-      AppErrorBoundary {
-        Description { id: id }
+      AppSuspenseBoundary {
+        AppErrorBoundary {
+          Description { id: id }
+        }
       }
       Link {
         to: "/thing/{key}",
@@ -54,14 +56,40 @@ pub fn Description(id: ThingId) -> Element {
         .select_thing::<DocumentedPayload>(id.clone())
         .await?
         .ok_or(AppError::ThingDoesntExist(id))?;
+      info!("Resource returning {:?}", thing);
       AppResult::Ok(thing)
     }
   });
+
+  use_effect(move || {
+    let documentation = documentation.cloned();
+    trace!(
+      "Description-effect documentation updated: {:?}",
+      documentation
+    );
+  });
+
   #[component]
   fn Inner(documentation: Res<Thing<DocumentedPayload>>) -> Element {
-    let documentation = documentation.suspend()?.cloned()?;
+    debug!("Inner ran: {:?}", documentation.value().cloned());
+
+    use_effect(move || {
+      let documentation = documentation.cloned();
+      trace!("Inner-effect documentation updated: {:?}", documentation);
+    });
+
+    // let documentation = documentation.suspend()?.cloned()?;
+    let documentation = match documentation.suspend()?.cloned() {
+      Ok(d) => d,
+      Err(err) => {
+        return rsx! {
+          p { "Error found: {err:?}" }
+        }
+      }
+    };
     let name = documentation.payload().name.to_string();
     let description = documentation.payload().description.to_string();
+
     rsx! {
       // div {
         h1 { "{name}" },
@@ -69,10 +97,13 @@ pub fn Description(id: ThingId) -> Element {
       // }
     }
   }
+
   rsx! {
     p { "Description"}
     AppErrorBoundary {
-      Inner { documentation: documentation }
+      AppSuspenseBoundary {
+        Inner { documentation: documentation }
+      }
     }
   }
 }

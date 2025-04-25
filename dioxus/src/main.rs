@@ -5,7 +5,7 @@ mod prelude;
 use crate::prelude::*;
 
 fn main() {
-  utils::tracing::install_tracing("info,app-dioxus=trace").unwrap();
+  utils::tracing::install_tracing("info,app_dioxus=trace").unwrap();
   dioxus::launch(App);
 }
 
