@@ -35,10 +35,17 @@ pub fn ThingPreview(id: ThingId) -> Element {
   }
 }
 
+type Res<T> = dioxus::hooks::Resource<Result<T, AppError>>;
+
 #[component]
-fn Description(id: ThingId) -> Element {
+pub fn Description(id: ThingId) -> Element {
+  info!("Description ran");
+
   let db = DbConn::use_context();
-  let documentation = use_resource(move || {
+  let documentation: Res<Thing<DocumentedPayload>> = use_resource(move || {
+    let status = db.cloned();
+    info!("Resource ran: {:?}", status);
+
     let id = id.clone();
     async move {
       let thing: Thing<DocumentedPayload> = db
@@ -49,14 +56,23 @@ fn Description(id: ThingId) -> Element {
         .ok_or(AppError::ThingDoesntExist(id))?;
       AppResult::Ok(thing)
     }
-  })
-  .suspend()?()?;
-  let name = documentation.payload().name.to_string();
-  let description = documentation.payload().description.to_string();
+  });
+  #[component]
+  fn Inner(documentation: Res<Thing<DocumentedPayload>>) -> Element {
+    let documentation = documentation.suspend()?.cloned()?;
+    let name = documentation.payload().name.to_string();
+    let description = documentation.payload().description.to_string();
+    rsx! {
+      // div {
+        h1 { "{name}" },
+        p { "{description}" }
+      // }
+    }
+  }
   rsx! {
-    // div {
-      h1 { "{name}" },
-      p { "{description}" }
-    // }
+    p { "Description"}
+    AppErrorBoundary {
+      Inner { documentation: documentation }
+    }
   }
 }

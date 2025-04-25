@@ -49,6 +49,9 @@ pub enum Connected {
 impl DbConn {
   pub fn use_context() -> Signal<Self> {
     use_context::<DbConnGlobal>().conn
+    // let res = use_context::<DbConnGlobal>().conn;
+    // res.read();
+    // res
   }
 
   pub fn guest(self) -> Result<Db<auth::NoAuth>, AppError> {
