@@ -31,12 +31,15 @@ pub fn App() -> impl IntoView {
 
   let fallback = move |errors: ArcRwSignal<Errors>| {
     tracing::debug!("Fallback called");
-    errors
-      .read()
-      .iter()
-      .map(|(_id, err)| err.clone().into_inner())
-      .map(|err| err.downcast_ref::<AppError>().unwrap().into_render())
-      .collect_view()
+    // removing this `move ||` makes the error case appear
+    move || {
+      errors
+        .read()
+        .iter()
+        .map(|(_id, err)| err.clone().into_inner())
+        .map(|err| err.downcast_ref::<AppError>().unwrap().into_render())
+        .collect_view()
+    }
   };
 
   view! {
