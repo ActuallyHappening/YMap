@@ -4,7 +4,7 @@ use crate::{db::load_payload, prelude::*};
 
 #[component]
 pub fn DescriptionView(id: Signal<ThingId>) -> impl IntoView {
-  let ui = move || -> Option<_> {
+  let view_ui = move || -> Option<_> {
     let thing = load_payload(id).get().ok()?;
     let documented: &DocumentedPayload = thing.payload();
     Some(view! {
@@ -12,5 +12,5 @@ pub fn DescriptionView(id: Signal<ThingId>) -> impl IntoView {
       <p> { documented.description.to_string() }</p>
     })
   };
-  ui
+  view_ui
 }
