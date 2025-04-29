@@ -7,6 +7,7 @@ use leptos_router::{
 pub mod description;
 pub mod explore;
 pub mod latex_demo;
+pub mod login;
 
 pub fn App() -> impl IntoView {
   leptos_meta::provide_meta_context();

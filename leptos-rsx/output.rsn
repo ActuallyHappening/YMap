@@ -1,0 +1,119 @@
+RsxData(
+    CallBody {
+        body: TemplateBody {
+            roots: [
+                Element(
+                    Element {
+                        name: Ident(
+                            Ident {
+                                ident: "div",
+                                span: #0 bytes(112..115),
+                            },
+                        ),
+                        raw_attributes: [
+                            Attribute {
+                                name: BuiltIn(
+                                    Ident {
+                                        ident: "class",
+                                        span: #0 bytes(118..123),
+                                    },
+                                ),
+                                colon: Some(
+                                    Colon,
+                                ),
+                                value: AttrLiteral(
+                                    Int(
+                                        LitInt {
+                                            token: 69,
+                                        },
+                                    ),
+                                ),
+                                comma: None,
+                                dyn_idx: DynIdx {
+                                    idx: Cell {
+                                        value: None,
+                                    },
+                                },
+                                el_name: Some(
+                                    Ident(
+                                        Ident {
+                                            ident: "div",
+                                            span: #0 bytes(112..115),
+                                        },
+                                    ),
+                                ),
+                            },
+                        ],
+                        merged_attributes: [
+                            Attribute {
+                                name: BuiltIn(
+                                    Ident {
+                                        ident: "class",
+                                        span: #0 bytes(118..123),
+                                    },
+                                ),
+                                colon: Some(
+                                    Colon,
+                                ),
+                                value: AttrLiteral(
+                                    Int(
+                                        LitInt {
+                                            token: 69,
+                                        },
+                                    ),
+                                ),
+                                comma: None,
+                                dyn_idx: DynIdx {
+                                    idx: Cell {
+                                        value: Some(
+                                            0,
+                                        ),
+                                    },
+                                },
+                                el_name: Some(
+                                    Ident(
+                                        Ident {
+                                            ident: "div",
+                                            span: #0 bytes(112..115),
+                                        },
+                                    ),
+                                ),
+                            },
+                        ],
+                        spreads: [],
+                        children: [],
+                        brace: Some(
+                            Brace,
+                        ),
+                        diagnostics: Diagnostics {
+                            diagnostics: [],
+                        },
+                    },
+                ),
+            ],
+            template_idx: DynIdx {
+                idx: Cell {
+                    value: Some(
+                        0,
+                    ),
+                },
+            },
+            node_paths: [],
+            attr_paths: [
+                (
+                    [
+                        0,
+                    ],
+                    0,
+                ),
+            ],
+            dynamic_text_segments: [],
+            diagnostics: Diagnostics {
+                diagnostics: [],
+            },
+        },
+        template_idx: Cell {
+            value: 1,
+        },
+    },
+)

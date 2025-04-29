@@ -11,7 +11,9 @@ members = [
     "thing",
     "thing/macros",
     "utils",
-    "dioxus", "dioxus",
+    "dioxus",
+    "dioxus",
+    "leptos-rsx",
 ]
 resolver = "3"
 
@@ -26,6 +28,7 @@ db = { path = "./db" }
 thing = { path = "./thing" }
 thing-macros = { path = "./thing/macros" }
 generic-err = { path = "./generic-error" }
+leptos-rsx = { path = "./leptos-rsx" }
 
 [profile.wasm-dev]
 inherits = "dev"

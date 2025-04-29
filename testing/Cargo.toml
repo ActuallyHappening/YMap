@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-surrealdb = "2.2.2"
 utils.workspace = true
+leptos-rsx.workspace = true

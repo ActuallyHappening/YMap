@@ -10,6 +10,7 @@
 !cas
 !latex
 !generic-error
+!leptos-rsx
 
 # can remove
 !testing

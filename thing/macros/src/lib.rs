@@ -27,7 +27,6 @@ use syn::{Data, DataEnum, DataUnion, Error, Fields, Ident};
 
 use syn::{DeriveInput, parse_macro_input};
 
-#[allow(unreachable_code)]
 // https://github.com/dtolnay/syn/blob/master/examples/heapsize/heapsize_derive/src/lib.rs
 fn payload_impl(input: syn::DeriveInput, emit: Do) -> syn::Result<proc_macro2::TokenStream> {
   let name = input.ident;
