@@ -1,8 +1,16 @@
-use iced::{alignment::Horizontal, widget::{button, column, container, text}, Element, Length::Fill, Theme};
+use iced::{
+	Element,
+	Length::Fill,
+	Theme,
+	alignment::Horizontal,
+	widget::{button, column, container, text, tooltip},
+};
 
 fn main() -> impl std::process::Termination {
 	console_error_panic_hook::set_once();
-	iced::application("YMap Iced frontend", State::update, State::view).theme(theme).run()
+	iced::application("YMap Iced frontend", State::update, State::view)
+		.theme(theme)
+		.run()
 }
 
 #[derive(Default)]
@@ -18,7 +26,7 @@ enum Message {
 impl State {
 	pub fn update(&mut self, message: Message) {
 		match message {
-			Message::Increment => self.counter += 1
+			Message::Increment => self.counter += 1,
 		}
 	}
 }
@@ -28,9 +36,20 @@ impl State {
 		let col = column![
 			text("Hey from iced!"),
 			text(self.counter),
-			button("+").on_press(Message::Increment)
-		].align_x(Horizontal::Center);
-		container(col).padding(10).center_x(Fill).center_y(Fill).into()
+			tooltip(
+				button("+").on_press(Message::Increment),
+				container("Increase count by 1")
+					.padding(5)
+					.style(container::rounded_box),
+				tooltip::Position::Top
+			)
+		]
+		.align_x(Horizontal::Center);
+		container(col)
+			.padding(10)
+			.center_x(Fill)
+			.center_y(Fill)
+			.into()
 	}
 }
 

@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 pub mod scalar {
-  use crate::prelude::*;
+	use crate::prelude::*;
 
-  pub mod real;
+	pub mod real;
 }
