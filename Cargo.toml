@@ -13,7 +13,7 @@ members = [
     "utils",
     "dioxus",
     "dioxus",
-    "leptos-rsx",
+    "leptos-rsx", "iced",
 ]
 resolver = "3"
 
