@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = "0.13.1"
+console_error_panic_hook = "0.1.7"
+iced = { version = "0.13.1", features = ["webgl", "web-colors", "wgpu", "fira-sans", "auto-detect-theme"], default-features = false }

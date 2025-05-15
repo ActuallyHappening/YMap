@@ -1,6 +1,7 @@
 use iced::{alignment::Horizontal, widget::{button, column, container, text}, Element, Length::Fill, Theme};
 
 fn main() -> impl std::process::Termination {
+	console_error_panic_hook::set_once();
 	iced::application("YMap Iced frontend", State::update, State::view).theme(theme).run()
 }
 
