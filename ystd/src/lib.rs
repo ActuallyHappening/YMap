@@ -2,6 +2,7 @@ pub mod prelude {
 	pub use camino::{Utf8Path, Utf8PathBuf};
 	pub(crate) use color_eyre::Report;
 	pub(crate) use std::sync::Arc;
+	pub use tracing::{debug, error, info, trace, warn};
 }
 
 pub mod io {
