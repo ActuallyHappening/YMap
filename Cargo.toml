@@ -3,11 +3,20 @@ name = "yit"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+members = ["ystd"]
+
 [dependencies]
 camino = "1.1.10"
 color-eyre = "0.6.5"
 time = { version = "0.3.41", features = ["macros", "formatting"] }
-tokio = { version = "1.45.1", features = ["fs", "macros", "rt-multi-thread", "time", "tracing"] }
+tokio = { version = "1.45.1", features = [
+	"fs",
+	"macros",
+	"rt-multi-thread",
+	"time",
+	"tracing",
+] }
 tracing = "0.1.41"
 tracing-appender = "0.2.3"
 tracing-error = "0.2.1"
@@ -18,5 +27,5 @@ tracing-subscriber = { version = "0.3.19", features = [
 	"json",
 ] }
 
-[lints.rust]
+[workspace.lints.rust]
 unused_imports = "allow"
