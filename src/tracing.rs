@@ -31,8 +31,8 @@ pub async fn logs_dir() -> Result<Utf8PathBuf> {
 			let yit_dir = current_dir.join(".yit");
 			if yit_dir.is_dir() {
 				let dir = yit_dir.join("logs");
-				ystd::fs::create_dir_all(dir).await?;
-				return Ok(yit_dir);
+				ystd::fs::create_dir_all(&dir).await?;
+				return Ok(dir);
 			}
 			current_dir = current_dir.parent().unwrap().to_owned();
 		}
@@ -59,19 +59,19 @@ pub async fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
 	let logs_dir = logs_dir().await?;
 	let (file, guard) =
 		tracing_appender::non_blocking(tracing_appender::rolling::daily(logs_dir, PREFIX));
-	let file_layer = fmt::layer()
+	let file_layer = fmt::Layer::default()
 		.with_ansi(false)
 		.event_format(format::format().json())
 		// https://github.com/tokio-rs/tracing/issues/1365#issuecomment-828845393
 		.fmt_fields(JsonFields::new())
 		.with_writer(file);
 
-	let fmt_layer = fmt::layer().with_target(true);
+	let fmt_layer = fmt::Layer::default().with_target(true);
 	let filter_layer = EnvFilter::try_from_default_env()
 		.or_else(|_| EnvFilter::try_new(filter))
 		.unwrap();
 
-	tracing_subscriber::registry()
+	tracing_subscriber::Registry::default()
 		.with(filter_layer)
 		.with(file_layer)
 		.with(fmt_layer)
