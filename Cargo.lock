@@ -671,6 +671,7 @@ dependencies = [
  "tracing-appender",
  "tracing-error",
  "tracing-subscriber",
+ "ystd",
 ]
 
 [[package]]

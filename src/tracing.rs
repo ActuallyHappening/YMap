@@ -2,7 +2,7 @@
 //!
 
 use crate::prelude::*;
-use camino::Utf8Path;
+use camino::{Utf8Path, Utf8PathBuf};
 use time::{UtcOffset, macros::format_description};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::{
@@ -15,22 +15,37 @@ pub struct Guard {
 	guard: WorkerGuard,
 }
 
-pub async fn logs_dir() -> Result<String> {
+pub async fn logs_dir() -> Result<Utf8PathBuf> {
 	if let Some(dir) = option_env!("RUST_LOG_DIR") {
 		let dir = Utf8Path::new(dir);
 		if !dir.is_dir() {
-			
-			tokio::fs::create_dir_all(path)
-			color_eyre::eyre::bail!("Logs directory not found");
+			ystd::fs::create_dir_all(dir).await?;
 		}
-		dir
+		Ok(dir.to_owned())
 	} else {
-		"/home/ah/Desktop/Salt-Discordbot/logs"
-	};
+		// todo: proper automatic project detection
+		// search current dir + parent dirs for dir called .yit,
+		// then return .yit/logs/
+		let mut current_dir = ystd::env::current_dir()?;
+		while current_dir.as_str() != "/" {
+			let yit_dir = current_dir.join(".yit");
+			if yit_dir.is_dir() {
+				let dir = yit_dir.join("logs");
+				ystd::fs::create_dir_all(dir).await?;
+				return Ok(yit_dir);
+			}
+			current_dir = current_dir.parent().unwrap().to_owned();
+		}
+		Err(
+			color_eyre::eyre::eyre!("No .yit directory found to send logs to")
+				.note(format!("CWD: {}", ystd::env::current_dir()?)),
+		)
+	}
 }
-pub const PREFIX: &str = "rust-discordbot.json";
+/// TODO: use yit proj hash
+pub const PREFIX: &str = "yit";
 
-pub fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
+pub async fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
 	use tracing_error::ErrorLayer;
 	use tracing_subscriber::prelude::*;
 	use tracing_subscriber::{EnvFilter, fmt};
@@ -41,12 +56,9 @@ pub fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
 	// });
 	// let timer = OffsetTime::new(offset, format_description!("[hour]:[minute]:[second]"));
 
-	if !camino::Utf8PathBuf::from(LOGS_DIR).is_dir() {
-		color_eyre::eyre::bail!("Logs directory not found");
-	}
-
+	let logs_dir = logs_dir().await?;
 	let (file, guard) =
-		tracing_appender::non_blocking(tracing_appender::rolling::daily(LOGS_DIR, PREFIX));
+		tracing_appender::non_blocking(tracing_appender::rolling::daily(logs_dir, PREFIX));
 	let file_layer = fmt::layer()
 		.with_ansi(false)
 		.event_format(format::format().json())

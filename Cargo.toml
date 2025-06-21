@@ -6,6 +6,9 @@ edition = "2024"
 [workspace]
 members = ["ystd"]
 
+[workspace.dependencies]
+ystd = { path = "./ystd" }
+
 [dependencies]
 camino = "1.1.10"
 color-eyre = "0.6.5"
@@ -26,6 +29,7 @@ tracing-subscriber = { version = "0.3.19", features = [
 	"env-filter",
 	"json",
 ] }
+ystd.workspace = true
 
 [workspace.lints.rust]
 unused_imports = "allow"
