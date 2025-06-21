@@ -1,6 +1,7 @@
 //! cargo add time -F macros,formatting
-//! 
+//!
 
+use crate::prelude::*;
 use camino::Utf8Path;
 use time::{UtcOffset, macros::format_description};
 use tracing_appender::non_blocking::WorkerGuard;
@@ -14,11 +15,19 @@ pub struct Guard {
 	guard: WorkerGuard,
 }
 
-pub const LOGS_DIR: &str = if cfg!(not(debug_assertions)) {
-	"/home/ah/Desktop/logs"
-} else {
-	"/home/ah/Desktop/Salt-Discordbot/logs"
-};
+pub async fn logs_dir() -> Result<String> {
+	if let Some(dir) = option_env!("RUST_LOG_DIR") {
+		let dir = Utf8Path::new(dir);
+		if !dir.is_dir() {
+			
+			tokio::fs::create_dir_all(path)
+			color_eyre::eyre::bail!("Logs directory not found");
+		}
+		dir
+	} else {
+		"/home/ah/Desktop/Salt-Discordbot/logs"
+	};
+}
 pub const PREFIX: &str = "rust-discordbot.json";
 
 pub fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
@@ -36,10 +45,8 @@ pub fn install_tracing(filter: &str) -> color_eyre::Result<Guard> {
 		color_eyre::eyre::bail!("Logs directory not found");
 	}
 
-	let (file, guard) = tracing_appender::non_blocking(tracing_appender::rolling::daily(
-		LOGS_DIR,
-		PREFIX,
-	));
+	let (file, guard) =
+		tracing_appender::non_blocking(tracing_appender::rolling::daily(LOGS_DIR, PREFIX));
 	let file_layer = fmt::layer()
 		.with_ansi(false)
 		.event_format(format::format().json())
