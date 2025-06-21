@@ -10,7 +10,9 @@ members = ["ystd"]
 ystd = { path = "./ystd" }
 
 [dependencies]
+alloy-primitives = { version = "1.2.1", features = ["tiny-keccak"] }
 camino = "1.1.10"
+clap = { version = "4.5.40", features = ["derive"] }
 color-eyre = "0.6.5"
 time = { version = "0.3.41", features = ["macros", "formatting"] }
 tokio = { version = "1.45.1", features = [

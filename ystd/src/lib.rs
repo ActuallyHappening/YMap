@@ -36,6 +36,19 @@ pub mod fs {
 				}
 			})
 	}
+	
+	pub async fn read(path: impl AsRef<Utf8Path>) -> io::Result<Vec<u8>> {
+		tokio::fs::read(path.as_ref())
+			.await
+			.map_err(|io| {
+				let io = Arc::new(io);
+				io::Error {
+					report: Report::new(io.clone())
+						.wrap_err(format!("ystd::fs::read({})", path.as_ref())),
+					io: Some(io),
+				}
+			})
+	}
 }
 
 pub mod env {

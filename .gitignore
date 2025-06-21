@@ -6,6 +6,7 @@
 !Cargo.toml
 !README.md
 
+!.cargo
 !rustfmt.toml
 !.gitignore
 !Cargo.lock
