@@ -24,5 +24,43 @@ pub mod hash {
 }
 
 pub mod vfs {
+	use std::hash::Hash;
+
+	use alloy_primitives::Keccak256;
+
 	use crate::prelude::*;
+
+	#[derive(Hash, Clone, Debug, PartialEq, Eq)]
+	pub enum Vfs {
+		File(Vec<u8>),
+		Dir(Vec<Vfs>),
+	}
+
+	#[derive(Clone, Debug, PartialEq, Eq)]
+	pub enum Test {
+		A(u32),
+		B(u32),
+	}
+
+	impl Hash for Test {
+		fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+			match self {
+				Test::A(a) => {
+					state.write(b"https://example.com");
+					a.hash(state);
+				}
+				Test::B(b) => b.hash(state),
+			}
+		}
+	}
+
+	#[test]
+	fn hashing_derive() {
+		let a = Test::A(1);
+		let b = Test::B(1);
+
+		let mut hasher1 = Keccak256::new();
+		a.hash(&mut hasher1);
+		let hasher2 = Keccak256::new();
+	}
 }
