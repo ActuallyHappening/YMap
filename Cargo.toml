@@ -41,3 +41,6 @@ ystd.workspace = true
 
 [workspace.lints.rust]
 unused_imports = "allow"
+
+[workspace.lints.clippy]
+undocumented_unsafe_blocks = "warn"
