@@ -2,8 +2,8 @@
 
 !src
 !ystd
-!matching.rs
 !yitignore.rs
+!yitattrs.rs
 
 !Cargo.toml
 !README.md

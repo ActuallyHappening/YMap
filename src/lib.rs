@@ -2,6 +2,34 @@
 pub mod app_tracing;
 pub mod prelude;
 
+mod root {
+	use crate::prelude::*;
+
+	pub struct YitRoot {
+		/// Canonicalized
+		dir: Utf8PathBuf,
+	}
+
+	impl YitRoot {
+		pub async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
+			let dir = dir.as_ref().to_path_buf();
+			let dir = ystd::fs::canonicalize(dir).await?;
+			if !dir.is_dir() {
+				return Err(eyre!("Path is not a directory").note(format!("Path: {}", dir)));
+			}
+			Ok(Self { dir })
+		}
+
+		/// Makes sure the path provided is within this Yit root directory
+		pub fn resolve_local_path(
+			&self,
+			path: impl AsRef<Utf8Path>,
+		) -> color_eyre::Result<Utf8PathBuf> {
+			todo!()
+		}
+	}
+}
+
 pub mod hash {
 	use alloy_primitives::{FixedBytes, keccak256};
 
@@ -22,8 +50,6 @@ pub mod hash {
 		}
 	}
 }
-
-pub mod path_matching;
 
 pub mod vfs {
 	use std::hash::Hash;

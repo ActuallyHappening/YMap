@@ -7,8 +7,8 @@ edition = "2024"
 members = ["ystd"]
 
 [[bin]]
-name = "yitignore"
-path = "yitignore"
+name = "yitattrs"
+path = "yitattrs.rs"
 
 [workspace.dependencies]
 ystd = { path = "./ystd" }
