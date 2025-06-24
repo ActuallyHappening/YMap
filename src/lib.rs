@@ -23,6 +23,8 @@ pub mod hash {
 	}
 }
 
+pub mod path_matching;
+
 pub mod vfs {
 	use std::hash::Hash;
 
@@ -60,7 +62,7 @@ pub mod vfs {
 		let b = Test::B(1);
 
 		let mut hasher1 = Keccak256::new();
-		a.hash(&mut hasher1);
-		let hasher2 = Keccak256::new();
+		// a.hash(&mut hasher1);
+		// let hasher2 = Keccak256::new();
 	}
 }

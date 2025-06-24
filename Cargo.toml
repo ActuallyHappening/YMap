@@ -6,6 +6,10 @@ edition = "2024"
 [workspace]
 members = ["ystd"]
 
+[[bin]]
+name = "yitignore"
+path = "yitignore"
+
 [workspace.dependencies]
 ystd = { path = "./ystd" }
 
@@ -14,6 +18,7 @@ alloy-primitives = { version = "1.2.1", features = ["tiny-keccak"] }
 camino = "1.1.10"
 clap = { version = "4.5.40", features = ["derive"] }
 color-eyre = "0.6.5"
+serde = { version = "1.0.219", features = ["derive"] }
 time = { version = "0.3.41", features = ["macros", "formatting"] }
 tokio = { version = "1.45.1", features = [
 	"fs",
@@ -31,6 +36,7 @@ tracing-subscriber = { version = "0.3.19", features = [
 	"env-filter",
 	"json",
 ] }
+url = "2.5.4"
 ystd.workspace = true
 
 [workspace.lints.rust]
