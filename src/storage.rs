@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 
+use bevy_reflect::reflect_trait;
+
 use crate::YitRoot;
+use crate::hash::MinimalHasher;
 use crate::vfs::Key;
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
@@ -14,11 +17,34 @@ pub struct File<S = GenericStorage> {
 ///
 /// Implementors of this type are expected to contain
 /// the data for a file or subunit of VCS controlled data
-pub trait Storage: ForwardsCompatHash {
+#[reflect_trait]
+pub trait Storage: ObjectSafeHash {
 	fn fmt_to_string(&self, root: &YitRoot) -> String;
 }
 
-pub struct GenericStorage {}
+pub trait ObjectSafeHash {
+	/// Must be the same as [ForwardsCompatHash::prefix]
+	fn prefix(&self) -> &'static [u8];
+	/// Must be the same as [ForwardsCompatHash::hash]
+	fn hash(&self, hasher: &mut dyn MinimalHasher);
+}
+
+impl<T> ObjectSafeHash for T
+where
+	T: ForwardsCompatHash,
+{
+	fn prefix(&self) -> &'static [u8] {
+		ForwardsCompatHash::prefix(self)
+	}
+
+	fn hash(&self, hasher: &mut dyn MinimalHasher) {
+		ForwardsCompatHash::hash(self, hasher);
+	}
+}
+
+pub enum GenericStorage {
+	PlainText(plaintext::PlainText),
+}
 
 impl File {
 	pub async fn snapshot(root: &YitRoot, path: impl AsRef<Utf8Path>) -> color_eyre::Result<File> {
@@ -39,7 +65,7 @@ pub mod plaintext {
 			b"https://docs.rs/yit/latest/yit/storage/plaintext"
 		}
 
-		fn hash<H: crate::hash::MinimalHasher>(&self, hasher: &mut H) {
+		fn hash<H: crate::hash::MinimalHasher + ?Sized>(&self, hasher: &mut H) {
 			hasher.write(self.prefix());
 			hasher.write(self.0.as_bytes())
 		}

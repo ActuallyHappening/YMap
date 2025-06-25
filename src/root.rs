@@ -6,6 +6,7 @@ use crate::{
 pub struct YitRoot {
 	/// Canonicalized
 	dir: Utf8PathBuf,
+	type_registry: bevy_reflect::TypeRegistry,
 }
 
 impl YitRoot {
@@ -13,11 +14,18 @@ impl YitRoot {
 		let dir = dir.as_ref().to_path_buf();
 		let dir = dir.canonicalize().await?;
 		dir.assert_dir().await?;
-		Ok(Self { dir })
+		Ok(Self {
+			dir,
+			type_registry: bevy_reflect::TypeRegistry::default(),
+		})
 	}
 
 	pub fn dir(&self) -> &Utf8Path {
 		&self.dir
+	}
+
+	pub fn registry(&self) -> &bevy_reflect::TypeRegistry {
+		&self.type_registry
 	}
 
 	/// Makes sure the path provided is within this Yit root directory

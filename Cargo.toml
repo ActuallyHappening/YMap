@@ -15,6 +15,7 @@ ystd = { path = "./ystd" }
 
 [dependencies]
 alloy-primitives = { version = "1.2.1", features = ["tiny-keccak"] }
+bevy_reflect = { version = "0.16.1", features = ["functions"] }
 camino = "1.1.10"
 clap = { version = "4.5.40", features = ["derive"] }
 color-eyre = "0.6.5"

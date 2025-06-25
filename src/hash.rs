@@ -20,12 +20,12 @@ pub async fn debug_hash_from_path(path: impl AsRef<Utf8Path>) -> Result<Hash> {
 
 pub trait MinimalHasher {
 	fn write(&mut self, bytes: &[u8]);
-	fn finish(self) -> Hash;
+	fn finish(&self) -> Hash;
 }
 
 impl MinimalHasher for Keccak256 {
-	fn finish(self) -> Hash {
-		Keccak256::finalize(self)
+	fn finish(&self) -> Hash {
+		self.clone().finalize()
 	}
 	fn write(&mut self, bytes: &[u8]) {
 		self.update(bytes);
@@ -40,5 +40,5 @@ pub trait ForwardsCompatHash {
 	/// Make sure this is unique to your implementation to maintain backwards and forwards compatability
 	fn prefix(&self) -> &'static [u8];
 	/// **Must** include your prefix
-	fn hash<H: MinimalHasher>(&self, hasher: &mut H);
+	fn hash<H: MinimalHasher + ?Sized>(&self, hasher: &mut H);
 }
