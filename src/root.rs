@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, de::DeserializeOwned};
 
 use crate::{
@@ -9,6 +11,28 @@ pub struct YitContext {
 	/// Canonicalized
 	dir: Utf8PathBuf,
 	type_registry: bevy_reflect::TypeRegistry,
+	pub ignored: YitIgnore,
+}
+
+pub struct YitIgnore {
+	inner: fn(
+		Arc<YitContext>,
+		Utf8PathBuf,
+	) -> Box<dyn Future<Output = color_eyre::Result<bool>> + 'static>,
+}
+
+impl YitIgnore {
+	pub fn ignore_nothing() -> YitIgnore {
+		fn nothing_ignored(
+			root: Arc<YitContext>,
+			path: Utf8PathBuf,
+		) -> Box<dyn Future<Output = color_eyre::Result<bool>>> {
+			Box::new(async { Ok(false) })
+		}
+		Self {
+			inner: nothing_ignored,
+		}
+	}
 }
 
 impl YitContext {
@@ -19,6 +43,7 @@ impl YitContext {
 		Ok(Self {
 			dir,
 			type_registry: bevy_reflect::TypeRegistry::default(),
+			ignored: YitIgnore::ignore_nothing(),
 		})
 	}
 
@@ -48,8 +73,17 @@ impl YitContext {
 		);
 	}
 
-	pub async fn resolve_attr<A>(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<A> {
-		let path = self.resolve_local_path(path).await?;
+	pub fn set_ignored(&mut self, ignore: YitIgnore) -> &mut Self {
+		self.ignored = ignore;
+		self
+	}
+
+	pub fn with_ignored(mut self, ignore: YitIgnore) -> Self {
+		self.ignored = ignore;
+		self
+	}
+
+	pub async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
 		todo!()
 	}
 
