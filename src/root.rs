@@ -35,6 +35,8 @@ use crate::prelude::*;
 				self.dir
 			);
 		}
+		
+		pub async fn snapshot(&self) -> 
 	}
 
 	#[cfg(test)]

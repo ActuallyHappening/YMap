@@ -12,6 +12,7 @@ pub struct Cli {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Cmd {
+	State,
 	#[clap(subcommand)]
 	Plumbing(Plumbing),
 }
@@ -31,6 +32,9 @@ async fn main() -> color_eyre::Result<()> {
 	let cli = Cli::parse();
 
 	match cli.cmd {
+		Cmd::State => {
+			todo!()
+		}
 		Cmd::Plumbing(cmd) => match cmd {
 			Plumbing::Hash { path } => {
 				let hash = yit::hash::debug_hash_from_path(&path).await?;

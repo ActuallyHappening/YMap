@@ -8,3 +8,4 @@ mod root;
 pub mod hash;
 
 pub mod storage;
+pub mod vfs;
