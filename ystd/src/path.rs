@@ -1,6 +1,6 @@
 //! Wrapper types around [camino]
 
-use std::borrow::Borrow;
+use std::{borrow::Borrow, fs::Metadata};
 
 use crate::{fs, io, prelude::*};
 
@@ -16,6 +16,7 @@ impl Utf8Path {
 		unsafe { &*(path as *const camino::Utf8Path as *const Utf8Path) }
 	}
 
+	/// [camino::Utf8Path::as_str]
 	pub fn as_str(&self) -> &str {
 		self.0.as_str()
 	}
@@ -24,15 +25,48 @@ impl Utf8Path {
 	pub fn to_path_buf(&self) -> Utf8PathBuf {
 		Utf8PathBuf(self.0.to_path_buf())
 	}
+}
 
+impl Utf8Path {
+	/// [camino::Utf8Path::join]
+	#[inline]
+	#[must_use]
+	pub fn join(&self, path: impl AsRef<Utf8Path>) -> Utf8PathBuf {
+		Utf8PathBuf(self.0.join(&path.as_ref().0))
+	}
+}
+
+/// [fs] integrations
+impl Utf8Path {
 	/// [camino::Utf8Path::canonicalize_utf8]
 	pub async fn canonicalize_utf8(&self) -> io::Result<Utf8PathBuf> {
-		fs::canonicalize(self).await
+		fs::canonicalize_utf8(self).await
 	}
 
 	/// [camino::Utf8Path::canonicalize_utf8]
 	pub async fn canonicalize(&self) -> io::Result<Utf8PathBuf> {
 		self.canonicalize_utf8().await
+	}
+
+	/// [camino::Utf8Path::metadata]
+	pub async fn metadata(&self) -> io::Result<Metadata> {
+		fs::metadata(self).await
+	}
+
+	/// [camino::Utf8Path::is_dir]
+	pub async fn is_dir(&self) -> bool {
+		let Ok(metadata) = self.metadata().await else {
+			return false;
+		};
+		metadata.is_dir()
+	}
+
+	/// [camino::Utf8Path::is_file]
+	pub async fn is_file(&self) -> bool {
+		let Ok(metadata) = self.metadata().await else {
+			return false;
+		};
+		metadata.is_file()
 	}
 }
 
@@ -56,6 +90,12 @@ impl AsRef<std::path::Path> for YPath {
 	}
 }
 
+impl AsRef<Utf8Path> for &str {
+	fn as_ref(&self) -> &Utf8Path {
+		Utf8Path::new(self)
+	}
+}
+
 impl ToOwned for YPath {
 	type Owned = YPathBuf;
 
@@ -65,6 +105,12 @@ impl ToOwned for YPath {
 }
 
 impl std::fmt::Display for YPath {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		self.0.fmt(f)
+	}
+}
+
+impl std::fmt::Debug for Utf8Path {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		self.0.fmt(f)
 	}

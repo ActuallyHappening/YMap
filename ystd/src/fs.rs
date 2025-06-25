@@ -1,4 +1,9 @@
-use crate::{io, prelude::*};
+use std::fs::Metadata;
+
+use crate::{
+	io::{self, asyncify},
+	prelude::*,
+};
 
 pub async fn create_dir_all(path: impl AsRef<Utf8Path>) -> io::Result<()> {
 	tokio::fs::create_dir_all(path.as_ref())
@@ -40,4 +45,13 @@ pub async fn canonicalize_utf8(path: impl AsRef<Utf8Path>) -> io::Result<Utf8Pat
 
 pub async fn canonicalize(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf> {
 	canonicalize_utf8(path).await
+}
+
+pub async fn metadata(path: impl AsRef<Utf8Path>) -> io::Result<Metadata> {
+	let path = path.as_ref();
+	tokio::fs::metadata(path).await.map_err(|io| {
+		let io = Arc::new(io);
+		io::Error::new(Report::new(io.clone()).wrap_err(format!("ystd::fs::metadata({})", path)))
+			.with_io(io)
+	})
 }

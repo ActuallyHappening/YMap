@@ -18,7 +18,7 @@ pub struct Guard {
 pub async fn logs_dir() -> Result<Utf8PathBuf> {
 	if let Some(dir) = option_env!("RUST_LOG_DIR") {
 		let dir = Utf8Path::new(dir);
-		if !dir.is_dir() {
+		if !dir.is_dir().await {
 			ystd::fs::create_dir_all(dir).await?;
 		}
 		Ok(dir.to_owned())
@@ -29,7 +29,7 @@ pub async fn logs_dir() -> Result<Utf8PathBuf> {
 		let mut current_dir = ystd::env::current_dir()?;
 		while current_dir.as_str() != "/" {
 			let yit_dir = current_dir.join(".yit");
-			if yit_dir.is_dir() {
+			if yit_dir.is_dir().await {
 				let dir = yit_dir.join("logs");
 				ystd::fs::create_dir_all(&dir).await?;
 				return Ok(dir);
