@@ -11,14 +11,17 @@ pub struct YitContext {
 	/// Canonicalized
 	dir: Utf8PathBuf,
 	type_registry: bevy_reflect::TypeRegistry,
-	pub ignored: YitIgnore,
+	pub ignored: Box<dyn YitIgnore>,
 }
 
-pub struct YitIgnore {
-	inner: fn(
-		Arc<YitContext>,
-		Utf8PathBuf,
-	) -> Box<dyn Future<Output = color_eyre::Result<bool>> + 'static>,
+pub trait YitIgnore {
+	async fn ignored(&self, state: &YitContext);
+}
+
+pub struct BoxFut<O: 'static>(pub Box<dyn Future<Output = O>>);
+
+pub struct YitIgnore<Fut> {
+	inner: Box<dyn Fn(Arc<YitContext>, Utf8PathBuf) -> Fut>,
 }
 
 impl YitIgnore {
@@ -29,9 +32,37 @@ impl YitIgnore {
 		) -> Box<dyn Future<Output = color_eyre::Result<bool>>> {
 			Box::new(async { Ok(false) })
 		}
+		Self::from_cb(nothing_ignored)
+	}
+
+	pub fn from_cb<Fut>(cb: impl Fn(Arc<YitContext>, Utf8PathBuf) -> Fut + 'static) -> YitIgnore
+	where
+		Fut: Future<Output = color_eyre::Result<bool>> + 'static,
+	{
+		let cb = move |root, path| {
+			let fut: Fut = cb(root, path);
+			return BoxFut(Box::new(fut));
+		};
+		YitIgnore::from_inner(cb)
+	}
+
+	pub fn from_inner(
+		cb: impl Fn(Arc<YitContext>, Utf8PathBuf) -> BoxFut<color_eyre::Result<bool>> + 'static,
+	) -> YitIgnore {
 		Self {
-			inner: nothing_ignored,
+			inner: Box::new(cb)
+				as Box<dyn Fn(Arc<YitContext>, Utf8PathBuf) -> BoxFut<color_eyre::Result<bool>>>,
 		}
+	}
+
+	pub async fn is_ignored(
+		&self,
+		root: Arc<YitContext>,
+		path: impl AsRef<Utf8Path>,
+	) -> color_eyre::Result<bool> {
+		let path = path.as_ref().to_owned();
+		let fut = Box::into_pin((self.inner)(root, path));
+		fut.await
 	}
 }
 
