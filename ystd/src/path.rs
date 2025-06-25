@@ -115,6 +115,12 @@ impl Utf8Path {
 // 	}
 // }
 
+impl PartialEq for Utf8Path {
+	fn eq(&self, other: &Self) -> bool {
+		self.0.eq(&other.0)
+	}
+}
+
 impl AsRef<YPath> for YPath {
 	fn as_ref(&self) -> &YPath {
 		self
@@ -181,6 +187,12 @@ impl std::iter::FusedIterator for Utf8Ancestors<'_> {}
 pub struct Utf8PathBuf(pub camino::Utf8PathBuf);
 pub type YPathBuf = Utf8PathBuf;
 pub type PathBuf = YPathBuf;
+
+impl PartialEq for Utf8PathBuf {
+	fn eq(&self, other: &Self) -> bool {
+		self.0.eq(&other.0)
+	}
+}
 
 impl std::ops::Deref for PathBuf {
 	type Target = YPath;

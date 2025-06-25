@@ -1,3 +1,2 @@
 [alias]
-yit = "run -p yit --"
-yitattrs = "run --bin yitattrs"
+yit = "run --bin yit --"

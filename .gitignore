@@ -3,7 +3,7 @@
 !src
 !ystd
 !yitignore.rs
-!yitattrs.rs
+!yit.rs
 
 !Cargo.toml
 !README.md

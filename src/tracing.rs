@@ -8,7 +8,7 @@ use tracing_subscriber::fmt::{
 	format::{self, JsonFields},
 	time::OffsetTime,
 };
-use ystd::prelude::*;
+use ystd::{fs, prelude::*};
 
 #[allow(unused)]
 pub struct Guard {
@@ -19,22 +19,22 @@ pub async fn logs_dir() -> Result<Utf8PathBuf> {
 	if let Some(dir) = option_env!("RUST_LOG_DIR") {
 		let dir = Utf8Path::new(dir);
 		if !dir.is_dir().await {
-			ystd::fs::create_dir_all(dir).await?;
+			fs::create_dir_all(dir).await?;
 		}
 		Ok(dir.to_owned())
 	} else {
 		// todo: proper automatic project detection
 		// search current dir + parent dirs for dir called .yit,
 		// then return .yit/logs/
-		let mut current_dir = ystd::env::current_dir()?;
-		while current_dir.as_str() != "/" {
+		let current_dir = ystd::env::current_dir()?;
+		let mut current_dir = current_dir.ancestors();
+		while let Some(current_dir) = current_dir.next() {
 			let yit_dir = current_dir.join(".yit");
 			if yit_dir.is_dir().await {
 				let dir = yit_dir.join("logs");
 				ystd::fs::create_dir_all(&dir).await?;
 				return Ok(dir);
 			}
-			current_dir = current_dir.parent().unwrap().to_owned();
 		}
 		Err(
 			color_eyre::eyre::eyre!("No .yit directory found to send logs to")
