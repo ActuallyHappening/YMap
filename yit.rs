@@ -33,7 +33,7 @@ async fn main() -> color_eyre::Result<()> {
 	match cli.cmd {
 		Cmd::Plumbing(cmd) => match cmd {
 			Plumbing::Hash { path } => {
-				let hash = yit::hash::hash(&path).await?;
+				let hash = yit::hash::debug_hash_from_path(&path).await?;
 				info!(?hash);
 			}
 			Plumbing::IsIgnored { path } => {
