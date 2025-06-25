@@ -1,5 +1,5 @@
 use clap::Parser as _;
-use yit::{YitRoot, prelude::*};
+use yit::{YitContext, prelude::*};
 use ystd::{env, prelude::*};
 
 mod yitignore;
@@ -28,7 +28,7 @@ async fn main() -> color_eyre::Result<()> {
 	yit::app_tracing::install_tracing("info,yit=trace").await?;
 	trace!("Started yit tracing");
 
-	let root = YitRoot::new(env::current_dir().await?).await?;
+	let root = YitContext::new(env::current_dir().await?).await?;
 	let cli = Cli::parse();
 
 	match cli.cmd {

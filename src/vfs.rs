@@ -3,7 +3,7 @@ use std::{borrow::Cow, collections::HashMap};
 use ystd::path::FileTypeExhaustive;
 
 use crate::{
-	YitRoot,
+	YitContext,
 	prelude::*,
 	storage::{self, File},
 };
@@ -17,7 +17,7 @@ pub struct Vfs {
 
 impl Vfs {
 	pub async fn snapshot_dir(
-		root: &YitRoot,
+		root: &YitContext,
 		dir: impl AsRef<Utf8Path>,
 	) -> color_eyre::Result<Vfs> {
 		let dir = root.resolve_local_path(dir).await?;

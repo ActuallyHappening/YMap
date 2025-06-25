@@ -1,15 +1,17 @@
+use serde::{Deserialize, de::DeserializeOwned};
+
 use crate::{
 	prelude::*,
 	vfs::{self, Vfs},
 };
 
-pub struct YitRoot {
+pub struct YitContext {
 	/// Canonicalized
 	dir: Utf8PathBuf,
 	type_registry: bevy_reflect::TypeRegistry,
 }
 
-impl YitRoot {
+impl YitContext {
 	pub async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
 		let dir = dir.as_ref().to_path_buf();
 		let dir = dir.canonicalize().await?;
@@ -46,6 +48,11 @@ impl YitRoot {
 		);
 	}
 
+	pub async fn resolve_attr<A>(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<A> {
+		let path = self.resolve_local_path(path).await?;
+		todo!()
+	}
+
 	pub async fn snapshot(&self) -> color_eyre::Result<vfs::Vfs> {
 		vfs::Vfs::snapshot_dir(&self, &self.dir).await
 	}
@@ -57,7 +64,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn resolve_local_path() -> color_eyre::Result<()> {
-		let root = YitRoot::new(env!("CARGO_MANIFEST_DIR")).await?;
+		let root = YitContext::new(env!("CARGO_MANIFEST_DIR")).await?;
 		let path = root.dir().join("src").join("lib.rs");
 		eyre_assert_eq!(root.resolve_local_path(&path).await?, path);
 		Ok(())

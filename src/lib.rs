@@ -5,7 +5,7 @@ pub mod prelude;
 pub use root::*;
 mod root;
 
+pub mod attrs;
 pub mod hash;
-
 pub mod storage;
 pub mod vfs;

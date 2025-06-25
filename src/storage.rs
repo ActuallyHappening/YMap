@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
-use bevy_reflect::reflect_trait;
+use bevy_reflect::{Reflect, reflect_trait};
 
-use crate::YitRoot;
+use crate::YitContext;
 use crate::hash::MinimalHasher;
 use crate::vfs::Key;
 use crate::{hash::ForwardsCompatHash, prelude::*};
@@ -19,7 +19,7 @@ pub struct File<S = GenericStorage> {
 /// the data for a file or subunit of VCS controlled data
 #[reflect_trait]
 pub trait Storage: ObjectSafeHash {
-	fn fmt_to_string(&self, root: &YitRoot) -> String;
+	fn fmt_to_string(&self, root: &YitContext) -> String;
 }
 
 pub trait ObjectSafeHash {
@@ -42,12 +42,42 @@ where
 	}
 }
 
-pub enum GenericStorage {
-	PlainText(plaintext::PlainText),
+pub struct GenericStorage {
+	/// NB: Must implement Storage at least
+	inner: Box<dyn Reflect>,
+}
+
+impl GenericStorage {
+	pub fn new<S: Storage + Reflect>(storage: S) -> GenericStorage {
+		Self::new_unchecked(storage)
+	}
+
+	/// storage must Reflect implement [Storage] in the
+	/// yit root's type registry
+	pub fn new_unchecked<S>(storage: S) -> GenericStorage
+	where
+		S: Reflect,
+	{
+		Self {
+			inner: Box::new(storage),
+		}
+	}
+
+	pub fn try_new<S: Reflect>(root: &YitContext, storage: S) -> Option<GenericStorage> {
+		let registration = root.registry().get(core::any::TypeId::of::<S>())?;
+		if registration.contains::<ReflectStorage>() {
+			Some(GenericStorage::new_unchecked(storage))
+		} else {
+			None
+		}
+	}
 }
 
 impl File {
-	pub async fn snapshot(root: &YitRoot, path: impl AsRef<Utf8Path>) -> color_eyre::Result<File> {
+	pub async fn snapshot(
+		root: &YitContext,
+		path: impl AsRef<Utf8Path>,
+	) -> color_eyre::Result<File> {
 		todo!()
 	}
 }
@@ -55,9 +85,17 @@ impl File {
 pub mod plaintext {
 	//! Using this defeats much of the purpose of using YIT,
 	//! but can help teach you how it works
-	use crate::{YitRoot, hash::ForwardsCompatHash, prelude::*, storage::Storage};
+	use bevy_reflect::Reflect;
 
-	#[derive(Debug, Clone)]
+	use crate::{
+		YitContext,
+		hash::ForwardsCompatHash,
+		prelude::*,
+		storage::{ReflectStorage, Storage},
+	};
+
+	#[derive(Reflect, Debug, Clone)]
+	#[reflect(Storage)]
 	pub struct PlainText(String);
 
 	impl ForwardsCompatHash for PlainText {
@@ -72,7 +110,7 @@ pub mod plaintext {
 	}
 
 	impl Storage for PlainText {
-		fn fmt_to_string(&self, root: &YitRoot) -> String {
+		fn fmt_to_string(&self, root: &YitContext) -> String {
 			self.0.clone()
 		}
 	}
