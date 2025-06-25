@@ -23,10 +23,10 @@ pub async fn read(path: impl AsRef<Utf8Path>) -> io::Result<Vec<u8>> {
 	})
 }
 
-pub async fn canonicalize(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf> {
-	let path = path.as_ref().to_path_buf();
-	io::asyncify(move || {
-		path.canonicalize_utf8().map(PathBuf::from).map_err(|io| {
+pub async fn canonicalize_utf8(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf> {
+	let path = path.as_ref().to_owned();
+	let path = crate::io::asyncify(move || {
+		path.0.canonicalize_utf8().map(Utf8PathBuf).map_err(|io| {
 			let io = Arc::new(io);
 			io::Error::new(
 				Report::new(io.clone()).wrap_err(format!("ystd::fs::canonicalize({})", path)),
@@ -34,5 +34,10 @@ pub async fn canonicalize(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf>
 			.with_io(io)
 		})
 	})
-	.await
+	.await?;
+	Ok(path)
+}
+
+pub async fn canonicalize(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf> {
+	canonicalize_utf8(path).await
 }

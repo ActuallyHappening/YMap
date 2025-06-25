@@ -2,7 +2,7 @@
 
 use std::borrow::Borrow;
 
-use crate::{io, prelude::*};
+use crate::{fs, io, prelude::*};
 
 /// [camino::Utf8Path] newtype
 #[repr(transparent)]
@@ -27,19 +27,7 @@ impl Utf8Path {
 
 	/// [camino::Utf8Path::canonicalize_utf8]
 	pub async fn canonicalize_utf8(&self) -> io::Result<Utf8PathBuf> {
-		let path = self.0.to_owned();
-		let path = crate::io::asyncify(move || {
-			path.canonicalize_utf8().map_err(|io| {
-				let io = Arc::new(io);
-				io::Error::new(
-					Report::new(io.clone())
-						.wrap_err(format!("ystd::path::Utf8Path::canonicalize({})", path)),
-				)
-				.with_io(io)
-			})
-		})
-		.await?;
-		Ok(Utf8PathBuf(path))
+		fs::canonicalize(self).await
 	}
 
 	/// [camino::Utf8Path::canonicalize_utf8]
