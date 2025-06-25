@@ -1,5 +1,7 @@
 use std::{borrow::Cow, collections::HashMap};
 
+use ystd::path::FileTypeExhaustive;
+
 use crate::{YitRoot, prelude::*, storage};
 
 pub(crate) type Key = Cow<'static, str>;
@@ -23,14 +25,15 @@ impl Vfs {
 		let top_level_files = dir.read_dir_utf8().await?;
 		for entry in top_level_files {
 			let entry = entry?;
-			let metadata = entry.path().metadata().await?;
-			if metadata.file_type().is_file() {
-				todo!()
-			} else if metadata.file_type().is_dir() {
-				folders.insert(
-					Cow::Owned(entry.file_name().to_owned()),
-					Box::new(Vfs::snapshot_dir(&root, entry.path()) as dyn Future).await?,
-				);
+			match entry.path().file_type_exhaustive().await? {
+				FileTypeExhaustive::File => {
+					todo!()
+				}
+				FileTypeExhaustive::Dir => {
+					// recursive
+					let vfs = Box::pin(Vfs::snapshot_dir(&root, entry.path())).await?;
+					folders.insert(Cow::Owned(entry.file_name().to_owned()), vfs);
+				}
 			}
 		}
 

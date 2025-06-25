@@ -120,6 +120,18 @@ impl Utf8Path {
 		Ok(metadata)
 	}
 
+	pub async fn file_type_exhaustive(&self) -> color_eyre::Result<FileTypeExhaustive> {
+		let metadata = self.metadata().await?;
+		if metadata.is_file() {
+			Ok(FileTypeExhaustive::File)
+		} else if metadata.is_dir() {
+			Ok(FileTypeExhaustive::Dir)
+		} else {
+			Err(eyre!("Path {} isn't a file or directory", self)
+				.wrap_err("ystd::path::file_type_exhaustive"))
+		}
+	}
+
 	#[inline]
 	pub async fn read_dir_utf8(&self) -> io::Result<ReadDirUtf8> {
 		let path = self.0.to_owned();
@@ -189,6 +201,11 @@ impl std::fmt::Debug for Utf8Path {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		self.0.fmt(f)
 	}
+}
+
+pub enum FileTypeExhaustive {
+	File,
+	Dir,
 }
 
 /// [camino::Utf8Ancestors]
