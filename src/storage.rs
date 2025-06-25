@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use crate::YitRoot;
 use crate::vfs::Key;
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
@@ -14,15 +15,21 @@ pub struct File<S = GenericStorage> {
 /// Implementors of this type are expected to contain
 /// the data for a file or subunit of VCS controlled data
 pub trait Storage: ForwardsCompatHash {
-	fn fmt(&self) -> String;
+	fn fmt_to_string(&self, root: &YitRoot) -> String;
 }
 
 pub struct GenericStorage {}
 
+impl File {
+	pub async fn snapshot(root: &YitRoot, path: impl AsRef<Utf8Path>) -> color_eyre::Result<File> {
+		todo!()
+	}
+}
+
 pub mod plaintext {
 	//! Using this defeats much of the purpose of using YIT,
 	//! but can help teach you how it works
-	use crate::{hash::ForwardsCompatHash, prelude::*, storage::Storage};
+	use crate::{YitRoot, hash::ForwardsCompatHash, prelude::*, storage::Storage};
 
 	#[derive(Debug, Clone)]
 	pub struct PlainText(String);
@@ -39,7 +46,7 @@ pub mod plaintext {
 	}
 
 	impl Storage for PlainText {
-		fn fmt(&self) -> String {
+		fn fmt_to_string(&self, root: &YitRoot) -> String {
 			self.0.clone()
 		}
 	}

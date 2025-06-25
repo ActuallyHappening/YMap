@@ -2,7 +2,11 @@ use std::{borrow::Cow, collections::HashMap};
 
 use ystd::path::FileTypeExhaustive;
 
-use crate::{YitRoot, prelude::*, storage};
+use crate::{
+	YitRoot,
+	prelude::*,
+	storage::{self, File},
+};
 
 pub(crate) type Key = Cow<'static, str>;
 
@@ -27,7 +31,8 @@ impl Vfs {
 			let entry = entry?;
 			match entry.path().file_type_exhaustive().await? {
 				FileTypeExhaustive::File => {
-					todo!()
+					let file = Box::pin(File::snapshot(&root, entry.path())).await?;
+					files.push(file);
 				}
 				FileTypeExhaustive::Dir => {
 					// recursive
