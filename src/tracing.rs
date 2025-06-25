@@ -26,10 +26,10 @@ pub async fn logs_dir() -> Result<Utf8PathBuf> {
 		// todo: proper automatic project detection
 		// search current dir + parent dirs for dir called .yit,
 		// then return .yit/logs/
-		let current_dir = ystd::env::current_dir()?;
-		let mut current_dir = current_dir.ancestors();
-		while let Some(current_dir) = current_dir.next() {
-			let yit_dir = current_dir.join(".yit");
+		let current_dir = ystd::env::current_dir().await?;
+		let mut cwd_ancestors = current_dir.ancestors();
+		while let Some(root_dir) = cwd_ancestors.next() {
+			let yit_dir = root_dir.join(".yit");
 			if yit_dir.is_dir().await {
 				let dir = yit_dir.join("logs");
 				ystd::fs::create_dir_all(&dir).await?;
@@ -38,7 +38,7 @@ pub async fn logs_dir() -> Result<Utf8PathBuf> {
 		}
 		Err(
 			color_eyre::eyre::eyre!("No .yit directory found to send logs to")
-				.note(format!("CWD: {}", ystd::env::current_dir()?)),
+				.note(format!("CWD: {}", current_dir)),
 		)
 	}
 }

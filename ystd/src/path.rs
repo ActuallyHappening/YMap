@@ -236,9 +236,11 @@ impl TryFrom<std::path::PathBuf> for PathBuf {
 	type Error = color_eyre::Report;
 
 	fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
-		value.try_into().wrap_err(
-			"ystd::path Failed to convert from `std::path::PathBuf` to `ystd::path::PathBuf`",
-		)
+		camino::Utf8PathBuf::try_from(value)
+			.map(Utf8PathBuf)
+			.wrap_err(
+				"ystd::path Failed to convert from `std::path::PathBuf` to `ystd::path::PathBuf`",
+			)
 	}
 }
 

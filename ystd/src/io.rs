@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use tokio::runtime::{Handle, Runtime};
+
 use crate::{io, prelude::*};
 
 pub(crate) async fn asyncify<F, T>(f: F) -> io::Result<T>
