@@ -28,6 +28,15 @@ impl Utf8Path {
 }
 
 impl Utf8Path {
+	/// [camino::Utf8Path::starts_with]
+	#[inline]
+	#[must_use]
+	pub fn starts_with(&self, base: impl AsRef<Utf8Path>) -> bool {
+		self.0.starts_with(base.as_ref())
+	}
+}
+
+impl Utf8Path {
 	/// [camino::Utf8Path::join]
 	#[inline]
 	#[must_use]
