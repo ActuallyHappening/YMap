@@ -2,6 +2,7 @@ pub mod prelude {
 	pub use crate::assert::{
 		eyre_assert, eyre_assert as assert, eyre_assert_eq, eyre_assert_eq as assert_eq,
 	};
+	pub(crate) use crate::io::MapIoError as _;
 	pub use crate::path::{Path, PathBuf, Utf8Path, Utf8PathBuf, YPath, YPathBuf};
 
 	pub(crate) use color_eyre::Report;

@@ -56,6 +56,13 @@ impl Utf8Path {
 	pub fn ancestors(&self) -> Utf8Ancestors<'_> {
 		Utf8Ancestors(self.0.ancestors())
 	}
+
+	/// [camino::Utf8Path::file_name]
+	#[inline]
+	#[must_use]
+	pub fn file_name(&self) -> Option<&str> {
+		self.0.file_name()
+	}
 }
 
 /// [fs] integrations
@@ -111,6 +118,24 @@ impl Utf8Path {
 			self
 		);
 		Ok(metadata)
+	}
+
+	#[inline]
+	pub async fn read_dir_utf8(&self) -> io::Result<ReadDirUtf8> {
+		let path = self.0.to_owned();
+		io::asyncify(move || {
+			path.read_dir_utf8()
+				.map(|inner| ReadDirUtf8 { inner })
+				.map_err_std_io(|io| {
+					Report::new(io).wrap_err(format!("ystd::path::Utf8Path::read_dir({})", path))
+				})
+		})
+		.await
+	}
+
+	#[inline]
+	pub async fn read_dir(&self) -> io::Result<ReadDirUtf8> {
+		self.read_dir_utf8().await
 	}
 }
 
@@ -188,6 +213,37 @@ impl<'a> Iterator for Utf8Ancestors<'a> {
 }
 
 impl std::iter::FusedIterator for Utf8Ancestors<'_> {}
+
+#[derive(Debug)]
+pub struct ReadDirUtf8 {
+	inner: camino::ReadDirUtf8,
+}
+
+impl Iterator for ReadDirUtf8 {
+	type Item = io::Result<Utf8DirEntry>;
+
+	fn next(&mut self) -> Option<io::Result<Utf8DirEntry>> {
+		self.inner.next().map(|some| {
+			some.map(Utf8DirEntry)
+				.map_err_std_io(|io| Report::new(io).wrap_err("ystd::path::ReadDirUtf8::next"))
+		})
+	}
+}
+
+#[derive(Debug)]
+pub struct Utf8DirEntry(camino::Utf8DirEntry);
+
+impl Utf8DirEntry {
+	#[inline]
+	pub fn path(&self) -> &Utf8Path {
+		Utf8Path::new(self.0.path())
+	}
+
+	#[inline]
+	pub fn file_name(&self) -> &str {
+		self.path().file_name().unwrap()
+	}
+}
 
 /// [camino::Utf8PathBuf] newtype
 #[derive(Clone)]

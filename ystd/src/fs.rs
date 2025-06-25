@@ -6,26 +6,22 @@ use crate::{
 };
 
 pub async fn create_dir_all(path: impl AsRef<Utf8Path>) -> io::Result<()> {
-	tokio::fs::create_dir_all(path.as_ref())
-		.await
-		.map_err(|io| {
-			let io = Arc::new(io);
-			io::Error {
-				report: Report::new(io.clone())
-					.wrap_err(format!("ystd::fs::create_dir_all({})", path.as_ref())),
-				io: Some(io),
-			}
+	let path = path.as_ref().to_owned();
+	asyncify(move || {
+		std::fs::create_dir_all(&path).map_err_std_io(|io| {
+			Report::new(io.clone()).wrap_err(format!("ystd::fs::create_dir_all({})", path))
 		})
+	})
+	.await
 }
 
 pub async fn read(path: impl AsRef<Utf8Path>) -> io::Result<Vec<u8>> {
-	tokio::fs::read(path.as_ref()).await.map_err(|io| {
-		let io = Arc::new(io);
-		io::Error {
-			report: Report::new(io.clone()).wrap_err(format!("ystd::fs::read({})", path.as_ref())),
-			io: Some(io),
-		}
+	let path = path.as_ref().to_owned();
+	asyncify(move || {
+		std::fs::read(&path)
+			.map_err_std_io(|io| Report::new(io).wrap_err(format!("ystd::fs::read({})", path)))
 	})
+	.await
 }
 
 pub async fn canonicalize_utf8(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf> {
@@ -48,10 +44,10 @@ pub async fn canonicalize(path: impl AsRef<Utf8Path>) -> io::Result<Utf8PathBuf>
 }
 
 pub async fn metadata(path: impl AsRef<Utf8Path>) -> io::Result<Metadata> {
-	let path = path.as_ref();
-	tokio::fs::metadata(path).await.map_err(|io| {
-		let io = Arc::new(io);
-		io::Error::new(Report::new(io.clone()).wrap_err(format!("ystd::fs::metadata({})", path)))
-			.with_io(io)
+	let path = path.as_ref().to_owned();
+	asyncify(move || {
+		std::fs::metadata(&path)
+			.map_err_std_io(|io| Report::new(io).wrap_err(format!("ystd::fs::metadata({})", path)))
 	})
+	.await
 }

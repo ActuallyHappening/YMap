@@ -1,7 +1,5 @@
 use std::fmt::Display;
 
-use tokio::runtime::{Handle, Runtime};
-
 use crate::{io, prelude::*};
 
 pub(crate) async fn asyncify<F, T>(f: F) -> io::Result<T>
@@ -38,3 +36,21 @@ impl Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub(crate) trait MapIoError<T> {
+	fn map_err_std_io<F>(self, f: F) -> core::result::Result<T, Error>
+	where
+		F: FnOnce(Arc<std::io::Error>) -> Report;
+}
+
+impl<T> MapIoError<T> for core::result::Result<T, std::io::Error> {
+	fn map_err_std_io<F>(self, f: F) -> core::result::Result<T, Error>
+	where
+		F: FnOnce(Arc<std::io::Error>) -> Report,
+	{
+		self.map_err(|io| {
+			let io = Arc::new(io);
+			Error::new(f(io.clone())).with_io(io)
+		})
+	}
+}

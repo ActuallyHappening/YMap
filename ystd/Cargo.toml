@@ -7,7 +7,7 @@ edition = "2024"
 camino = "1.1.10"
 color-eyre = "0.6.5"
 thiserror = "2.0.12"
-tokio = { version = "1.45.1", features = ["fs"] }
+tokio = { version = "1.45.1", features = ["rt"] }
 tracing = "0.1.41"
 
 [lints]
