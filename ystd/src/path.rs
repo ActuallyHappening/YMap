@@ -84,14 +84,13 @@ impl Utf8Path {
 	}
 
 	/// Convenient way to provide a better error message
-	pub async fn assert_dir(&self) -> io::Result<Metadata> {
+	pub async fn assert_dir(&self) -> color_eyre::Result<Metadata> {
 		let metadata = self.metadata().await?;
-		if !metadata.file_type().is_dir() {
-			return Err(io::Error::new(eyre!(
-				"ystd::path::Utf8Path::assert_dir({}): Path isn't a directory",
-				self
-			)));
-		}
+		eyre_assert!(
+			metadata.is_dir(),
+			"ystd::path::Utf8Path::assert_dir({}): Path isn't a directory",
+			self
+		);
 		Ok(metadata)
 	}
 
@@ -104,14 +103,13 @@ impl Utf8Path {
 	}
 
 	/// Convenient way to provide a better error message
-	pub async fn assert_file(&self) -> io::Result<Metadata> {
+	pub async fn assert_file(&self) -> color_eyre::Result<Metadata> {
 		let metadata = self.metadata().await?;
-		if !metadata.file_type().is_file() {
-			return Err(io::Error::new(eyre!(
-				"ystd::path::Utf8Path::assert_dir({}): Path isn't a file",
-				self
-			)));
-		}
+		eyre_assert!(
+			metadata.is_file(),
+			"ystd::path::Utf8Path::assert_dir({}): Path isn't a file",
+			self
+		);
 		Ok(metadata)
 	}
 }

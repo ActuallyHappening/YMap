@@ -1,10 +1,11 @@
 use std::borrow::Cow;
 
+use crate::vfs::Key;
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
 pub struct File<S = GenericStorage> {
-	pub name: Cow<'static, str>,
-	pub s: S,
+	pub name: Key,
+	pub storage: S,
 }
 
 /// The key innovation of YIT, that files are treated as
