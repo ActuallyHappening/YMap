@@ -41,6 +41,12 @@ impl Utf8Path {
 	pub fn parent(&self) -> Option<&Utf8Path> {
 		self.0.parent().map(Utf8Path::new)
 	}
+
+	/// [camino::Utf8Path::ancestors]
+	#[inline]
+	pub fn ancestors(&self) -> Utf8Ancestors<'_> {
+		Utf8Ancestors(self.0.ancestors())
+	}
 }
 
 /// [fs] integrations
@@ -68,12 +74,36 @@ impl Utf8Path {
 		metadata.is_dir()
 	}
 
+	/// Convenient way to provide a better error message
+	pub async fn assert_dir(&self) -> io::Result<Metadata> {
+		let metadata = self.metadata().await?;
+		if !metadata.file_type().is_dir() {
+			return Err(io::Error::new(eyre!(
+				"ystd::path::Utf8Path::assert_dir({}): Path isn't a directory",
+				self
+			)));
+		}
+		Ok(metadata)
+	}
+
 	/// [camino::Utf8Path::is_file]
 	pub async fn is_file(&self) -> bool {
 		let Ok(metadata) = self.metadata().await else {
 			return false;
 		};
 		metadata.is_file()
+	}
+
+	/// Convenient way to provide a better error message
+	pub async fn assert_file(&self) -> io::Result<Metadata> {
+		let metadata = self.metadata().await?;
+		if !metadata.file_type().is_file() {
+			return Err(io::Error::new(eyre!(
+				"ystd::path::Utf8Path::assert_dir({}): Path isn't a file",
+				self
+			)));
+		}
+		Ok(metadata)
 	}
 }
 
@@ -122,6 +152,29 @@ impl std::fmt::Debug for Utf8Path {
 		self.0.fmt(f)
 	}
 }
+
+/// [camino::Utf8Ancestors]
+#[derive(Copy, Clone)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+#[repr(transparent)]
+pub struct Utf8Ancestors<'a>(camino::Utf8Ancestors<'a>);
+
+impl std::fmt::Debug for Utf8Ancestors<'_> {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		std::fmt::Debug::fmt(&self.0, f)
+	}
+}
+
+impl<'a> Iterator for Utf8Ancestors<'a> {
+	type Item = &'a Utf8Path;
+
+	#[inline]
+	fn next(&mut self) -> Option<Self::Item> {
+		self.0.next().map(Utf8Path::new)
+	}
+}
+
+impl std::iter::FusedIterator for Utf8Ancestors<'_> {}
 
 /// [camino::Utf8PathBuf] newtype
 #[derive(Clone)]

@@ -13,18 +13,26 @@ mod root {
 	impl YitRoot {
 		pub async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
 			let dir = dir.as_ref().to_path_buf();
-			let dir = ystd::fs::canonicalize(dir).await?;
-			if !dir.is_dir().await {
-				return Err(eyre!("Path is not a directory").note(format!("Path: {}", dir)));
-			}
+			let dir = dir.canonicalize().await?;
+			dir.assert_dir().await?;
 			Ok(Self { dir })
 		}
 
+		pub fn dir(&self) -> &Utf8Path {
+			&self.dir
+		}
+
 		/// Makes sure the path provided is within this Yit root directory
-		pub fn resolve_local_path(
+		pub async fn resolve_local_path(
 			&self,
 			path: impl AsRef<Utf8Path>,
 		) -> color_eyre::Result<Utf8PathBuf> {
+			let path = path.as_ref().canonicalize().await?;
+			for ancestor in path.ancestors() {
+				if ancestor == self.dir {
+					return Ok(path)
+				}
+			}
 			todo!()
 		}
 	}
