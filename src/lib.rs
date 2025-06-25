@@ -14,7 +14,7 @@ mod root {
 		pub async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
 			let dir = dir.as_ref().to_path_buf();
 			let dir = ystd::fs::canonicalize(dir).await?;
-			if !dir.is_dir() {
+			if !dir.is_dir().await {
 				return Err(eyre!("Path is not a directory").note(format!("Path: {}", dir)));
 			}
 			Ok(Self { dir })
@@ -39,11 +39,11 @@ pub mod hash {
 
 	pub async fn hash(path: impl AsRef<Utf8Path>) -> Result<Hash> {
 		let path = path.as_ref();
-		if path.is_file() {
+		if path.is_file().await {
 			let data = ystd::fs::read(path).await?;
 			let hash = keccak256(&data);
 			Ok(hash)
-		} else if path.is_dir() {
+		} else if path.is_dir().await {
 			todo!()
 		} else {
 			Err(eyre!("Path neither file nor directory").note(format!("Path: {}", path)))

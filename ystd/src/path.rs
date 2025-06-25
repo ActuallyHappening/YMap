@@ -1,6 +1,6 @@
 //! Wrapper types around [camino]
 
-use std::{borrow::Borrow, fs::Metadata};
+use std::{borrow::Borrow, convert::Infallible, fs::Metadata, str::FromStr};
 
 use crate::{fs, io, prelude::*};
 
@@ -33,6 +33,13 @@ impl Utf8Path {
 	#[must_use]
 	pub fn join(&self, path: impl AsRef<Utf8Path>) -> Utf8PathBuf {
 		Utf8PathBuf(self.0.join(&path.as_ref().0))
+	}
+
+	/// [camino::Utf8Path::parent]
+	#[inline]
+	#[must_use]
+	pub fn parent(&self) -> Option<&Utf8Path> {
+		self.0.parent().map(Utf8Path::new)
 	}
 }
 
@@ -117,6 +124,7 @@ impl std::fmt::Debug for Utf8Path {
 }
 
 /// [camino::Utf8PathBuf] newtype
+#[derive(Clone)]
 pub struct Utf8PathBuf(pub camino::Utf8PathBuf);
 pub type YPathBuf = Utf8PathBuf;
 pub type PathBuf = YPathBuf;
@@ -135,9 +143,15 @@ impl Borrow<YPath> for YPathBuf {
 	}
 }
 
-impl AsRef<YPath> for YPathBuf {
-	fn as_ref(&self) -> &YPath {
-		Path::new(self.0.as_str())
+impl AsRef<Utf8Path> for Utf8PathBuf {
+	fn as_ref(&self) -> &Utf8Path {
+		Utf8Path::new(self.0.as_str())
+	}
+}
+
+impl AsRef<std::path::Path> for Utf8PathBuf {
+	fn as_ref(&self) -> &std::path::Path {
+		self.0.as_ref()
 	}
 }
 
@@ -163,7 +177,21 @@ impl TryFrom<std::path::PathBuf> for PathBuf {
 	}
 }
 
+impl FromStr for PathBuf {
+	type Err = Infallible;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(Path::new(s).to_owned())
+	}
+}
+
 impl std::fmt::Display for Utf8PathBuf {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		self.0.fmt(f)
+	}
+}
+
+impl std::fmt::Debug for Utf8PathBuf {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		self.0.fmt(f)
 	}
