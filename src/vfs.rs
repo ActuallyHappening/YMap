@@ -17,7 +17,7 @@ pub struct Vfs {
 
 impl Vfs {
 	pub async fn snapshot_dir(
-		root: &YitContext,
+		root: &impl YitContext,
 		dir: impl AsRef<Utf8Path>,
 	) -> color_eyre::Result<Vfs> {
 		let dir = root.resolve_local_path(dir).await?;

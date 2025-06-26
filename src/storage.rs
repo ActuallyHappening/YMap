@@ -19,7 +19,7 @@ pub struct File<S = GenericStorage> {
 /// the data for a file or subunit of VCS controlled data
 #[reflect_trait]
 pub trait Storage: ObjectSafeHash {
-	fn fmt_to_string(&self, root: &YitContext) -> String;
+	fn fmt_to_string(&self) -> String;
 }
 
 pub trait ObjectSafeHash {
@@ -63,7 +63,7 @@ impl GenericStorage {
 		}
 	}
 
-	pub fn try_new<S: Reflect>(root: &YitContext, storage: S) -> Option<GenericStorage> {
+	pub fn try_new<S: Reflect>(root: &impl YitContext, storage: S) -> Option<GenericStorage> {
 		let registration = root.registry().get(core::any::TypeId::of::<S>())?;
 		if registration.contains::<ReflectStorage>() {
 			Some(GenericStorage::new_unchecked(storage))
@@ -75,7 +75,7 @@ impl GenericStorage {
 
 impl File {
 	pub async fn snapshot(
-		root: &YitContext,
+		root: &impl YitContext,
 		path: impl AsRef<Utf8Path>,
 	) -> color_eyre::Result<File> {
 		todo!()
@@ -110,7 +110,7 @@ pub mod plaintext {
 	}
 
 	impl Storage for PlainText {
-		fn fmt_to_string(&self, root: &YitContext) -> String {
+		fn fmt_to_string(&self) -> String {
 			self.0.clone()
 		}
 	}

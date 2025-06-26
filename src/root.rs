@@ -37,6 +37,23 @@ pub trait YitContext: Sized {
 	}
 }
 
+impl<T> YitContext for &T
+where
+	T: YitContext,
+{
+	fn dir(&self) -> &Utf8Path {
+		(*self).dir()
+	}
+
+	fn registry(&self) -> &bevy_reflect::TypeRegistry {
+		(*self).registry()
+	}
+
+	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
+		(*self).is_ignored(path).await
+	}
+}
+
 pub struct GenericYitContext<Ignored> {
 	/// Canonicalized
 	dir: Utf8PathBuf,
@@ -127,7 +144,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn resolve_local_path() -> color_eyre::Result<()> {
-		let root = YitContext::new(env!("CARGO_MANIFEST_DIR")).await?;
+		let root = GenericYitContext::new(env!("CARGO_MANIFEST_DIR")).await?;
 		let path = root.dir().join("src").join("lib.rs");
 		eyre_assert_eq!(root.resolve_local_path(&path).await?, path);
 		Ok(())
