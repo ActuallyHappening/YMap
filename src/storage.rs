@@ -19,7 +19,28 @@ pub struct File<S = GenericStorage> {
 /// the data for a file or subunit of VCS controlled data
 #[reflect_trait]
 pub trait Storage: ObjectSafeHash {
-	fn fmt_to_string(&self) -> String;
+	fn fmt_to_data(&self) -> Vec<u8>;
+
+	// fn consume_data(&mut self, input: &[u8]);
+}
+
+mod test {
+	use bevy_reflect::{
+		func::{ArgList, ReflectFn as _},
+		prelude::*,
+	};
+
+	#[test]
+	fn reflection() {
+		fn add(a: i32, b: i32) -> i32 {
+			a + b
+		}
+
+		let args = ArgList::new().with_owned(25_i32).with_owned(75_i32);
+
+		let value = add.reflect_call(args).unwrap().unwrap_owned();
+		assert_eq!(value.try_take::<i32>().unwrap(), 100);
+	}
 }
 
 pub trait ObjectSafeHash {
@@ -73,11 +94,11 @@ impl GenericStorage {
 	}
 }
 
-impl File {
+impl<S> File<S> {
 	pub async fn snapshot(
 		root: &impl YitContext,
 		path: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<File> {
+	) -> color_eyre::Result<File<S>> {
 		todo!()
 	}
 }
@@ -110,8 +131,8 @@ pub mod plaintext {
 	}
 
 	impl Storage for PlainText {
-		fn fmt_to_string(&self) -> String {
-			self.0.clone()
+		fn fmt_to_data(&self) -> Vec<u8> {
+			self.0.clone().into_bytes()
 		}
 	}
 }

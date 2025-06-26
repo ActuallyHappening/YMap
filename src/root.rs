@@ -54,7 +54,7 @@ where
 	}
 }
 
-pub struct GenericYitContext<Ignored> {
+pub struct DefaultYitContext<Ignored> {
 	/// Canonicalized
 	dir: Utf8PathBuf,
 	type_registry: bevy_reflect::TypeRegistry,
@@ -77,8 +77,8 @@ impl YitIgnore for IgnoreNothing {
 	}
 }
 
-impl GenericYitContext<IgnoreNothing> {
-	async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
+impl DefaultYitContext<IgnoreNothing> {
+	pub async fn new(dir: impl AsRef<Utf8Path>) -> Result<Self> {
 		let dir = dir.as_ref().to_path_buf();
 		let dir = dir.canonicalize().await?;
 		dir.assert_dir().await?;
@@ -90,12 +90,12 @@ impl GenericYitContext<IgnoreNothing> {
 	}
 }
 
-impl<Ignored> GenericYitContext<Ignored> {
-	pub fn with_ignored<I>(self, ignore: I) -> GenericYitContext<I>
+impl<Ignored> DefaultYitContext<Ignored> {
+	pub fn with_ignored<I>(self, ignore: I) -> DefaultYitContext<I>
 	where
 		I: YitIgnore + 'static,
 	{
-		GenericYitContext {
+		DefaultYitContext {
 			dir: self.dir,
 			type_registry: self.type_registry,
 			ignored: ignore,
@@ -103,7 +103,7 @@ impl<Ignored> GenericYitContext<Ignored> {
 	}
 }
 
-impl<Ignored> YitContext for GenericYitContext<Ignored>
+impl<Ignored> YitContext for DefaultYitContext<Ignored>
 where
 	Ignored: YitIgnore,
 {
@@ -144,7 +144,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn resolve_local_path() -> color_eyre::Result<()> {
-		let root = GenericYitContext::new(env!("CARGO_MANIFEST_DIR")).await?;
+		let root = DefaultYitContext::new(env!("CARGO_MANIFEST_DIR")).await?;
 		let path = root.dir().join("src").join("lib.rs");
 		eyre_assert_eq!(root.resolve_local_path(&path).await?, path);
 		Ok(())

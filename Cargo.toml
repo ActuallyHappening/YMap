@@ -40,6 +40,9 @@ tracing-subscriber = { version = "0.3.19", features = [
 url = "2.5.4"
 ystd.workspace = true
 
+[lints]
+workspace = true
+
 [workspace.lints.rust]
 unused_imports = "allow"
 
