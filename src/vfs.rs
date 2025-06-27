@@ -49,6 +49,9 @@ where
 		let top_level_files = dir.read_dir_utf8().await?;
 		for entry in top_level_files {
 			let entry = entry?;
+			if storage.state().is_ignored(entry.path()).await? {
+				continue;
+			}
 			match entry.path().file_type_exhaustive().await? {
 				FileTypeExhaustive::File => {
 					// single file

@@ -178,6 +178,7 @@ where
 	pub async fn snapshot(storage: &S, path: impl AsRef<Utf8Path>) -> color_eyre::Result<File<S>> {
 		let path = path.as_ref();
 		path.assert_file().await?;
+
 		let key = Key::from(
 			path.file_name()
 				.wrap_err(format!("yit::storage::File::snapshot path has no filename"))?

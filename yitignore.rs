@@ -6,7 +6,7 @@ pub struct MyIgnore;
 impl YitIgnore for MyIgnore {
 	async fn ignored(&self, state: &impl YitContext, path: &Utf8Path) -> color_eyre::Result<bool> {
 		let path = state.resolve_local_path(path).await?;
-		let excluded_paths = [".yit", "target"]
+		let excluded_paths = [".yit", "target", ".git"]
 			.into_iter()
 			.map(|tl| state.dir().join(tl));
 		for excluded_path in excluded_paths {
