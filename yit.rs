@@ -1,5 +1,9 @@
 use clap::Parser as _;
-use yit::{DefaultYitContext, YitContext, prelude::*};
+use yit::{
+	DefaultYitContext, YitContext,
+	prelude::*,
+	storage::{BuiltinStorages, plaintext::PlainText},
+};
 use ystd::{env, prelude::*};
 
 mod yitignore;
@@ -33,7 +37,8 @@ async fn main() -> color_eyre::Result<()> {
 
 	match cli.cmd {
 		Cmd::State => {
-			let vfs = root.snapshot().await?;
+			let storage = BuiltinStorages::PlainText(PlainText::new(&root));
+			let vfs = root.snapshot(&storage).await?;
 			info!(?vfs);
 		}
 		Cmd::Plumbing(cmd) => match cmd {

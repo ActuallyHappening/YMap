@@ -9,13 +9,24 @@ use crate::vfs::Key;
 use crate::{YitContext, storage};
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
-#[derive(Debug)]
 pub struct File<S>
 where
 	S: Storage,
 {
 	pub name: Key,
 	pub storage: <S as Storage>::Encoded,
+}
+
+impl<S> core::fmt::Debug for File<S>
+where
+	S: Storage,
+{
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		f.debug_struct("File")
+			.field("name", &self.name)
+			.field("storage", &self.storage)
+			.finish()
+	}
 }
 
 /// The key innovation of YIT, that files are treated as
@@ -94,9 +105,7 @@ impl<'s, YitContext, T> Deref for Stateful<'s, YitContext, T> {
 	}
 }
 
-pub type BuiltinStorages<'s, C> = BuiltinStoragesDiscriminants<'s, C>;
-
-pub enum BuiltinStoragesDiscriminants<'s, C> {
+pub enum BuiltinStorages<'s, C> {
 	PlainText(plaintext::PlainText<'s, C>),
 }
 
@@ -193,8 +202,18 @@ pub mod plaintext {
 	};
 
 	#[derive(Debug, Default)]
+	#[non_exhaustive]
 	pub struct PlainTextMarker;
 	pub type PlainText<'s, YitContext> = Stateful<'s, YitContext, PlainTextMarker>;
+
+	impl<'s, C> PlainText<'s, C> {
+		pub fn new(state: &'s C) -> Self {
+			Stateful {
+				state,
+				inner: PlainTextMarker,
+			}
+		}
+	}
 
 	#[derive(Reflect, Debug, Clone)]
 	pub struct PlainTextEncoded(String);

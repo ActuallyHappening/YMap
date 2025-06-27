@@ -10,13 +10,24 @@ use crate::{
 
 pub(crate) type Key = Cow<'static, str>;
 
-#[derive(Debug)]
 pub struct Vfs<S>
 where
 	S: Storage,
 {
 	pub files: Vec<storage::File<S>>,
 	pub folders: HashMap<Key, Vfs<S>>,
+}
+
+impl<S> core::fmt::Debug for Vfs<S>
+where
+	S: Storage,
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Vfs")
+			.field("files", &self.files)
+			.field("folders", &self.folders)
+			.finish()
+	}
 }
 
 impl<S> Vfs<S>
