@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use crate::{prelude::*, storage::GenericStorage};
+use crate::{prelude::*, storage::BuiltinStorages};
 
 pub enum AttrKey {
 	IsIgnored,

@@ -60,8 +60,10 @@ impl Utf8Path {
 	/// [camino::Utf8Path::file_name]
 	#[inline]
 	#[must_use]
-	pub fn file_name(&self) -> Option<&str> {
-		self.0.file_name()
+	pub fn file_name(&self) -> color_eyre::Result<&str> {
+		self.0
+			.file_name()
+			.ok_or(eyre!("ystd::path path {self} has no file_name"))
 	}
 }
 

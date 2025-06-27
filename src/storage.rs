@@ -1,13 +1,15 @@
 use std::borrow::Cow;
 
 use bevy_reflect::{Reflect, reflect_trait};
+use ystd::fs;
 
 use crate::YitContext;
 use crate::hash::MinimalHasher;
 use crate::vfs::Key;
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
-pub struct File<S = GenericStorage> {
+#[derive(Debug)]
+pub struct File<S = BuiltinStorages> {
 	pub name: Key,
 	pub storage: S,
 }
@@ -17,11 +19,12 @@ pub struct File<S = GenericStorage> {
 ///
 /// Implementors of this type are expected to contain
 /// the data for a file or subunit of VCS controlled data
-#[reflect_trait]
-pub trait Storage: ObjectSafeHash {
-	fn fmt_to_data(&self) -> Vec<u8>;
-
-	// fn consume_data(&mut self, input: &[u8]);
+// #[reflect_trait]
+pub trait Storage: ForwardsCompatHash {
+	async fn fmt_to_data(&self, state: &impl YitContext) -> Vec<u8>;
+	async fn parse_from_data(state: &impl YitContext, data: &[u8]) -> Result<Self>
+	where
+		Self: Sized;
 }
 
 mod test {
@@ -32,74 +35,100 @@ mod test {
 
 	#[test]
 	fn reflection() {
-		fn add(a: i32, b: i32) -> i32 {
-			a + b
+		#[derive(Reflect, Clone, PartialEq, Debug)]
+		#[reflect(opaque)]
+		struct Result(serde_json::Value);
+
+		fn create(a: i32, b: i32) -> Result {
+			Result(serde_json::json!({ "a": a, "b": b }))
 		}
 
 		let args = ArgList::new().with_owned(25_i32).with_owned(75_i32);
 
-		let value = add.reflect_call(args).unwrap().unwrap_owned();
-		assert_eq!(value.try_take::<i32>().unwrap(), 100);
+		let value = create.reflect_call(args).unwrap().unwrap_owned();
+		assert_eq!(
+			value.try_take::<Result>().unwrap(),
+			Result(serde_json::json!({ "a": 25, "b": 75 }))
+		);
 	}
 }
 
-pub trait ObjectSafeHash {
-	/// Must be the same as [ForwardsCompatHash::prefix]
-	fn prefix(&self) -> &'static [u8];
-	/// Must be the same as [ForwardsCompatHash::hash]
-	fn hash(&self, hasher: &mut dyn MinimalHasher);
+// pub trait ObjectSafeHash {
+// 	/// Must be the same as [ForwardsCompatHash::prefix]
+// 	fn prefix(&self) -> &'static [u8];
+// 	/// Must be the same as [ForwardsCompatHash::hash]
+// 	fn hash(&self, hasher: &mut dyn MinimalHasher);
+// }
+
+// impl<T> ObjectSafeHash for T
+// where
+// 	T: ForwardsCompatHash,
+// {
+// 	fn prefix(&self) -> &'static [u8] {
+// 		ForwardsCompatHash::prefix(self)
+// 	}
+
+// 	fn hash(&self, hasher: &mut dyn MinimalHasher) {
+// 		ForwardsCompatHash::hash(self, hasher);
+// 	}
+// }
+
+#[derive(Debug)]
+pub enum BuiltinStorages {
+	PlainText(plaintext::PlainText),
 }
 
-impl<T> ObjectSafeHash for T
-where
-	T: ForwardsCompatHash,
-{
+impl ForwardsCompatHash for BuiltinStorages {
+	/// A transparent wrapper
 	fn prefix(&self) -> &'static [u8] {
-		ForwardsCompatHash::prefix(self)
+		b""
 	}
 
-	fn hash(&self, hasher: &mut dyn MinimalHasher) {
-		ForwardsCompatHash::hash(self, hasher);
+	fn hash<H: MinimalHasher + ?Sized>(&self, hasher: &mut H) {
+		match self {
+			Self::PlainText(fmt) => fmt.hash(hasher),
+		}
 	}
 }
 
-pub struct GenericStorage {
-	/// NB: Must implement Storage at least
-	inner: Box<dyn Reflect>,
-}
-
-impl GenericStorage {
-	pub fn new<S: Storage + Reflect>(storage: S) -> GenericStorage {
-		Self::new_unchecked(storage)
-	}
-
-	/// storage must Reflect implement [Storage] in the
-	/// yit root's type registry
-	pub fn new_unchecked<S>(storage: S) -> GenericStorage
-	where
-		S: Reflect,
-	{
-		Self {
-			inner: Box::new(storage),
+impl Storage for BuiltinStorages {
+	async fn fmt_to_data(&self, state: &impl YitContext) -> Vec<u8> {
+		match self {
+			Self::PlainText(fmt) => fmt.fmt_to_data(state).await,
 		}
 	}
 
-	pub fn try_new<S: Reflect>(root: &impl YitContext, storage: S) -> Option<GenericStorage> {
-		let registration = root.registry().get(core::any::TypeId::of::<S>())?;
-		if registration.contains::<ReflectStorage>() {
-			Some(GenericStorage::new_unchecked(storage))
-		} else {
-			None
+	async fn parse_from_data(state: &impl YitContext, data: &[u8]) -> Result<Self>
+	where
+		Self: Sized,
+	{
+		match self {
+			Self::PlainText(fmt) => fmt
+				.parse_from_data(state, data)
+				.await
+				.map(BuiltinStorages::PlainText),
 		}
 	}
 }
 
 impl<S> File<S> {
 	pub async fn snapshot(
-		root: &impl YitContext,
+		state: &impl YitContext,
 		path: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<File<S>> {
-		todo!()
+	) -> color_eyre::Result<File<S>>
+	where
+		S: Storage,
+	{
+		let path = path.as_ref();
+		path.assert_file().await?;
+		let key = Key::from(
+			path.file_name()
+				.wrap_err(format!("yit::storage::File::snapshot path has no filename"))?
+				.to_owned(),
+		);
+		let data = fs::read(path).await?;
+		let storage = S::parse_from_data(state, &data).await?;
+		Ok(File { name: key, storage })
 	}
 }
 
@@ -108,15 +137,10 @@ pub mod plaintext {
 	//! but can help teach you how it works
 	use bevy_reflect::Reflect;
 
-	use crate::{
-		YitContext,
-		hash::ForwardsCompatHash,
-		prelude::*,
-		storage::{ReflectStorage, Storage},
-	};
+	use crate::{YitContext, hash::ForwardsCompatHash, prelude::*, storage::Storage};
 
 	#[derive(Reflect, Debug, Clone)]
-	#[reflect(Storage)]
+	// #[reflect(Storage)]
 	pub struct PlainText(String);
 
 	impl ForwardsCompatHash for PlainText {
@@ -131,8 +155,17 @@ pub mod plaintext {
 	}
 
 	impl Storage for PlainText {
-		fn fmt_to_data(&self) -> Vec<u8> {
+		async fn fmt_to_data(&self, _state: &impl YitContext) -> Vec<u8> {
 			self.0.clone().into_bytes()
+		}
+
+		async fn parse_from_data(&self, _state: &impl YitContext, data: &[u8]) -> Result<Self>
+		where
+			Self: Sized,
+		{
+			String::from_utf8(Vec::from(data))
+				.wrap_err("Couldn't parse data strictly as UTF8")
+				.map(Self)
 		}
 	}
 }

@@ -33,7 +33,8 @@ async fn main() -> color_eyre::Result<()> {
 
 	match cli.cmd {
 		Cmd::State => {
-			todo!()
+			let vfs = root.snapshot().await?;
+			info!(?vfs);
 		}
 		Cmd::Plumbing(cmd) => match cmd {
 			Plumbing::Hash { path } => {

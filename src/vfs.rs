@@ -10,6 +10,7 @@ use crate::{
 
 pub(crate) type Key = Cow<'static, str>;
 
+#[derive(Debug)]
 pub struct Vfs {
 	pub files: Vec<storage::File>,
 	pub folders: HashMap<Key, Vfs>,
@@ -31,12 +32,12 @@ impl Vfs {
 			let entry = entry?;
 			match entry.path().file_type_exhaustive().await? {
 				FileTypeExhaustive::File => {
-					let file = Box::pin(File::snapshot(&root, entry.path())).await?;
+					let file = Box::pin(File::snapshot(root, entry.path())).await?;
 					files.push(file);
 				}
 				FileTypeExhaustive::Dir => {
 					// recursive
-					let vfs = Box::pin(Vfs::snapshot_dir(&root, entry.path())).await?;
+					let vfs = Box::pin(Vfs::snapshot_dir(root, entry.path())).await?;
 					folders.insert(Cow::Owned(entry.file_name().to_owned()), vfs);
 				}
 			}

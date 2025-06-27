@@ -33,28 +33,32 @@ pub trait YitContext: Sized {
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool>;
 
 	async fn snapshot(&self) -> color_eyre::Result<vfs::Vfs> {
-		vfs::Vfs::snapshot_dir(&self, &self.dir()).await
+		vfs::Vfs::snapshot_dir(self, &self.dir()).await
 	}
 }
 
-impl<T> YitContext for &T
+// impl<T> YitContext for &T
+// where
+// 	T: YitContext,
+// {
+// 	fn dir(&self) -> &Utf8Path {
+// 		(*self).dir()
+// 	}
+
+// 	fn registry(&self) -> &bevy_reflect::TypeRegistry {
+// 		(*self).registry()
+// 	}
+
+// 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
+// 		(*self).is_ignored(path).await
+// 	}
+// }
+
+pub struct DefaultYitContext<Ignored>
 where
-	T: YitContext,
+	Ignored: Sized,
+	Self: Sized,
 {
-	fn dir(&self) -> &Utf8Path {
-		(*self).dir()
-	}
-
-	fn registry(&self) -> &bevy_reflect::TypeRegistry {
-		(*self).registry()
-	}
-
-	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
-		(*self).is_ignored(path).await
-	}
-}
-
-pub struct DefaultYitContext<Ignored> {
 	/// Canonicalized
 	dir: Utf8PathBuf,
 	type_registry: bevy_reflect::TypeRegistry,
@@ -134,7 +138,7 @@ where
 	}
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
-		self.ignored.ignored(&self, path.as_ref()).await
+		self.ignored.ignored(self, path.as_ref()).await
 	}
 }
 

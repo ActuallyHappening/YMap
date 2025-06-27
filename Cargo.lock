@@ -2707,6 +2707,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "serde",
+ "serde_json",
  "time",
  "tokio",
  "tracing",
