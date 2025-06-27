@@ -32,7 +32,9 @@ async fn main() -> color_eyre::Result<()> {
 	yit::app_tracing::install_tracing("info,yit=trace").await?;
 	trace!("Started yit tracing");
 
-	let root = DefaultYitContext::new(env::current_dir().await?).await?;
+	let root = DefaultYitContext::new(env::current_dir().await?)
+		.await?
+		.with_ignored(yitignore::MyIgnore);
 	let cli = Cli::parse();
 
 	match cli.cmd {
@@ -48,7 +50,8 @@ async fn main() -> color_eyre::Result<()> {
 			}
 			Plumbing::IsIgnored { path } => {
 				let path = root.resolve_local_path(path).await?;
-				let ignored_attr = yitignore::yitignore(&root, &path).await?;
+				// let ignored_attr = yitignore::yitignore(&root, &path).await?;
+				let ignored_attr = root.is_ignored(&path).await?;
 				info!(?ignored_attr, ?path);
 			}
 		},

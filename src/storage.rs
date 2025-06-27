@@ -184,7 +184,10 @@ where
 				.to_owned(),
 		);
 		let data = fs::read(path).await?;
-		let storage = storage.decode(data).await?;
+		let storage = storage
+			.decode(data)
+			.await
+			.wrap_err(format!("Couldn't decode raw data at path {}", path))?;
 		Ok(File { name: key, storage })
 	}
 }
