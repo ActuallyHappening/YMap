@@ -8,7 +8,7 @@ members = ["ystd"]
 
 [[bin]]
 name = "yit"
-path = "yit.rs"
+path = ".yit/yit.rs"
 
 [workspace.dependencies]
 ystd = { path = "./ystd" }

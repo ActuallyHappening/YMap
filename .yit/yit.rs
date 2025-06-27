@@ -6,6 +6,7 @@ use yit::{
 };
 use ystd::{env, prelude::*};
 
+#[path = "../yitignore.rs"]
 mod yitignore;
 
 #[derive(clap::Parser, Debug)]
