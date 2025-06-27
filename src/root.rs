@@ -5,10 +5,11 @@ use tokio::task::JoinHandle;
 
 use crate::{
 	prelude::*,
+	storage::Storage,
 	vfs::{self, Vfs},
 };
 
-pub trait YitContext: Sized {
+pub trait YitContext: Sized + Send + Sync {
 	fn dir(&self) -> &Utf8Path;
 	fn registry(&self) -> &bevy_reflect::TypeRegistry;
 
@@ -32,27 +33,13 @@ pub trait YitContext: Sized {
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool>;
 
-	async fn snapshot(&self) -> color_eyre::Result<vfs::Vfs> {
-		vfs::Vfs::snapshot_dir(self, &self.dir()).await
+	async fn snapshot<S>(&self, storage: &S) -> color_eyre::Result<vfs::Vfs<S>>
+	where
+		S: Storage,
+	{
+		vfs::Vfs::snapshot_dir(storage, &self.dir()).await
 	}
 }
-
-// impl<T> YitContext for &T
-// where
-// 	T: YitContext,
-// {
-// 	fn dir(&self) -> &Utf8Path {
-// 		(*self).dir()
-// 	}
-
-// 	fn registry(&self) -> &bevy_reflect::TypeRegistry {
-// 		(*self).registry()
-// 	}
-
-// 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {
-// 		(*self).is_ignored(path).await
-// 	}
-// }
 
 pub struct DefaultYitContext<Ignored>
 where
@@ -65,7 +52,7 @@ where
 	ignored: Ignored,
 }
 
-pub trait YitIgnore {
+pub trait YitIgnore: Send + Sync {
 	async fn ignored(&self, state: &impl YitContext, path: &Utf8Path) -> color_eyre::Result<bool>;
 }
 

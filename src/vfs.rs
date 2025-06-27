@@ -5,23 +5,31 @@ use ystd::path::FileTypeExhaustive;
 use crate::{
 	YitContext,
 	prelude::*,
-	storage::{self, File},
+	storage::{self, File, Storage},
 };
 
 pub(crate) type Key = Cow<'static, str>;
 
 #[derive(Debug)]
-pub struct Vfs {
-	pub files: Vec<storage::File>,
-	pub folders: HashMap<Key, Vfs>,
+pub struct Vfs<S>
+where
+	S: Storage,
+{
+	pub files: Vec<storage::File<S>>,
+	pub folders: HashMap<Key, Vfs<S>>,
 }
 
-impl Vfs {
+impl<S> Vfs<S>
+where
+	S: Storage,
+{
 	pub async fn snapshot_dir(
-		root: &impl YitContext,
+		// root: &impl YitContext,
+		storage: &S,
 		dir: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<Vfs> {
-		let dir = root.resolve_local_path(dir).await?;
+	) -> color_eyre::Result<Vfs<S>> {
+		let state = storage.state();
+		let dir = state.resolve_local_path(dir).await?;
 		dir.assert_dir().await?;
 
 		let mut files = Vec::new();
@@ -32,12 +40,13 @@ impl Vfs {
 			let entry = entry?;
 			match entry.path().file_type_exhaustive().await? {
 				FileTypeExhaustive::File => {
-					let file = Box::pin(File::snapshot(root, entry.path())).await?;
+					// single file
+					let file = Box::pin(File::snapshot(storage, entry.path())).await?;
 					files.push(file);
 				}
 				FileTypeExhaustive::Dir => {
 					// recursive
-					let vfs = Box::pin(Vfs::snapshot_dir(root, entry.path())).await?;
+					let vfs = Box::pin(Vfs::snapshot_dir(storage, entry.path())).await?;
 					folders.insert(Cow::Owned(entry.file_name().to_owned()), vfs);
 				}
 			}
