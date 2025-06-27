@@ -10,17 +10,19 @@ use crate::{
 
 pub(crate) type Key = Cow<'static, str>;
 
-pub struct Vfs<S>
+pub struct Vfs<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
-	pub files: Vec<storage::File<S>>,
-	pub folders: HashMap<Key, Vfs<S>>,
+	pub files: Vec<storage::File<S, C>>,
+	pub folders: HashMap<Key, Vfs<S, C>>,
 }
 
-impl<S> core::fmt::Debug for Vfs<S>
+impl<S, C> core::fmt::Debug for Vfs<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("Vfs")
@@ -30,15 +32,16 @@ where
 	}
 }
 
-impl<S> Vfs<S>
+impl<S, C> Vfs<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
 	pub async fn snapshot_dir(
 		// root: &impl YitContext,
 		storage: &S,
 		dir: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<Vfs<S>> {
+	) -> color_eyre::Result<Vfs<S, C>> {
 		let state = storage.state();
 		let dir = state.resolve_local_path(dir).await?;
 		dir.assert_dir().await?;

@@ -9,17 +9,19 @@ use crate::vfs::Key;
 use crate::{YitContext, storage};
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
-pub struct File<S>
+pub struct File<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
 	pub name: Key,
-	pub storage: <S as Storage>::Encoded,
+	pub storage: <S as Storage<C>>::Encoded,
 }
 
-impl<S> core::fmt::Debug for File<S>
+impl<S, C> core::fmt::Debug for File<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		f.debug_struct("File")
@@ -35,10 +37,13 @@ where
 /// Implementors of this type are expected to contain
 /// the data for a file or subunit of VCS controlled data
 // #[reflect_trait]
-pub trait Storage {
+pub trait Storage<C>
+where
+	C: YitContext,
+{
 	type Encoded: EncodedStorage;
 
-	fn state(&self) -> &impl YitContext;
+	fn state(&self) -> &C;
 	async fn decode(&self, data: Vec<u8>) -> color_eyre::Result<Self::Encoded>;
 	async fn encode(&self, encoded: Self::Encoded) -> Vec<u8>;
 }
@@ -71,26 +76,6 @@ mod test {
 	}
 }
 
-// pub trait ObjectSafeHash {
-// 	/// Must be the same as [ForwardsCompatHash::prefix]
-// 	fn prefix(&self) -> &'static [u8];
-// 	/// Must be the same as [ForwardsCompatHash::hash]
-// 	fn hash(&self, hasher: &mut dyn MinimalHasher);
-// }
-
-// impl<T> ObjectSafeHash for T
-// where
-// 	T: ForwardsCompatHash,
-// {
-// 	fn prefix(&self) -> &'static [u8] {
-// 		ForwardsCompatHash::prefix(self)
-// 	}
-
-// 	fn hash(&self, hasher: &mut dyn MinimalHasher) {
-// 		ForwardsCompatHash::hash(self, hasher);
-// 	}
-// }
-
 #[derive(Debug)]
 pub struct Stateful<'s, YitContext, T> {
 	pub state: &'s YitContext,
@@ -105,19 +90,28 @@ impl<'s, YitContext, T> Deref for Stateful<'s, YitContext, T> {
 	}
 }
 
-pub enum BuiltinStorages<'s, C> {
-	PlainText(plaintext::PlainText<'s, C>),
+pub enum BuiltinStorages<'c, C> {
+	PlainText(plaintext::PlainTextStorage<'c, C>),
+	Toml(toml::TomlStorage<'c, C>),
 }
 
 #[derive(Debug)]
 pub enum BuiltinEncoded {
 	PlainText(plaintext::PlainTextEncoded),
+	Toml(toml::TomlEncoded),
 }
 
 impl BuiltinEncoded {
 	fn plaintext(self) -> color_eyre::Result<plaintext::PlainTextEncoded> {
 		let Self::PlainText(storage) = self else {
 			bail!("don't call .plaintext on non-plaintext builtin storage")
+		};
+		return Ok(storage);
+	}
+
+	fn toml(self) -> color_eyre::Result<toml::TomlEncoded> {
+		let Self::Toml(storage) = self else {
+			bail!("don't call .toml on non-toml builtin storage")
 		};
 		return Ok(storage);
 	}
@@ -132,21 +126,23 @@ impl ForwardsCompatHash for BuiltinEncoded {
 	fn hash<H: MinimalHasher + ?Sized>(&self, hasher: &mut H) {
 		match self {
 			Self::PlainText(fmt) => fmt.hash(hasher),
+			Self::Toml(fmt) => fmt.hash(hasher),
 		}
 	}
 }
 
 impl EncodedStorage for BuiltinEncoded {}
 
-impl<'s, C> Storage for BuiltinStorages<'s, C>
+impl<'s, C> Storage<C> for BuiltinStorages<'s, C>
 where
 	C: YitContext,
 {
 	type Encoded = BuiltinEncoded;
 
-	fn state(&self) -> &impl YitContext {
+	fn state(&self) -> &C {
 		match self {
 			Self::PlainText(storage) => storage.state(),
+			Self::Toml(storage) => storage.state(),
 		}
 	}
 
@@ -161,21 +157,28 @@ where
 					)
 					.await
 			}
+			Self::Toml(storage) => {
+				storage
+					.encode(encoded.toml().expect("to encode toml into toml"))
+					.await
+			}
 		}
 	}
 
 	async fn decode(&self, data: Vec<u8>) -> Result<Self::Encoded> {
 		match self {
 			Self::PlainText(fmt) => fmt.decode(data).await.map(BuiltinEncoded::PlainText),
+			Self::Toml(fmt) => fmt.decode(data).await.map(BuiltinEncoded::Toml),
 		}
 	}
 }
 
-impl<S> File<S>
+impl<S, C> File<S, C>
 where
-	S: Storage,
+	S: Storage<C>,
+	C: YitContext,
 {
-	pub async fn snapshot(storage: &S, path: impl AsRef<Utf8Path>) -> color_eyre::Result<File<S>> {
+	pub async fn snapshot(storage: &S, path: impl AsRef<Utf8Path>) -> color_eyre::Result<Self> {
 		let path = path.as_ref();
 		path.assert_file().await?;
 
@@ -208,9 +211,9 @@ pub mod plaintext {
 	#[derive(Debug, Default)]
 	#[non_exhaustive]
 	pub struct PlainTextMarker;
-	pub type PlainText<'s, YitContext> = Stateful<'s, YitContext, PlainTextMarker>;
+	pub type PlainTextStorage<'s, YitContext> = Stateful<'s, YitContext, PlainTextMarker>;
 
-	impl<'s, C> PlainText<'s, C> {
+	impl<'s, C> PlainTextStorage<'s, C> {
 		pub fn new(state: &'s C) -> Self {
 			Stateful {
 				state,
@@ -235,13 +238,13 @@ pub mod plaintext {
 
 	impl EncodedStorage for PlainTextEncoded {}
 
-	impl<'s, C> Storage for PlainText<'s, C>
+	impl<'s, C> Storage<C> for PlainTextStorage<'s, C>
 	where
 		C: YitContext,
 	{
 		type Encoded = PlainTextEncoded;
 
-		fn state(&self) -> &impl YitContext {
+		fn state(&self) -> &C {
 			self.state
 		}
 
@@ -256,6 +259,61 @@ pub mod plaintext {
 			String::from_utf8(Vec::from(data))
 				.wrap_err("Couldn't parse data strictly as UTF8")
 				.map(PlainTextEncoded)
+		}
+	}
+}
+
+pub mod toml {
+	use std::str::FromStr as _;
+
+	use crate::{
+		YitContext,
+		hash::ForwardsCompatHash,
+		prelude::*,
+		storage::{EncodedStorage, Stateful, Storage},
+	};
+
+	#[derive(Debug)]
+	pub struct TomlStorage<'c, C> {
+		state: &'c C,
+		// strict_parse_utf8: bool,
+	}
+
+	#[derive(Debug)]
+	pub struct TomlEncoded(pub toml_edit::DocumentMut);
+
+	impl ForwardsCompatHash for TomlEncoded {
+		fn prefix(&self) -> &'static [u8] {
+			b"https://docs.rs/yit/latest/yit/storage/toml"
+		}
+		fn hash<H: crate::hash::MinimalHasher + ?Sized>(&self, hasher: &mut H) {
+			hasher.write(self.prefix());
+			// could use different method of hashing involving lots of forwards compatability
+			hasher.write(&self.0.clone().to_string().into_bytes());
+		}
+	}
+
+	impl EncodedStorage for TomlEncoded {}
+
+	impl<'c, C> Storage<C> for TomlStorage<'c, C>
+	where
+		C: YitContext,
+	{
+		type Encoded = TomlEncoded;
+
+		fn state(&self) -> &C {
+			self.state
+		}
+
+		async fn decode(&self, data: Vec<u8>) -> color_eyre::Result<Self::Encoded> {
+			let str = String::from_utf8(Vec::from(data))
+				.wrap_err("Couldn't parse data strictly as UTF8")?;
+			toml_edit::DocumentMut::from_str(&str)
+				.wrap_err("Couldn't parse data as TOML")
+				.map(TomlEncoded)
+		}
+		async fn encode(&self, encoded: Self::Encoded) -> Vec<u8> {
+			encoded.0.to_string().into_bytes()
 		}
 	}
 }

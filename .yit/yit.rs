@@ -2,7 +2,7 @@ use clap::Parser as _;
 use yit::{
 	DefaultYitContext, YitContext,
 	prelude::*,
-	storage::{BuiltinStorages, plaintext::PlainText},
+	storage::{BuiltinStorages, plaintext::PlainTextStorage},
 };
 use ystd::{env, prelude::*};
 
@@ -40,7 +40,7 @@ async fn main() -> color_eyre::Result<()> {
 
 	match cli.cmd {
 		Cmd::State => {
-			let storage = BuiltinStorages::PlainText(PlainText::new(&root));
+			let storage = BuiltinStorages::PlainText(PlainTextStorage::new(&root));
 			let vfs = root.snapshot(&storage).await?;
 			info!(?vfs);
 		}

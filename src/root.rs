@@ -33,9 +33,9 @@ pub trait YitContext: Sized + Send + Sync {
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool>;
 
-	async fn snapshot<S>(&self, storage: &S) -> color_eyre::Result<vfs::Vfs<S>>
+	async fn snapshot<S>(&self, storage: &S) -> color_eyre::Result<vfs::Vfs<S, Self>>
 	where
-		S: Storage,
+		S: Storage<Self>,
 	{
 		vfs::Vfs::snapshot_dir(storage, &self.dir()).await
 	}
