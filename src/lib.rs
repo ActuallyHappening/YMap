@@ -7,5 +7,7 @@ mod root;
 
 pub mod attrs;
 pub mod hash;
+pub mod persistance;
+pub mod sig;
 pub mod storage;
 pub mod vfs;

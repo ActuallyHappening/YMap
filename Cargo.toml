@@ -14,6 +14,7 @@ path = ".yit/yit.rs"
 ystd = { path = "./ystd" }
 
 [dependencies]
+alloy = "1.0.9"
 alloy-primitives = { version = "1.2.1", features = ["tiny-keccak"] }
 bevy_reflect = { version = "0.16.1", features = ["functions"] }
 camino = "1.1.10"
