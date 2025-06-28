@@ -33,15 +33,14 @@ async fn main() -> color_eyre::Result<()> {
 	yit::app_tracing::install_tracing("info,yit=trace").await?;
 	trace!("Started yit tracing");
 
-	let root = DefaultYitContext::new(env::current_dir().await?)
+	let context = DefaultYitContext::new(env::current_dir().await?)
 		.await?
 		.with_ignored(yitignore::MyIgnore);
 	let cli = Cli::parse();
 
 	match cli.cmd {
 		Cmd::State => {
-			let storage = root.default_storage().await;
-			let vfs = root.snapshot(&storage).await?;
+			let vfs = context.default_snapshot().await?;
 			info!(?vfs);
 		}
 		Cmd::Plumbing(cmd) => match cmd {
@@ -50,9 +49,9 @@ async fn main() -> color_eyre::Result<()> {
 				info!(?hash);
 			}
 			Plumbing::IsIgnored { path } => {
-				let path = root.resolve_local_path(path).await?;
+				let path = context.resolve_local_path(path).await?;
 				// let ignored_attr = yitignore::yitignore(&root, &path).await?;
-				let ignored_attr = root.is_ignored(&path).await?;
+				let ignored_attr = context.is_ignored(&path).await?;
 				info!(?ignored_attr, ?path);
 			}
 		},

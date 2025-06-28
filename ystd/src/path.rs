@@ -36,6 +36,7 @@ impl Utf8Path {
 	}
 
 	/// [camino::Utf8Path::extension]
+	/// Wraps an `Option` with a better error message
 	#[inline]
 	#[must_use]
 	pub fn extension(&self) -> color_eyre::Result<&str> {

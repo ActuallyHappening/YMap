@@ -36,13 +36,15 @@ pub trait YitContext: Sized + Send + Sync {
 	type DefaultStorage<'c>: Storage<'c, Self>
 	where
 		Self: 'c;
-	async fn default_storage<'c>(&'c self, path: impl AsRef<Utf8Path>) -> Self::DefaultStorage<'c>;
+	async fn default_storage<'c>(
+		&'c self,
+		path: impl AsRef<Utf8Path>,
+	) -> color_eyre::Result<Self::DefaultStorage<'c>>;
 
-	async fn snapshot<'c, S>(&'c self, storage: &S) -> color_eyre::Result<vfs::Vfs<'c, Self, S>>
-	where
-		S: Storage<'c, Self>,
-	{
-		vfs::Vfs::snapshot_dir(storage, &self.dir()).await
+	async fn default_snapshot<'c>(
+		&'c self,
+	) -> color_eyre::Result<vfs::Vfs<'c, Self, Self::DefaultStorage<'c>>> {
+		vfs::Vfs::default_snapshot_dir(self, &self.dir()).await
 	}
 }
 
@@ -115,8 +117,11 @@ where
 		= BuiltinStorages<'c, Self>
 	where
 		Self: 'c;
-	async fn default_storage(&self, path: impl AsRef<Utf8Path>) -> Self::DefaultStorage<'_> {
-		BuiltinStorages::default_for_path(path).await
+	async fn default_storage(
+		&self,
+		path: impl AsRef<Utf8Path>,
+	) -> color_eyre::Result<Self::DefaultStorage<'_>> {
+		BuiltinStorages::default_by_file_extension(self, path).await
 	}
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {

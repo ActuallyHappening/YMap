@@ -32,20 +32,17 @@ where
 	}
 }
 
-impl<'c, C, S> Vfs<'c, C, S>
+impl<'c, C> Vfs<'c, C, <C as YitContext>::DefaultStorage<'c>>
 where
-	S: Storage<'c, C>,
 	// This is the opposite lifetime bound to what
 	// I really want I'm pretty sure
 	C: YitContext + 'c,
 {
-	pub async fn snapshot_dir<'s>(
-		// root: &impl YitContext,
-		storage: &'s S,
+	pub async fn default_snapshot_dir<'s>(
+		context: &'c C,
 		dir: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<Vfs<'c, C, S>> {
-		let state: &'c C = storage.state();
-		let dir = state.resolve_local_path(dir).await?;
+	) -> color_eyre::Result<Self> {
+		let dir = context.resolve_local_path(dir).await?;
 		dir.assert_dir().await?;
 
 		let mut files = Vec::new();
@@ -54,18 +51,22 @@ where
 		let top_level_files = dir.read_dir_utf8().await?;
 		for entry in top_level_files {
 			let entry = entry?;
-			if state.is_ignored(entry.path()).await? {
+			if context.is_ignored(entry.path()).await? {
 				continue;
 			}
 			match entry.path().file_type_exhaustive().await? {
 				FileTypeExhaustive::File => {
+					let storage = context
+						.default_storage(entry.path())
+						.await
+						.wrap_err("Snapshotting file")?;
 					// single file
-					let file = Box::pin(File::snapshot(storage, entry.path())).await?;
+					let file = Box::pin(File::snapshot(&storage, entry.path())).await?;
 					files.push(file);
 				}
 				FileTypeExhaustive::Dir => {
 					// recursive
-					let vfs = Box::pin(Vfs::snapshot_dir(storage, entry.path())).await?;
+					let vfs = Box::pin(Vfs::default_snapshot_dir(context, entry.path())).await?;
 					folders.insert(Cow::Owned(entry.file_name().to_owned()), vfs);
 				}
 			}

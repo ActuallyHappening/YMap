@@ -5,6 +5,8 @@ use bevy_reflect::{Reflect, reflect_trait};
 use ystd::fs;
 
 use crate::hash::MinimalHasher;
+use crate::storage::plaintext::PlainTextStorage;
+use crate::storage::toml::TomlStorage;
 use crate::vfs::Key;
 use crate::{YitContext, storage};
 use crate::{hash::ForwardsCompatHash, prelude::*};
@@ -100,13 +102,20 @@ where
 	C: YitContext,
 {
 	pub async fn default_by_file_extension(
-		context: &C,
+		context: &'c C,
 		path: impl AsRef<Utf8Path>,
 	) -> color_eyre::Result<Self> {
 		let path = path.as_ref();
 		let path = context.resolve_local_path(path).await?;
 		let extension = path.extension()?;
-		todo!()
+		match extension {
+			"toml" => Ok(BuiltinStorages::Toml(TomlStorage::new(context))),
+			"txt" => Ok(BuiltinStorages::PlainText(PlainTextStorage::new(context))),
+			_ => {
+				warn!("Assuming plaintext for everything by default, please fixme");
+				Ok(BuiltinStorages::PlainText(PlainTextStorage::new(context)))
+			}
+		}
 	}
 }
 
@@ -228,8 +237,8 @@ pub mod plaintext {
 	pub struct PlainTextMarker;
 	pub type PlainTextStorage<'s, YitContext> = Stateful<'s, YitContext, PlainTextMarker>;
 
-	impl<'s, C> PlainTextStorage<'s, C> {
-		pub fn new(state: &'s C) -> Self {
+	impl<'c, C> PlainTextStorage<'c, C> {
+		pub fn new(state: &'c C) -> Self {
 			Stateful {
 				state,
 				inner: PlainTextMarker,
@@ -290,8 +299,14 @@ pub mod toml {
 
 	#[derive(Debug)]
 	pub struct TomlStorage<'c, C> {
-		state: &'c C,
+		context: &'c C,
 		// strict_parse_utf8: bool,
+	}
+
+	impl<'c, C> TomlStorage<'c, C> {
+		pub fn new(context: &'c C) -> Self {
+			TomlStorage { context }
+		}
 	}
 
 	#[derive(Debug)]
@@ -317,7 +332,7 @@ pub mod toml {
 		type Encoded = TomlEncoded;
 
 		fn state(&self) -> &'c C {
-			self.state
+			self.context
 		}
 
 		async fn decode(&self, data: Vec<u8>) -> color_eyre::Result<Self::Encoded> {
