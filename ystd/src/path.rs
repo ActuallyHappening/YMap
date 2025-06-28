@@ -34,6 +34,15 @@ impl Utf8Path {
 	pub fn starts_with(&self, base: impl AsRef<Utf8Path>) -> bool {
 		self.0.starts_with(base.as_ref())
 	}
+
+	/// [camino::Utf8Path::extension]
+	#[inline]
+	#[must_use]
+	pub fn extension(&self) -> color_eyre::Result<&str> {
+		self.0
+			.extension()
+			.ok_or(eyre!("Path {} has no extension", self))
+	}
 }
 
 impl Utf8Path {

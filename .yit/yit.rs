@@ -40,7 +40,7 @@ async fn main() -> color_eyre::Result<()> {
 
 	match cli.cmd {
 		Cmd::State => {
-			let storage = BuiltinStorages::PlainText(PlainTextStorage::new(&root));
+			let storage = root.default_storage().await;
 			let vfs = root.snapshot(&storage).await?;
 			info!(?vfs);
 		}

@@ -36,7 +36,7 @@ pub trait YitContext: Sized + Send + Sync {
 	type DefaultStorage<'c>: Storage<'c, Self>
 	where
 		Self: 'c;
-	async fn default_storage<'c>(&'c self) -> Self::DefaultStorage<'c>;
+	async fn default_storage<'c>(&'c self, path: impl AsRef<Utf8Path>) -> Self::DefaultStorage<'c>;
 
 	async fn snapshot<'c, S>(&'c self, storage: &S) -> color_eyre::Result<vfs::Vfs<'c, Self, S>>
 	where
@@ -115,8 +115,8 @@ where
 		= BuiltinStorages<'c, Self>
 	where
 		Self: 'c;
-	async fn default_storage(&self) -> Self::DefaultStorage<'_> {
-		todo!()
+	async fn default_storage(&self, path: impl AsRef<Utf8Path>) -> Self::DefaultStorage<'_> {
+		BuiltinStorages::default_for_path(path).await
 	}
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {

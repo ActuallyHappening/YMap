@@ -95,6 +95,21 @@ pub enum BuiltinStorages<'c, C> {
 	Toml(toml::TomlStorage<'c, C>),
 }
 
+impl<'c, C> BuiltinStorages<'c, C>
+where
+	C: YitContext,
+{
+	pub async fn default_by_file_extension(
+		context: &C,
+		path: impl AsRef<Utf8Path>,
+	) -> color_eyre::Result<Self> {
+		let path = path.as_ref();
+		let path = context.resolve_local_path(path).await?;
+		let extension = path.extension()?;
+		todo!()
+	}
+}
+
 #[derive(Debug)]
 pub enum BuiltinEncoded {
 	PlainText(plaintext::PlainTextEncoded),
