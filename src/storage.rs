@@ -107,7 +107,23 @@ where
 	) -> color_eyre::Result<Self> {
 		let path = path.as_ref();
 		let path = context.resolve_local_path(path).await?;
-		let extension = path.extension()?;
+		let extension = match path.extension() {
+			Ok(ext) => ext,
+			Err(err) => {
+				let file_name = path.file_name()?;
+				match file_name {
+					".gitignore" => {
+						warn!("TODO: impl .gitignore format");
+						return Ok(BuiltinStorages::PlainText(PlainTextStorage::new(context)));
+					}
+					_ => {
+						return Err(err).wrap_err(
+							"Didn't recognise {file_name} as any known default file format",
+						);
+					}
+				}
+			}
+		};
 		match extension {
 			"toml" => Ok(BuiltinStorages::Toml(TomlStorage::new(context))),
 			"txt" => Ok(BuiltinStorages::PlainText(PlainTextStorage::new(context))),

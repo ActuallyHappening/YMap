@@ -41,7 +41,7 @@ pub trait YitContext: Sized + Send + Sync {
 		path: impl AsRef<Utf8Path>,
 	) -> color_eyre::Result<Self::DefaultStorage<'c>>;
 
-	async fn default_snapshot<'c>(
+	async fn default_snapshot_root<'c>(
 		&'c self,
 	) -> color_eyre::Result<vfs::Vfs<'c, Self, Self::DefaultStorage<'c>>> {
 		vfs::Vfs::default_snapshot_dir(self, &self.dir()).await

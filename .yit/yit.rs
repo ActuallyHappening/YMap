@@ -40,7 +40,7 @@ async fn main() -> color_eyre::Result<()> {
 
 	match cli.cmd {
 		Cmd::State => {
-			let vfs = context.default_snapshot().await?;
+			let vfs = context.default_snapshot_root().await?;
 			info!(?vfs);
 		}
 		Cmd::Plumbing(cmd) => match cmd {
