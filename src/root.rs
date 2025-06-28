@@ -5,7 +5,7 @@ use tokio::task::JoinHandle;
 
 use crate::{
 	prelude::*,
-	storage::Storage,
+	storage::{BuiltinStorages, Storage},
 	vfs::{self, Vfs},
 };
 
@@ -33,9 +33,14 @@ pub trait YitContext: Sized + Send + Sync {
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool>;
 
-	async fn snapshot<S>(&self, storage: &S) -> color_eyre::Result<vfs::Vfs<S, Self>>
+	type DefaultStorage<'c>: Storage<'c, Self>
 	where
-		S: Storage<Self>,
+		Self: 'c;
+	async fn default_storage<'c>(&'c self) -> Self::DefaultStorage<'c>;
+
+	async fn snapshot<'c, S>(&'c self, storage: &S) -> color_eyre::Result<vfs::Vfs<'c, Self, S>>
+	where
+		S: Storage<'c, Self>,
 	{
 		vfs::Vfs::snapshot_dir(storage, &self.dir()).await
 	}
@@ -106,22 +111,12 @@ where
 		&self.type_registry
 	}
 
-	/// Makes sure the path provided is within this Yit root directory
-	async fn resolve_local_path(
-		&self,
-		path: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<Utf8PathBuf> {
-		let path = path.as_ref().canonicalize().await?;
-		for ancestor in path.ancestors() {
-			if *ancestor == *self.dir {
-				return Ok(path);
-			}
-		}
-		bail!(
-			"Path {} isn't within the yit project root of {}",
-			path,
-			self.dir
-		);
+	type DefaultStorage<'c>
+		= BuiltinStorages<'c, Self>
+	where
+		Self: 'c;
+	async fn default_storage(&self) -> Self::DefaultStorage<'_> {
+		todo!()
 	}
 
 	async fn is_ignored(&self, path: impl AsRef<Utf8Path>) -> color_eyre::Result<bool> {

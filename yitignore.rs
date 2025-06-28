@@ -11,9 +11,10 @@ impl YitIgnore for MyIgnore {
 			.map(|tl| state.dir().join(tl));
 		for excluded_path in excluded_paths {
 			if path.starts_with(&excluded_path) {
+				warn!(?path, ?excluded_path, "Ignoring a path");
 				return Ok(true);
 			} else {
-				warn!(?path, ?excluded_path);
+				continue;
 			}
 		}
 

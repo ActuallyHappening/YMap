@@ -9,18 +9,18 @@ use crate::vfs::Key;
 use crate::{YitContext, storage};
 use crate::{hash::ForwardsCompatHash, prelude::*};
 
-pub struct File<S, C>
+pub struct File<'c, C, S>
 where
-	S: Storage<C>,
+	S: Storage<'c, C>,
 	C: YitContext,
 {
 	pub name: Key,
-	pub storage: <S as Storage<C>>::Encoded,
+	pub storage: <S as Storage<'c, C>>::Encoded,
 }
 
-impl<S, C> core::fmt::Debug for File<S, C>
+impl<'c, C, S> core::fmt::Debug for File<'c, C, S>
 where
-	S: Storage<C>,
+	S: Storage<'c, C>,
 	C: YitContext,
 {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -37,13 +37,13 @@ where
 /// Implementors of this type are expected to contain
 /// the data for a file or subunit of VCS controlled data
 // #[reflect_trait]
-pub trait Storage<C>
+pub trait Storage<'c, C>
 where
 	C: YitContext,
 {
 	type Encoded: EncodedStorage;
 
-	fn state(&self) -> &C;
+	fn state(&self) -> &'c C;
 	async fn decode(&self, data: Vec<u8>) -> color_eyre::Result<Self::Encoded>;
 	async fn encode(&self, encoded: Self::Encoded) -> Vec<u8>;
 }
@@ -133,13 +133,13 @@ impl ForwardsCompatHash for BuiltinEncoded {
 
 impl EncodedStorage for BuiltinEncoded {}
 
-impl<'s, C> Storage<C> for BuiltinStorages<'s, C>
+impl<'c, C> Storage<'c, C> for BuiltinStorages<'c, C>
 where
 	C: YitContext,
 {
 	type Encoded = BuiltinEncoded;
 
-	fn state(&self) -> &C {
+	fn state(&self) -> &'c C {
 		match self {
 			Self::PlainText(storage) => storage.state(),
 			Self::Toml(storage) => storage.state(),
@@ -173,9 +173,9 @@ where
 	}
 }
 
-impl<S, C> File<S, C>
+impl<'c, C, S> File<'c, C, S>
 where
-	S: Storage<C>,
+	S: Storage<'c, C>,
 	C: YitContext,
 {
 	pub async fn snapshot(storage: &S, path: impl AsRef<Utf8Path>) -> color_eyre::Result<Self> {
@@ -238,13 +238,13 @@ pub mod plaintext {
 
 	impl EncodedStorage for PlainTextEncoded {}
 
-	impl<'s, C> Storage<C> for PlainTextStorage<'s, C>
+	impl<'c, C> Storage<'c, C> for PlainTextStorage<'c, C>
 	where
 		C: YitContext,
 	{
 		type Encoded = PlainTextEncoded;
 
-		fn state(&self) -> &C {
+		fn state(&self) -> &'c C {
 			self.state
 		}
 
@@ -295,13 +295,13 @@ pub mod toml {
 
 	impl EncodedStorage for TomlEncoded {}
 
-	impl<'c, C> Storage<C> for TomlStorage<'c, C>
+	impl<'c, C> Storage<'c, C> for TomlStorage<'c, C>
 	where
 		C: YitContext,
 	{
 		type Encoded = TomlEncoded;
 
-		fn state(&self) -> &C {
+		fn state(&self) -> &'c C {
 			self.state
 		}
 

@@ -10,18 +10,18 @@ use crate::{
 
 pub(crate) type Key = Cow<'static, str>;
 
-pub struct Vfs<S, C>
+pub struct Vfs<'c, C, S>
 where
-	S: Storage<C>,
+	S: Storage<'c, C>,
 	C: YitContext,
 {
-	pub files: Vec<storage::File<S, C>>,
-	pub folders: HashMap<Key, Vfs<S, C>>,
+	pub files: Vec<storage::File<'c, C, S>>,
+	pub folders: HashMap<Key, Vfs<'c, C, S>>,
 }
 
-impl<S, C> core::fmt::Debug for Vfs<S, C>
+impl<'c, C, S> core::fmt::Debug for Vfs<'c, C, S>
 where
-	S: Storage<C>,
+	S: Storage<'c, C>,
 	C: YitContext,
 {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -32,17 +32,19 @@ where
 	}
 }
 
-impl<S, C> Vfs<S, C>
+impl<'c, C, S> Vfs<'c, C, S>
 where
-	S: Storage<C>,
-	C: YitContext,
+	S: Storage<'c, C>,
+	// This is the opposite lifetime bound to what
+	// I really want I'm pretty sure
+	C: YitContext + 'c,
 {
-	pub async fn snapshot_dir(
+	pub async fn snapshot_dir<'s>(
 		// root: &impl YitContext,
-		storage: &S,
+		storage: &'s S,
 		dir: impl AsRef<Utf8Path>,
-	) -> color_eyre::Result<Vfs<S, C>> {
-		let state = storage.state();
+	) -> color_eyre::Result<Vfs<'c, C, S>> {
+		let state: &'c C = storage.state();
 		let dir = state.resolve_local_path(dir).await?;
 		dir.assert_dir().await?;
 
@@ -52,7 +54,7 @@ where
 		let top_level_files = dir.read_dir_utf8().await?;
 		for entry in top_level_files {
 			let entry = entry?;
-			if storage.state().is_ignored(entry.path()).await? {
+			if state.is_ignored(entry.path()).await? {
 				continue;
 			}
 			match entry.path().file_type_exhaustive().await? {
