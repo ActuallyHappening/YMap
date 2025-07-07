@@ -324,6 +324,12 @@ impl From<&YPath> for PathBuf {
 	}
 }
 
+impl From<&str> for Utf8PathBuf {
+	fn from(value: &str) -> Self {
+		Self(camino::Utf8PathBuf::from(value))
+	}
+}
+
 impl TryFrom<std::path::PathBuf> for PathBuf {
 	type Error = color_eyre::Report;
 
