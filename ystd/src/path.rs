@@ -2,7 +2,9 @@
 
 use std::{
 	borrow::{Borrow, Cow},
+	cmp::Ordering,
 	convert::Infallible,
+	ffi::{OsStr, OsString},
 	fmt,
 	fs::Metadata,
 	ops::Deref,
@@ -529,6 +531,7 @@ impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
 		<&camino::Utf8Path>::try_from(path)
 			.map(Utf8Path::new)
 			.map_err(ReportedError::new)
+			.wrap_reported_err("<&Path>::from(&ystd::path::Utf8Path)")
 	}
 }
 
@@ -638,3 +641,271 @@ impl ToOwned for Utf8Path {
 // 		buf
 // 	}
 // }
+
+// ---
+// [Partial]Eq, [Partial]Ord, Hash
+// ---
+
+impl PartialEq for Utf8PathBuf {
+	#[inline]
+	fn eq(&self, other: &Utf8PathBuf) -> bool {
+		self.0 == other.0
+	}
+}
+
+impl Eq for Utf8PathBuf {}
+
+impl std::hash::Hash for Utf8PathBuf {
+	#[inline]
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.as_path().hash(state)
+	}
+}
+
+impl PartialOrd for Utf8PathBuf {
+	#[inline]
+	fn partial_cmp(&self, other: &Utf8PathBuf) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Ord for Utf8PathBuf {
+	fn cmp(&self, other: &Utf8PathBuf) -> Ordering {
+		self.0.cmp(&other.0)
+	}
+}
+
+impl PartialEq for Utf8Path {
+	#[inline]
+	fn eq(&self, other: &Utf8Path) -> bool {
+		self.0.eq(&other.0)
+	}
+}
+
+impl Eq for Utf8Path {}
+
+impl std::hash::Hash for Utf8Path {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.0.hash(state)
+	}
+}
+
+impl PartialOrd for Utf8Path {
+	#[inline]
+	fn partial_cmp(&self, other: &Utf8Path) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Ord for Utf8Path {
+	fn cmp(&self, other: &Utf8Path) -> Ordering {
+		self.0.cmp(&other.0)
+	}
+}
+
+// impl<'a> IntoIterator for &'a Utf8PathBuf {
+// 	type Item = &'a str;
+// 	type IntoIter = Iter<'a>;
+// 	#[inline]
+// 	fn into_iter(self) -> Iter<'a> {
+// 		self.iter()
+// 	}
+// }
+
+// impl<'a> IntoIterator for &'a Utf8Path {
+// 	type Item = &'a str;
+// 	type IntoIter = Iter<'a>;
+// 	#[inline]
+// 	fn into_iter(self) -> Iter<'a> {
+// 		self.iter()
+// 	}
+// }
+
+macro_rules! impl_cmp {
+	($lhs:ty, $rhs: ty) => {
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$rhs> for $lhs {
+			#[inline]
+			fn eq(&self, other: &$rhs) -> bool {
+				<Utf8Path as PartialEq>::eq(self, other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$lhs> for $rhs {
+			#[inline]
+			fn eq(&self, other: &$lhs) -> bool {
+				<Utf8Path as PartialEq>::eq(self, other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$rhs) -> Option<Ordering> {
+				<Utf8Path as PartialOrd>::partial_cmp(self, other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$lhs) -> Option<Ordering> {
+				<Utf8Path as PartialOrd>::partial_cmp(self, other)
+			}
+		}
+	};
+}
+
+impl_cmp!(Utf8PathBuf, Utf8Path);
+impl_cmp!(Utf8PathBuf, &'a Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, &'b Utf8Path);
+impl_cmp!(Cow<'a, Utf8Path>, Utf8PathBuf);
+
+macro_rules! impl_cmp_std_path {
+	($lhs:ty, $rhs: ty) => {
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$rhs> for $lhs {
+			#[inline]
+			fn eq(&self, other: &$rhs) -> bool {
+				<Path as PartialEq>::eq(self.as_ref(), other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$lhs> for $rhs {
+			#[inline]
+			fn eq(&self, other: &$lhs) -> bool {
+				<Path as PartialEq>::eq(self, other.as_ref())
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+				<Path as PartialOrd>::partial_cmp(self.as_ref(), other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+				<Path as PartialOrd>::partial_cmp(self, other.as_ref())
+			}
+		}
+	};
+}
+
+impl_cmp_std_path!(Utf8PathBuf, Path);
+impl_cmp_std_path!(Utf8PathBuf, &'a Path);
+impl_cmp_std_path!(Utf8PathBuf, Cow<'a, Path>);
+impl_cmp_std_path!(Utf8PathBuf, PathBuf);
+impl_cmp_std_path!(Utf8Path, Path);
+impl_cmp_std_path!(Utf8Path, &'a Path);
+impl_cmp_std_path!(Utf8Path, Cow<'a, Path>);
+impl_cmp_std_path!(Utf8Path, PathBuf);
+impl_cmp_std_path!(&'a Utf8Path, Path);
+impl_cmp_std_path!(&'a Utf8Path, Cow<'b, Path>);
+impl_cmp_std_path!(&'a Utf8Path, PathBuf);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
+
+macro_rules! impl_cmp_str {
+	($lhs:ty, $rhs: ty) => {
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$rhs> for $lhs {
+			#[inline]
+			fn eq(&self, other: &$rhs) -> bool {
+				<Utf8Path as PartialEq>::eq(self, Utf8Path::new(other))
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$lhs> for $rhs {
+			#[inline]
+			fn eq(&self, other: &$lhs) -> bool {
+				<Utf8Path as PartialEq>::eq(Utf8Path::new(self), other)
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+				<Utf8Path as PartialOrd>::partial_cmp(self, Utf8Path::new(other))
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+				<Utf8Path as PartialOrd>::partial_cmp(Utf8Path::new(self), other)
+			}
+		}
+	};
+}
+
+impl_cmp_str!(Utf8PathBuf, str);
+impl_cmp_str!(Utf8PathBuf, &'a str);
+impl_cmp_str!(Utf8PathBuf, Cow<'a, str>);
+impl_cmp_str!(Utf8PathBuf, String);
+impl_cmp_str!(Utf8Path, str);
+impl_cmp_str!(Utf8Path, &'a str);
+impl_cmp_str!(Utf8Path, Cow<'a, str>);
+impl_cmp_str!(Utf8Path, String);
+impl_cmp_str!(&'a Utf8Path, str);
+impl_cmp_str!(&'a Utf8Path, Cow<'b, str>);
+impl_cmp_str!(&'a Utf8Path, String);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)
+
+macro_rules! impl_cmp_os_str {
+	($lhs:ty, $rhs: ty) => {
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$rhs> for $lhs {
+			#[inline]
+			fn eq(&self, other: &$rhs) -> bool {
+				<Path as PartialEq>::eq(self.as_ref(), other.as_ref())
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialEq<$lhs> for $rhs {
+			#[inline]
+			fn eq(&self, other: &$lhs) -> bool {
+				<Path as PartialEq>::eq(self.as_ref(), other.as_ref())
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$rhs> for $lhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$rhs) -> Option<std::cmp::Ordering> {
+				<Path as PartialOrd>::partial_cmp(self.as_ref(), other.as_ref())
+			}
+		}
+
+		#[allow(clippy::extra_unused_lifetimes)]
+		impl<'a, 'b> PartialOrd<$lhs> for $rhs {
+			#[inline]
+			fn partial_cmp(&self, other: &$lhs) -> Option<std::cmp::Ordering> {
+				<Path as PartialOrd>::partial_cmp(self.as_ref(), other.as_ref())
+			}
+		}
+	};
+}
+
+impl_cmp_os_str!(Utf8PathBuf, OsStr);
+impl_cmp_os_str!(Utf8PathBuf, &'a OsStr);
+impl_cmp_os_str!(Utf8PathBuf, Cow<'a, OsStr>);
+impl_cmp_os_str!(Utf8PathBuf, OsString);
+impl_cmp_os_str!(Utf8Path, OsStr);
+impl_cmp_os_str!(Utf8Path, &'a OsStr);
+impl_cmp_os_str!(Utf8Path, Cow<'a, OsStr>);
+impl_cmp_os_str!(Utf8Path, OsString);
+impl_cmp_os_str!(&'a Utf8Path, OsStr);
+impl_cmp_os_str!(&'a Utf8Path, Cow<'b, OsStr>);
+impl_cmp_os_str!(&'a Utf8Path, OsString);
+// NOTE: impls for Cow<'a, Utf8Path> cannot be defined because of the orphan rule (E0117)

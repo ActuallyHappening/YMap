@@ -1,4 +1,4 @@
-use crate::{io, prelude::*};
+use crate::{error::ReportedError, io, prelude::*};
 
 pub async fn current_dir() -> io::Result<Utf8PathBuf> {
 	io::asyncify(|| {
@@ -11,10 +11,9 @@ pub async fn current_dir() -> io::Result<Utf8PathBuf> {
 				}
 			})
 			.and_then(|path| {
-				Utf8PathBuf::try_from(path.clone()).map_err(|err| io::Error {
-					report: err.wrap_err(format!("ystd::env::current_dir() -> {:?}", path)),
-					inner: None,
-				})
+				Utf8PathBuf::try_from(path.clone())
+					.wrap_reported_err(format!("ystd::env::current_dir -> {:?}", path))
+					.map_err(ReportedError::erase_inner)
 			})
 	})
 	.await

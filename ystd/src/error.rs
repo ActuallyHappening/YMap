@@ -27,6 +27,28 @@ impl<T> ReportedError<T> {
 			inner: Some(err),
 		}
 	}
+
+	pub fn map_inner<U, F: FnOnce(Arc<T>) -> Option<Arc<U>>>(self, cb: F) -> ReportedError<U> {
+		ReportedError {
+			report: self.report,
+			inner: self.inner.map(|inner| cb(inner)).flatten(),
+		}
+	}
+	
+	pub fn erase_inner<U>(self) -> ReportedError<U> {
+		self.map_inner(|_| None)
+	}
 }
 
-
+#[extension(pub trait WrapReportedErr)]
+impl<T, ET> Result<T, ReportedError<ET>>
+where
+	ET: Send + Sync + 'static,
+{
+	fn wrap_reported_err(self, msg: impl std::fmt::Display + Send + Sync + 'static) -> Self {
+		self.map_err(|err| ReportedError {
+			report: err.report.wrap_err(msg),
+			inner: err.inner,
+		})
+	}
+}
