@@ -1,18 +1,87 @@
 //! Wrapper types around [camino]
 
-use std::{borrow::Borrow, convert::Infallible, fs::Metadata, str::FromStr};
+use std::{
+	borrow::{Borrow, Cow},
+	convert::Infallible,
+	fmt,
+	fs::Metadata,
+	ops::Deref,
+	path::{Path, PathBuf},
+	rc::Rc,
+	str::FromStr,
+};
 
-use crate::{fs, io, prelude::*};
+use crate::{error::ReportedError, fs, io, prelude::*};
+
+/// [camino::Utf8PathBuf] newtype
+#[derive(Clone)]
+#[repr(transparent)]
+pub struct Utf8PathBuf(pub camino::Utf8PathBuf);
+
+impl Utf8PathBuf {
+	#[must_use]
+	pub fn new() -> Utf8PathBuf {
+		Utf8PathBuf(camino::Utf8PathBuf::new())
+	}
+
+	#[must_use]
+	pub fn as_path(&self) -> &Utf8Path {
+		Utf8Path::new(self.0.as_path())
+	}
+
+	pub fn from_path_buf(path: PathBuf) -> Result<Utf8PathBuf, PathBuf> {
+		camino::Utf8PathBuf::from_path_buf(path).map(Self)
+	}
+
+	#[must_use = "`self` will be dropped if the result is not used"]
+	pub fn into_std_path_buf(self) -> PathBuf {
+		self.into()
+	}
+}
+
+impl Deref for Utf8PathBuf {
+	type Target = Utf8Path;
+
+	fn deref(&self) -> &Utf8Path {
+		self.as_path()
+	}
+}
+
+// /// *Requires Rust 1.68 or newer.*
+// impl std::ops::DerefMut for Utf8PathBuf {
+// 	fn deref_mut(&mut self) -> &mut Self::Target {
+// 		unsafe { Utf8Path::assume_utf8_mut(&mut self.0) }
+// 	}
+// }
+
+impl fmt::Debug for Utf8PathBuf {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		fmt::Debug::fmt(&**self, f)
+	}
+}
+
+impl fmt::Display for Utf8PathBuf {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		fmt::Display::fmt(self.as_str(), f)
+	}
+}
+
+// impl<P: AsRef<Utf8Path>> Extend<P> for Utf8PathBuf {
+// 	fn extend<I: IntoIterator<Item = P>>(&mut self, iter: I) {
+// 		for path in iter {
+// 			self.push(path);
+// 		}
+// 	}
+// }
 
 /// [camino::Utf8Path] newtype
 #[repr(transparent)]
 pub struct Utf8Path(pub camino::Utf8Path);
-pub type YPath = Utf8Path;
-pub type Path = YPath;
 
 impl Utf8Path {
 	pub fn new(path: &(impl AsRef<str> + ?Sized)) -> &Self {
 		let path = camino::Utf8Path::new(path);
+		// SAFETY: #[repr(transparent)]
 		unsafe { &*(path as *const camino::Utf8Path as *const Utf8Path) }
 	}
 
@@ -144,7 +213,6 @@ impl Utf8Path {
 		}
 	}
 
-	#[inline]
 	pub async fn read_dir_utf8(&self) -> io::Result<ReadDirUtf8> {
 		let path = self.0.to_owned();
 		io::asyncify(move || {
@@ -157,61 +225,33 @@ impl Utf8Path {
 		.await
 	}
 
-	#[inline]
 	pub async fn read_dir(&self) -> io::Result<ReadDirUtf8> {
 		self.read_dir_utf8().await
 	}
 }
 
-// impl std::ops::Deref for YPath {
-// 	type Target = camino::Utf8Path;
-
-// 	fn deref(&self) -> &Self::Target {
-// 		&self.0
-// 	}
+// impl Clone for Box<Utf8Path> {
+//     fn clone(&self) -> Self {
+//         let boxed: Box<Path> = self.0.into();
+//         let ptr = Box::into_raw(boxed) as *mut Utf8Path;
+//         // SAFETY:
+//         // * self is valid UTF-8
+//         // * ptr was created by consuming a Box<Path> so it represents an rced pointer
+//         // * Utf8Path is marked as #[repr(transparent)] so the conversion from *mut Path to
+//         //   *mut Utf8Path is valid
+//         unsafe { Box::from_raw(ptr) }
+//     }
 // }
 
-impl PartialEq for Utf8Path {
-	fn eq(&self, other: &Self) -> bool {
-		self.0.eq(&other.0)
+impl fmt::Display for Utf8Path {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		fmt::Display::fmt(self.as_str(), f)
 	}
 }
 
-impl AsRef<YPath> for YPath {
-	fn as_ref(&self) -> &YPath {
-		self
-	}
-}
-
-impl AsRef<std::path::Path> for YPath {
-	fn as_ref(&self) -> &std::path::Path {
-		self.0.as_std_path()
-	}
-}
-
-impl AsRef<Utf8Path> for &str {
-	fn as_ref(&self) -> &Utf8Path {
-		Utf8Path::new(self)
-	}
-}
-
-impl ToOwned for YPath {
-	type Owned = YPathBuf;
-
-	fn to_owned(&self) -> Self::Owned {
-		Utf8PathBuf(self.0.to_owned())
-	}
-}
-
-impl std::fmt::Display for YPath {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl std::fmt::Debug for Utf8Path {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		self.0.fmt(f)
+impl fmt::Debug for Utf8Path {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		fmt::Debug::fmt(self.as_str(), f)
 	}
 }
 
@@ -274,90 +314,327 @@ impl Utf8DirEntry {
 	}
 }
 
-/// [camino::Utf8PathBuf] newtype
-#[derive(Clone)]
-pub struct Utf8PathBuf(pub camino::Utf8PathBuf);
-pub type YPathBuf = Utf8PathBuf;
-pub type PathBuf = YPathBuf;
-
-impl PartialEq for Utf8PathBuf {
-	fn eq(&self, other: &Self) -> bool {
-		self.0.eq(&other.0)
+impl From<String> for Utf8PathBuf {
+	fn from(string: String) -> Utf8PathBuf {
+		Utf8PathBuf(string.into())
 	}
 }
 
-impl std::ops::Deref for PathBuf {
-	type Target = YPath;
+impl FromStr for Utf8PathBuf {
+	type Err = Infallible;
 
-	fn deref(&self) -> &Self::Target {
-		Path::new(self.0.as_str())
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(Utf8PathBuf(s.into()))
 	}
 }
 
-impl Borrow<YPath> for YPathBuf {
-	fn borrow(&self) -> &YPath {
-		Path::new(self.0.as_str())
+// ---
+// From impls: borrowed -> borrowed
+// ---
+
+impl<'a> From<&'a str> for &'a Utf8Path {
+	fn from(s: &'a str) -> &'a Utf8Path {
+		Utf8Path::new(s)
+	}
+}
+
+// ---
+// From impls: borrowed -> owned
+// ---
+
+impl<T: ?Sized + AsRef<str>> From<&T> for Utf8PathBuf {
+	fn from(s: &T) -> Utf8PathBuf {
+		Utf8PathBuf::from(s.as_ref().to_owned())
+	}
+}
+
+// impl<T: ?Sized + AsRef<str>> From<&T> for Box<Utf8Path> {
+// 	fn from(s: &T) -> Box<Utf8Path> {
+// 		Box::from(s)
+// 		// Utf8PathBuf::from(s).into_boxed_path()
+// 	}
+// }
+
+// impl From<&'_ Utf8Path> for Arc<Utf8Path> {
+// 	fn from(path: &Utf8Path) -> Arc<Utf8Path> {
+// 		let arc: Arc<Path> = Arc::from(AsRef::<Path>::as_ref(path));
+// 		let ptr = Arc::into_raw(arc) as *const Utf8Path;
+// 		// SAFETY:
+// 		// * path is valid UTF-8
+// 		// * ptr was created by consuming an Arc<Path> so it represents an arced pointer
+// 		// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+// 		//   *const Utf8Path is valid
+// 		unsafe { Arc::from_raw(ptr) }
+// 	}
+// }
+
+// impl From<&'_ Utf8Path> for Rc<Utf8Path> {
+// 	fn from(path: &Utf8Path) -> Rc<Utf8Path> {
+// 		let rc: Rc<Path> = Rc::from(AsRef::<Path>::as_ref(path));
+// 		let ptr = Rc::into_raw(rc) as *const Utf8Path;
+// 		// SAFETY:
+// 		// * path is valid UTF-8
+// 		// * ptr was created by consuming an Rc<Path> so it represents an rced pointer
+// 		// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+// 		//   *const Utf8Path is valid
+// 		unsafe { Rc::from_raw(ptr) }
+// 	}
+// }
+
+// impl<'a> From<&'a Utf8Path> for Cow<'a, Utf8Path> {
+// 	fn from(path: &'a Utf8Path) -> Cow<'a, Utf8Path> {
+// 		Cow::Borrowed(path)
+// 	}
+// }
+
+// impl From<&'_ Utf8Path> for Box<Path> {
+// 	fn from(path: &Utf8Path) -> Box<Path> {
+// 		AsRef::<Path>::as_ref(path).into()
+// 	}
+// }
+
+// impl From<&'_ Utf8Path> for Arc<std::path::Path> {
+// 	fn from(path: &Utf8Path) -> Arc<Path> {
+// 		AsRef::<Path>::as_ref(path).into()
+// 	}
+// }
+
+// impl From<&'_ Utf8Path> for Rc<std::path::Path> {
+// 	fn from(path: &Utf8Path) -> Rc<Path> {
+// 		AsRef::<Path>::as_ref(path).into()
+// 	}
+// }
+
+// impl<'a> From<&'a Utf8Path> for Cow<'a, std::path::Path> {
+// 	fn from(path: &'a Utf8Path) -> Cow<'a, Path> {
+// 		Cow::Borrowed(path.as_ref())
+// 	}
+// }
+
+// ---
+// From impls: owned -> owned
+// ---
+
+// impl From<Box<Utf8Path>> for Utf8PathBuf {
+// 	fn from(path: Box<Utf8Path>) -> Utf8PathBuf {
+// 		path.into_path_buf()
+// 	}
+// }
+
+// impl From<Utf8PathBuf> for Box<Utf8Path> {
+// 	fn from(path: Utf8PathBuf) -> Box<Utf8Path> {
+// 		path.into_boxed_path()
+// 	}
+// }
+
+// impl<'a> From<Cow<'a, Utf8Path>> for Utf8PathBuf {
+// 	fn from(path: Cow<'a, Utf8Path>) -> Utf8PathBuf {
+// 		path.into_owned()
+// 	}
+// }
+
+impl From<Utf8PathBuf> for String {
+	fn from(path: Utf8PathBuf) -> String {
+		path.0.into_string()
+	}
+}
+
+// impl From<Utf8PathBuf> for OsString {
+// 	fn from(path: Utf8PathBuf) -> OsString {
+// 		path.into_os_string()
+// 	}
+// }
+
+// impl<'a> From<Utf8PathBuf> for Cow<'a, Utf8Path> {
+// 	fn from(path: Utf8PathBuf) -> Cow<'a, Utf8Path> {
+// 		Cow::Owned(path)
+// 	}
+// }
+
+// impl From<Utf8PathBuf> for Arc<Utf8Path> {
+// 	fn from(path: Utf8PathBuf) -> Arc<Utf8Path> {
+// 		let arc: Arc<Path> = Arc::from(path.0);
+// 		let ptr = Arc::into_raw(arc) as *const Utf8Path;
+// 		// SAFETY:
+// 		// * path is valid UTF-8
+// 		// * ptr was created by consuming an Arc<Path> so it represents an arced pointer
+// 		// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+// 		//   *const Utf8Path is valid
+// 		unsafe { Arc::from_raw(ptr) }
+// 	}
+// }
+
+// impl From<Utf8PathBuf> for Rc<Utf8Path> {
+// 	fn from(path: Utf8PathBuf) -> Rc<Utf8Path> {
+// 		let rc: Rc<Path> = Rc::from(path.0);
+// 		let ptr = Rc::into_raw(rc) as *const Utf8Path;
+// 		// SAFETY:
+// 		// * path is valid UTF-8
+// 		// * ptr was created by consuming an Rc<Path> so it represents an rced pointer
+// 		// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to
+// 		//   *const Utf8Path is valid
+// 		unsafe { Rc::from_raw(ptr) }
+// 	}
+// }
+
+impl From<Utf8PathBuf> for PathBuf {
+	fn from(path: Utf8PathBuf) -> PathBuf {
+		path.0.into()
+	}
+}
+
+// impl From<Utf8PathBuf> for Box<Path> {
+// 	fn from(path: Utf8PathBuf) -> Box<Path> {
+// 		PathBuf::from(path).into_boxed_path()
+// 	}
+// }
+
+// impl From<Utf8PathBuf> for Arc<Path> {
+// 	fn from(path: Utf8PathBuf) -> Arc<Path> {
+// 		PathBuf::from(path).into()
+// 	}
+// }
+
+// impl From<Utf8PathBuf> for Rc<Path> {
+// 	fn from(path: Utf8PathBuf) -> Rc<Path> {
+// 		PathBuf::from(path).into()
+// 	}
+// }
+
+// impl<'a> From<Utf8PathBuf> for Cow<'a, Path> {
+// 	fn from(path: Utf8PathBuf) -> Cow<'a, Path> {
+// 		PathBuf::from(path).into()
+// 	}
+// }
+
+// ---
+// TryFrom impls
+// ---
+
+impl TryFrom<std::path::PathBuf> for Utf8PathBuf {
+	type Error = FromPathBufError;
+
+	fn try_from(path: std::path::PathBuf) -> Result<Utf8PathBuf, Self::Error> {
+		camino::Utf8PathBuf::try_from(path)
+			.map(Self)
+			.map_err(ReportedError::new)
+			.wrap_reported_err("ystd::path::Utf8PathBuf::from(PathBuf)")
+	}
+}
+
+impl<'a> TryFrom<&'a Path> for &'a Utf8Path {
+	type Error = FromPathError;
+
+	fn try_from(path: &'a Path) -> Result<&'a Utf8Path, Self::Error> {
+		<&camino::Utf8Path>::try_from(path)
+			.map(Utf8Path::new)
+			.map_err(ReportedError::new)
+	}
+}
+
+pub type FromPathBufError = ReportedError<camino::FromPathBufError>;
+pub type FromPathError = ReportedError<camino::FromPathError>;
+
+// .. snip ..
+
+// ---
+// AsRef impls
+// ---
+
+impl AsRef<Utf8Path> for Utf8Path {
+	#[inline]
+	fn as_ref(&self) -> &Utf8Path {
+		self
 	}
 }
 
 impl AsRef<Utf8Path> for Utf8PathBuf {
+	#[inline]
 	fn as_ref(&self) -> &Utf8Path {
-		Utf8Path::new(self.0.as_str())
+		self.as_path()
 	}
 }
 
-impl AsRef<std::path::Path> for Utf8PathBuf {
+impl AsRef<Utf8Path> for str {
+	#[inline]
+	fn as_ref(&self) -> &Utf8Path {
+		Utf8Path::new(self)
+	}
+}
+
+impl AsRef<Utf8Path> for String {
+	#[inline]
+	fn as_ref(&self) -> &Utf8Path {
+		Utf8Path::new(self)
+	}
+}
+
+impl AsRef<std::path::Path> for Utf8Path {
+	#[inline]
 	fn as_ref(&self) -> &std::path::Path {
 		self.0.as_ref()
 	}
 }
 
-impl From<camino::Utf8PathBuf> for PathBuf {
-	fn from(path: camino::Utf8PathBuf) -> Self {
-		Self(path)
+impl AsRef<std::path::Path> for Utf8PathBuf {
+	#[inline]
+	fn as_ref(&self) -> &std::path::Path {
+		self.0.as_ref()
 	}
 }
 
-impl From<&YPath> for PathBuf {
-	fn from(path: &YPath) -> Self {
-		Self(path.0.into())
+impl AsRef<str> for Utf8Path {
+	#[inline]
+	fn as_ref(&self) -> &str {
+		self.as_str()
 	}
 }
 
-impl From<&str> for Utf8PathBuf {
-	fn from(value: &str) -> Self {
-		Self(camino::Utf8PathBuf::from(value))
+impl AsRef<str> for Utf8PathBuf {
+	#[inline]
+	fn as_ref(&self) -> &str {
+		self.as_str()
 	}
 }
 
-impl TryFrom<std::path::PathBuf> for PathBuf {
-	type Error = color_eyre::Report;
+// impl AsRef<OsStr> for Utf8Path {
+// 	#[inline]
+// 	fn as_ref(&self) -> &OsStr {
+// 		self.as_os_str()
+// 	}
+// }
 
-	fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
-		camino::Utf8PathBuf::try_from(value)
-			.map(Utf8PathBuf)
-			.wrap_err(
-				"ystd::path Failed to convert from `std::path::PathBuf` to `ystd::path::PathBuf`",
-			)
+// impl AsRef<OsStr> for Utf8PathBuf {
+// 	#[inline]
+// 	fn as_ref(&self) -> &OsStr {
+// 		self.as_os_str()
+// 	}
+// }
+
+// ---
+// Borrow and ToOwned
+// ---
+
+impl Borrow<Utf8Path> for Utf8PathBuf {
+	#[inline]
+	fn borrow(&self) -> &Utf8Path {
+		self.as_path()
 	}
 }
 
-impl FromStr for PathBuf {
-	type Err = Infallible;
+impl ToOwned for Utf8Path {
+	type Owned = Utf8PathBuf;
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Ok(Path::new(s).to_owned())
+	#[inline]
+	fn to_owned(&self) -> Utf8PathBuf {
+		self.to_path_buf()
 	}
 }
 
-impl std::fmt::Display for Utf8PathBuf {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		self.0.fmt(f)
-	}
-}
-
-impl std::fmt::Debug for Utf8PathBuf {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		self.0.fmt(f)
-	}
-}
+// impl<P: AsRef<Utf8Path>> std::iter::FromIterator<P> for Utf8PathBuf {
+// 	fn from_iter<I: IntoIterator<Item = P>>(iter: I) -> Utf8PathBuf {
+// 		let mut buf = Utf8PathBuf::new();
+// 		buf.extend(iter);
+// 		buf
+// 	}
+// }

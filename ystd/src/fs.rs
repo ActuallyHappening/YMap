@@ -27,8 +27,9 @@ pub async fn read(path: impl AsRef<Utf8Path>) -> io::Result<Vec<u8>> {
 pub async fn read_to_string(path: impl AsRef<Utf8Path>) -> io::Result<String> {
 	let path = path.as_ref().to_owned();
 	asyncify(move || {
-		std::fs::read_to_string(&path)
-			.map_err_std_io(|io| Report::new(io).wrap_err(format!("ystd::fs::read_to_string({})", path)))
+		std::fs::read_to_string(&path).map_err_std_io(|io| {
+			Report::new(io).wrap_err(format!("ystd::fs::read_to_string({})", path))
+		})
 	})
 	.await
 }
@@ -38,7 +39,7 @@ pub async fn canonicalize_utf8(path: impl AsRef<Utf8Path>) -> io::Result<Utf8Pat
 	let path = crate::io::asyncify(move || {
 		path.0.canonicalize_utf8().map(Utf8PathBuf).map_err(|io| {
 			let io = Arc::new(io);
-			io::Error::new(
+			io::Error::empty(
 				Report::new(io.clone()).wrap_err(format!("ystd::fs::canonicalize({})", path)),
 			)
 			.with_io(io)

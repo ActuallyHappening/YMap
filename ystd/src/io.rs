@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{io, prelude::*};
+use crate::{error::ReportedError, io, prelude::*};
 
 pub(crate) async fn asyncify<F, T>(f: F) -> io::Result<T>
 where
@@ -9,28 +9,17 @@ where
 {
 	match tokio::task::spawn_blocking(f).await {
 		Ok(t) => t,
-		Err(err) => Err(io::Error::new(
+		Err(err) => Err(io::Error::empty(
 			Report::new(err).wrap_err("ystd::io background async task failed"),
 		)),
 	}
 }
 
-#[derive(Debug, thiserror::Error)]
-#[error("{report}")]
-#[non_exhaustive]
-pub struct Error {
-	pub report: Report,
-	#[source]
-	pub io: Option<Arc<std::io::Error>>,
-}
+pub type Error = ReportedError<std::io::Error>;
 
 impl Error {
-	pub fn new(report: Report) -> Self {
-		Self { report, io: None }
-	}
-
 	pub fn with_io(mut self, io: Arc<std::io::Error>) -> Self {
-		self.io = Some(io);
+		self.inner = Some(io);
 		self
 	}
 }
@@ -50,7 +39,7 @@ impl<T> MapIoError<T> for core::result::Result<T, std::io::Error> {
 	{
 		self.map_err(|io| {
 			let io = Arc::new(io);
-			Error::new(f(io.clone())).with_io(io)
+			Error::empty(f(io.clone())).with_io(io)
 		})
 	}
 }

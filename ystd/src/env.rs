@@ -7,13 +7,13 @@ pub async fn current_dir() -> io::Result<Utf8PathBuf> {
 				let io = Arc::new(io);
 				io::Error {
 					report: Report::new(io.clone()).wrap_err("ystd::env::current_dir()"),
-					io: Some(io),
+					inner: Some(io),
 				}
 			})
 			.and_then(|path| {
 				Utf8PathBuf::try_from(path.clone()).map_err(|err| io::Error {
 					report: err.wrap_err(format!("ystd::env::current_dir() -> {:?}", path)),
-					io: None,
+					inner: None,
 				})
 			})
 	})
