@@ -1,7 +1,13 @@
 [package]
 name = "ystd"
-version = "0.1.0"
+description = "An opinionated and batteries included `std` mirror for convenient, correct code and pleasant error messages"
+documentation = "https://docs.rs/ystd"
+homepage = "https://lib.rs/ystd"
+repository = "https://github.com/ActuallyHappening/YMap/tree/yit"
+license = "MIT"
+version = "0.0.1"
 edition = "2024"
+publish = true
 
 [dependencies]
 camino = "1.1.10"
