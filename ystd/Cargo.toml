@@ -5,7 +5,7 @@ documentation = "https://docs.rs/ystd"
 homepage = "https://lib.rs/ystd"
 repository = "https://github.com/ActuallyHappening/YMap/tree/yit"
 license = "MIT"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2024"
 publish = true
 
