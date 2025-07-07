@@ -15,3 +15,8 @@ pub use crate::{env, fs, io, path};
 pub use color_eyre::eyre::{WrapErr as _, bail, eyre};
 pub use extension_traits::extension;
 pub use tracing::{debug, error, info, trace, warn};
+
+// publilc extension traits,
+// this may clobber the global namespace to much
+// :shrug:
+pub use crate::time::FutureTimeoutExt as _;

@@ -1,10 +1,12 @@
 pub mod prelude;
 
+pub mod sync;
 pub mod env;
 pub mod error;
 pub mod fs;
 pub mod io;
 pub mod path;
+pub mod time;
 mod assert {
 	#[macro_export]
 	macro_rules! eyre_assert {
