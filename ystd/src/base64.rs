@@ -2,6 +2,7 @@ use crate::{error::ReportedError, prelude::*};
 use base64::prelude::*;
 pub use base64::*;
 
+/// Uses [::base64::BASE64_STANDARD]
 #[instrument(name = "ystd::base64::decode")]
 pub fn decode<T: AsRef<[u8]> + core::fmt::Debug>(
 	input: T,
