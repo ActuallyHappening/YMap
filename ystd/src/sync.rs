@@ -30,6 +30,10 @@ impl<T: ?Sized> Mutex<T> {
 	}
 
 	pub async fn lock(&self) -> Result<MutexGuard<'_, T>, TimeoutErr> {
-		self.mutex.lock().timeout(self.dur).await.wrap_reported_err("ystd::sync::Mutex::lock timed out")
+		self.mutex
+			.lock()
+			.timeout(self.dur)
+			.await
+			.wrap_reported_err("ystd::sync::Mutex::lock timed out")
 	}
 }

@@ -10,8 +10,6 @@ pub async fn which(
 			.wrap_reported_err(format!("::which::which failed"))?)
 	};
 	let path = asyncify(path).await?;
-	let path = Utf8PathBuf::try_from(path).map_err(|err| {
-		ReportedError::empty(Report::new(err))
-	})?;
+	let path = Utf8PathBuf::try_from(path).map_err(|err| ReportedError::empty(Report::new(err)))?;
 	Ok(path)
 }

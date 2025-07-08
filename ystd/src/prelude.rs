@@ -14,7 +14,7 @@ pub use crate::{env, fs, io, path};
 // public external deps
 pub use color_eyre::eyre::{WrapErr as _, bail, eyre};
 pub use extension_traits::extension;
-pub use tracing::{debug, error, info, trace, warn, instrument, span};
+pub use tracing::{debug, error, info, instrument, span, trace, warn};
 
 // publilc extension traits,
 // this may clobber the global namespace to much
