@@ -2,15 +2,29 @@ use std::fmt::Display;
 
 use crate::{error::ReportedError, io, prelude::*};
 
-pub(crate) async fn asyncify<F, T>(f: F) -> io::Result<T>
+// pub(crate) async fn asyncify<F, T>(f: F) -> io::Result<T>
+// where
+// 	F: FnOnce() -> io::Result<T> + Send + 'static,
+// 	T: Send + 'static,
+// {
+// 	match tokio::task::spawn_blocking(f).await {
+// 		Ok(t) => t,
+// 		Err(err) => Err(io::Error::empty(
+// 			Report::new(err).wrap_err("tokio::task::spawn_blocking failed"),
+// 		)),
+// 	}
+// }
+
+pub(crate) async fn asyncify<F, T, E>(f: F) -> core::result::Result<T, ReportedError<E>>
 where
-	F: FnOnce() -> io::Result<T> + Send + 'static,
+	F: FnOnce() -> core::result::Result<T, ReportedError<E>> + Send + 'static,
 	T: Send + 'static,
+	E: Send + Sync + 'static,
 {
 	match tokio::task::spawn_blocking(f).await {
 		Ok(t) => t,
-		Err(err) => Err(io::Error::empty(
-			Report::new(err).wrap_err("ystd::io background async task failed"),
+		Err(err) => Err(ReportedError::empty(
+			Report::new(err).wrap_err("tokio::task::spawn_blocking failed"),
 		)),
 	}
 }

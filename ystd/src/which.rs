@@ -1,15 +1,17 @@
-use crate::{error::ReportedError, prelude::*};
+use crate::{error::ReportedError, io::asyncify, prelude::*};
 
 #[instrument(name = "ystd::which::which")]
-pub fn which(binary_name: &'static str) -> Result<Utf8PathBuf, ReportedError<::which::Error>> {
-	let path = ::which::which(binary_name)
-		.map_err(ReportedError::new)
-		.wrap_reported_err(format!("ystd::which::which({binary_name})"))?;
+pub async fn which(
+	binary_name: &'static str,
+) -> Result<Utf8PathBuf, ReportedError<::which::Error>> {
+	let path = move || {
+		Ok(::which::which(binary_name)
+			.map_err(ReportedError::new)
+			.wrap_reported_err(format!("::which::which failed"))?)
+	};
+	let path = asyncify(path).await?;
 	let path = Utf8PathBuf::try_from(path).map_err(|err| {
-		ReportedError::empty(
-			Report::new(err)
-				.wrap_err("ystd::which::which({binary_name})"),
-		)
+		ReportedError::empty(Report::new(err))
 	})?;
 	Ok(path)
 }

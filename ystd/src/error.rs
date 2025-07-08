@@ -2,7 +2,6 @@ use crate::prelude::*;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{report}")]
-#[non_exhaustive]
 pub struct ReportedError<T> {
 	pub report: Report,
 	#[source]
@@ -34,9 +33,16 @@ impl<T> ReportedError<T> {
 			inner: self.inner.map(|inner| cb(inner)).flatten(),
 		}
 	}
-	
+
 	pub fn erase_inner<U>(self) -> ReportedError<U> {
 		self.map_inner(|_| None)
+	}
+
+	pub fn get_inner(&self) -> Option<&T> {
+		match &self.inner {
+			None => None,
+			Some(inner) => Some(inner.as_ref()),
+		}
 	}
 }
 
