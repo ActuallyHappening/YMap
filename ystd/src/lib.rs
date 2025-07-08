@@ -12,6 +12,7 @@ pub mod io;
 pub mod path;
 pub mod sync;
 pub mod time;
+pub mod string;
 #[cfg(feature = "which")]
 pub mod which;
 mod assert {
