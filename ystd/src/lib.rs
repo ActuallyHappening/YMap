@@ -7,6 +7,7 @@ pub mod fs;
 pub mod io;
 pub mod path;
 pub mod time;
+pub mod cli;
 #[cfg(feature = "which")]
 pub mod which;
 mod assert {
