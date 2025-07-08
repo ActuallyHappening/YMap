@@ -10,6 +10,7 @@ edition = "2024"
 publish = true
 
 [dependencies]
+base64 = { version = "0.22.1", optional = true }
 camino = "1.1.10"
 color-eyre = "0.6.5"
 command-macros = { version = "0.2.9", optional = true }
@@ -23,6 +24,7 @@ which = { version = "8.0.0", optional = true, features = ["tracing"] }
 workspace = true
 
 [features]
-default = ["which", "command-macros"]
+default = ["which", "command-macros", "base64"]
 which = ["dep:which"]
 command-macros = ["dep:command-macros", "tokio/process"]
+base64 = ["dep:base64"]

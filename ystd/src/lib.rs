@@ -10,6 +10,8 @@ pub mod time;
 pub mod cli;
 #[cfg(feature = "which")]
 pub mod which;
+#[cfg(feature = "base64")]
+pub mod base64;
 mod assert {
 	#[macro_export]
 	macro_rules! eyre_assert {
