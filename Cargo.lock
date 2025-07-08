@@ -6828,6 +6828,7 @@ dependencies = [
  "camino",
  "color-eyre",
  "command-macros",
+ "const-hex",
  "extension-traits",
  "thiserror 2.0.12",
  "tokio",

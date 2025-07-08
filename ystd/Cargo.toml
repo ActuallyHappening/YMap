@@ -14,6 +14,7 @@ base64 = { version = "0.22.1", optional = true }
 camino = "1.1.10"
 color-eyre = "0.6.5"
 command-macros = { version = "0.2.9", optional = true }
+hex = { version = "1.14.1", package = "const-hex", optional = true }
 extension-traits = { version = "2.0.0" }
 thiserror = "2.0.12"
 tokio = { version = "1.45.1", features = ["rt", "sync", "time"] }
@@ -24,7 +25,8 @@ which = { version = "8.0.0", optional = true, features = ["tracing"] }
 workspace = true
 
 [features]
-default = ["which", "command-macros", "base64"]
+default = ["which", "command-macros", "base64", "hex"]
 which = ["dep:which"]
 command-macros = ["dep:command-macros", "tokio/process"]
 base64 = ["dep:base64"]
+hex = ["dep:const-hex"]

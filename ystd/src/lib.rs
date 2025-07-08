@@ -1,17 +1,19 @@
 pub mod prelude;
 
-pub mod sync;
+#[cfg(feature = "base64")]
+pub mod base64;
+pub mod cli;
 pub mod env;
 pub mod error;
 pub mod fs;
+#[cfg(feature = "hex")]
+pub mod hex;
 pub mod io;
 pub mod path;
+pub mod sync;
 pub mod time;
-pub mod cli;
 #[cfg(feature = "which")]
 pub mod which;
-#[cfg(feature = "base64")]
-pub mod base64;
 mod assert {
 	#[macro_export]
 	macro_rules! eyre_assert {
