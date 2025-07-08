@@ -7,6 +7,8 @@ pub mod fs;
 pub mod io;
 pub mod path;
 pub mod time;
+#[cfg(feature = "which")]
+pub mod which;
 mod assert {
 	#[macro_export]
 	macro_rules! eyre_assert {

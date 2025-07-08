@@ -16,8 +16,11 @@ extension-traits = { version = "2.0.0" }
 thiserror = "2.0.12"
 tokio = { version = "1.45.1", features = ["rt", "sync", "time"] }
 tracing = "0.1.41"
+which = { version = "8.0.0", optional = true, features = ["tracing"] }
 
 [lints]
 workspace = true
 
 [features]
+default = ["which"]
+which = ["dep:which"]
