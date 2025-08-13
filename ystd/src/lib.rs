@@ -10,9 +10,10 @@ pub mod fs;
 pub mod hex;
 pub mod io;
 pub mod path;
+pub mod string;
 pub mod sync;
 pub mod time;
-pub mod string;
+pub use url;
 #[cfg(feature = "which")]
 pub mod which;
 mod assert {
