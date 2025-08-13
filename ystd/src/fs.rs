@@ -61,3 +61,14 @@ pub async fn metadata(path: impl AsRef<Utf8Path>) -> io::Result<Metadata> {
 	})
 	.await
 }
+
+pub async fn write(path: impl AsRef<Utf8Path>, contents: impl AsRef<[u8]>) -> io::Result<()> {
+	let path = path.as_ref().to_owned();
+	let contents = contents.as_ref().to_owned();
+	asyncify(move || {
+		std::fs::write(&path, contents).map_err_std_io(|io| {
+			Report::new(io).wrap_err(format!("ystd::fs::write({})", path))
+		})
+	})
+	.await
+}
