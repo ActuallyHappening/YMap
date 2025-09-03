@@ -1,11 +1,10 @@
 /*
 
 !src
-
-!Cargo.toml
 !README.md
+!Cargo.toml
 
 !.cargo
+!Cargo.lock
 !rustfmt.toml
 !.gitignore
-!Cargo.lock

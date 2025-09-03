@@ -1,3 +1,8 @@
+use tracing::*;
+
 fn main() {
-	println!("Hello, world!");
+	yeditor::init_debug_tools("yeditor=debug").unwrap();
+	debug!("Logging started");
+
+	info!("Hello, world!");
 }
