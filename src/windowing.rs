@@ -1,25 +1,30 @@
-use crate::prelude::*;
+use crate::{prelude::*, App};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowId};
 
-pub struct App {
-	window: Option<Window>,
-	fatal_error: Option<color_eyre::Report>,
-}
-
 impl App {
-	pub fn new()
-}
-
-impl ApplicationHandler for App {
-	fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+	pub fn window(&mut self, event_loop: &ActiveEventLoop) -> color_eyre::Result<&mut Window> {
+		if self.window.is_some() {
+			return Ok(self.window.as_mut().unwrap());
+		}
 		match event_loop.create_window(Window::default_attributes()) {
-			Ok(window) => self.window = Some(window),
-			Err(err) => self.fatal_error = Some(eyre!("Couldn't create window ({}): {:?}", err, err)),
+			Ok(window) => {
+				self.window = Some(window);
+				Ok(self.window.as_mut().unwrap())
+			}
+			Err(err) => {
+				let err = eyre!("Couldn't create window ({}): {:?}", err, err);
+				self.fatal_error = Some(eyre!("Couldn't create window ({}): {:?}", err, err));
+				Err(err)
+			}
 		}
 	}
+}
+
+impl ApplicationHandler for crate::App {
+	fn resumed(&mut self, event_loop: &ActiveEventLoop) {}
 
 	fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
 		match event {
