@@ -45,7 +45,7 @@ impl App {
 			let all_adapters = instance.enumerate_adapters(Backends::PRIMARY);
 			for adapter in &all_adapters {
 				let adapter = adapter.get_info();
-				info!(
+				debug!(
 					adapter.name,
 					adapter.driver, adapter.driver_info, "Scanned an adapter (e.g. native GPU & library)"
 				);
@@ -72,6 +72,7 @@ impl App {
 				.wrap_err("No window handle?")?
 				.as_raw(),
 		};
+		// FIXME
 		// WHY unsafe?
 		// Borrowing rules are annoying to get around with dyn-traits in wgpu, bevy does this here:
 		// https://github.com/bevyengine/bevy/blob/1a346870288cb0f8b742e4a85fba0370842fc848/crates/bevy_render/src/view/window/mod.rs#L314-L325
@@ -81,9 +82,17 @@ impl App {
 		let request_options = RequestAdapterOptions {
 			power_preference: wgpu::PowerPreference::None,
 			force_fallback_adapter: false,
-			compatible_surface: None,
+			compatible_surface: Some(&surface),
 		};
-		let adapter = tokio::block_on(instance.request_adapter(&request_options))?;
+		let adapter = async move { instance.request_adapter(&request_options).await };
+
+		// Please solve this problem cleanly
+		warn!("Syncronously waiting for GPU adapter request to complete");
+		let adapter = tokio::task::block_in_place(move || {
+			tokio::runtime::Handle::current()
+				.block_on(adapter)
+				.wrap_err("Couldn't request an adapter")
+		})?;
 		{
 			let adapter = adapter.get_info();
 			info!(
