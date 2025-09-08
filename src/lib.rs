@@ -1,35 +1,48 @@
-pub fn init_debug_tools(filter: &str) -> color_eyre::Result<()> {
-	#[cfg(not(target_arch = "wasm32"))]
+pub mod app_tracing;
+
+pub mod prelude {
+	pub use color_eyre::eyre::WrapErr as _;
+	pub use tracing::{debug, error, info, trace, warn};
+}
+
+use wgpu::{Backends, RequestAdapterOptions};
+
+use crate::prelude::*;
+pub async fn main() -> color_eyre::Result<()> {
+	info!("Hello, world!");
+
+	let descriptor = wgpu::InstanceDescriptor::default();
+	let instance = wgpu::Instance::new(&descriptor);
+
 	{
-		use tracing_error::ErrorLayer;
-		use tracing_subscriber::fmt::{self};
-		use tracing_subscriber::layer::SubscriberExt as _;
-		use tracing_subscriber::util::SubscriberInitExt as _;
-		use tracing_subscriber::EnvFilter;
-		let fmt_layer = fmt::Layer::default().with_target(true);
-		let filter_layer = EnvFilter::try_from_default_env()
-			.or_else(|_| EnvFilter::try_new(filter))
-			.unwrap();
-
-		tracing_subscriber::Registry::default()
-			.with(filter_layer)
-			.with(fmt_layer)
-			.with(ErrorLayer::default())
-			.init();
-
-		color_eyre::install()?;
-		Ok(())
+		for adapter in instance.enumerate_adapters(Backends::PRIMARY) {
+			let adapter = adapter.get_info();
+			info!(
+				adapter.name,
+				adapter.driver, adapter.driver_info, "Scanned an adapter (e.g. native GPU & library)"
+			);
+		}
 	}
+	let adapter = {
+		let request_options = RequestAdapterOptions {
+			power_preference: wgpu::PowerPreference::None,
+			force_fallback_adapter: false,
+			compatible_surface: None,
+		};
+		let adapter = instance.request_adapter(&request_options).await?;
+		{
+			let adapter = adapter.get_info();
+			info!(
+				adapter.name,
+				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
+			);
+		}
+	};
 
-	#[cfg(target_arch = "wasm32")]
-	{
-		use tracing_subscriber::prelude::*;
-		console_error_panic_hook::set_once();
-		tracing_subscriber::registry::Registry::default()
-			.with(tracing_wasm::WASMLayer::new(
-				tracing_wasm::WASMLayerConfig::default(),
-			))
-			.init();
-		Ok(())
-	}
+	// let target = todo!();
+	// let surface = instance
+	// 	.create_surface(target)
+	// 	.wrap_err("Couldn't create surface")?;
+
+	Ok(())
 }

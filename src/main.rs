@@ -1,16 +1,12 @@
 use tracing::*;
 
-fn main() {
-	yeditor::init_debug_tools("yeditor=debug").unwrap();
+#[tokio::main]
+async fn main() -> color_eyre::Result<()> {
+	yeditor::app_tracing::init_debug_tools("yeditor=debug").unwrap();
 	debug!("Logging started");
 
-	info!("Hello, world!");
+	yeditor::main().await?;
 
-	let descriptor = wgpu::InstanceDescriptor::default();
-	let instance = wgpu::Instance::new(&descriptor);
-
-	let target = todo!();
-	let surface = instance
-		.create_surface(target)
-		.wrap_err("Couldn't create surface")?;
+	debug!("Cleanly exitted");
+	Ok(())
 }
