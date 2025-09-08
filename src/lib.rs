@@ -42,7 +42,8 @@ impl App {
 		let instance = App::instance(&mut self.instance)?;
 		let window = self.window.as_mut().ok_or(eyre!("No window yet"))?;
 		{
-			for adapter in instance.enumerate_adapters(Backends::PRIMARY) {
+			let all_adapters = instance.enumerate_adapters(Backends::PRIMARY);
+			for adapter in &all_adapters {
 				let adapter = adapter.get_info();
 				info!(
 					adapter.name,
@@ -50,35 +51,17 @@ impl App {
 				);
 			}
 		}
-		{
-			// let request_options = RequestAdapterOptions {
-			// 	power_preference: wgpu::PowerPreference::None,
-			// 	force_fallback_adapter: false,
-			// 	compatible_surface: None,
-			// };
-			// let adapter = tokio::block_on(instance.request_adapter(&request_options))?;
-			// {
-			// 	let adapter = adapter.get_info();
-			// 	info!(
-			// 		adapter.name,
-			// 		adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
-			// 	);
-			// }
-		}
 
-		{
-			// Borrowing rules are too restrictive here?
-			// fn check<T: WindowHandle + 'static>(t: T) -> T {
-			// 	t
-			// }
-			// let b = Box::new(window as &mut dyn wgpu::WindowHandle) as Box<dyn WindowHandle>;
-			// let b = check(b);
-			// let surface_target: SurfaceTarget<'static> = wgpu::SurfaceTarget::Window(b);
-			// let surface: Surface<'static> = instance
-			// 	.create_surface(surface_target)
-			// 	.wrap_err("Couldn't create wgpu surface")?;
-		}
-
+		// Borrowing rules are too restrictive here?
+		// fn check<T: WindowHandle + 'static>(t: T) -> T {
+		// 	t
+		// }
+		// let b = Box::new(window as &mut dyn wgpu::WindowHandle) as Box<dyn WindowHandle>;
+		// let b = check(b);
+		// let surface_target: SurfaceTarget<'static> = wgpu::SurfaceTarget::Window(b);
+		// let surface: Surface<'static> = instance
+		// 	.create_surface(surface_target)
+		// 	.wrap_err("Couldn't create wgpu surface")?;
 		let surface_target = wgpu::SurfaceTargetUnsafe::RawHandle {
 			raw_display_handle: window
 				.display_handle()
@@ -94,6 +77,21 @@ impl App {
 		// https://github.com/bevyengine/bevy/blob/1a346870288cb0f8b742e4a85fba0370842fc848/crates/bevy_render/src/view/window/mod.rs#L314-L325
 		let surface: Surface<'static> = unsafe { instance.create_surface_unsafe(surface_target) }
 			.wrap_err("Couldn't create WGPU surface")?;
+
+		let request_options = RequestAdapterOptions {
+			power_preference: wgpu::PowerPreference::None,
+			force_fallback_adapter: false,
+			compatible_surface: None,
+		};
+		let adapter = tokio::block_on(instance.request_adapter(&request_options))?;
+		{
+			let adapter = adapter.get_info();
+			info!(
+				adapter.name,
+				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
+			);
+		}
+
 		self.surface = Some(surface);
 		Ok(self.surface.as_mut().unwrap())
 	}
