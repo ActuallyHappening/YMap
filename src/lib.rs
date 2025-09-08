@@ -1,11 +1,14 @@
 pub mod app_tracing;
 
 pub mod prelude {
-	pub use color_eyre::eyre::WrapErr as _;
+	pub use color_eyre::eyre::{eyre, WrapErr as _};
 	pub use tracing::{debug, error, info, trace, warn};
 }
 
+pub mod windowing;
+
 use wgpu::{Backends, RequestAdapterOptions};
+use winit::event_loop::{ControlFlow, EventLoop};
 
 use crate::prelude::*;
 pub async fn main() -> color_eyre::Result<()> {
@@ -38,6 +41,20 @@ pub async fn main() -> color_eyre::Result<()> {
 			);
 		}
 	};
+
+	let event_loop = EventLoop::new().wrap_err("Couldn't create event loop")?;
+
+	// ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
+	// dispatched any events. This is ideal for games and similar applications.
+	event_loop.set_control_flow(ControlFlow::Poll);
+
+	// // ControlFlow::Wait pauses the event loop if no events are available to process.
+	// // This is ideal for non-game applications that only update in response to user
+	// // input, and uses significantly less power/CPU time than ControlFlow::Poll.
+	// event_loop.set_control_flow(ControlFlow::Wait);
+
+	let mut app = windowing::App::default();
+	event_loop.run_app(&mut app).wrap_err("Event loop errored")?;
 
 	// let target = todo!();
 	// let surface = instance

@@ -13,6 +13,7 @@ tracing = "0.1.37"
 tracing-error = "0.2.1"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "time"] }
 wgpu = { version = "26.0.1", features = ["strict_asserts"] }
+winit = "0.30.12"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tracing-web = "0.1.2"
