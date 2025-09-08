@@ -80,8 +80,14 @@ impl App {
 		}
 
 		let surface_target = wgpu::SurfaceTargetUnsafe::RawHandle {
-			raw_display_handle: window.display_handle().unwrap().as_raw(),
-			raw_window_handle: window.window_handle().unwrap().as_raw(),
+			raw_display_handle: window
+				.display_handle()
+				.wrap_err("No display handle?")?
+				.as_raw(),
+			raw_window_handle: window
+				.window_handle()
+				.wrap_err("No window handle?")?
+				.as_raw(),
 		};
 		// WHY unsafe?
 		// Borrowing rules are annoying to get around with dyn-traits in wgpu, bevy does this here:
