@@ -87,7 +87,7 @@ impl App {
 		let adapter = async move { instance.request_adapter(&request_options).await };
 
 		// Please solve this problem cleanly
-		warn!("Syncronously waiting for GPU adapter request to complete");
+		trace!("Syncronously waiting for GPU adapter request to complete");
 		let adapter = tokio::task::block_in_place(move || {
 			tokio::runtime::Handle::current()
 				.block_on(adapter)
@@ -100,6 +100,11 @@ impl App {
 				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
 			);
 		}
+
+		let window_width = window.inner_size().width;
+		let window_height = window.inner_size().height;
+		let config = surface.get_default_config(&adapter, window_width, window_height);
+		// surface.configure(device, config);
 
 		self.surface = Some(surface);
 		Ok(self.surface.as_mut().unwrap())

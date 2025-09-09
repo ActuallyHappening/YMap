@@ -2,14 +2,17 @@ use crate::{prelude::*, App};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
-use winit::window::{Window, WindowId};
+use winit::window::{Window, WindowAttributes, WindowId};
 
 impl App {
 	pub fn window(&mut self, event_loop: &ActiveEventLoop) -> color_eyre::Result<&mut Window> {
 		if self.window.is_some() {
 			return Ok(self.window.as_mut().unwrap());
 		}
-		match event_loop.create_window(Window::default_attributes()) {
+		let attributes = WindowAttributes::default()
+			.with_title("yeditor - winit")
+			.with_theme(Some(winit::window::Theme::Dark));
+		match event_loop.create_window(attributes) {
 			Ok(window) => {
 				self.window = Some(window);
 				Ok(self.window.as_mut().unwrap())
