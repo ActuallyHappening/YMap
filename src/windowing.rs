@@ -1,28 +1,17 @@
-use crate::{prelude::*, App};
+use crate::{prelude::*, App, SetupApp};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowAttributes, WindowId};
 
-impl App {
-	pub fn window(&mut self, event_loop: &ActiveEventLoop) -> color_eyre::Result<&mut Window> {
-		if self.window.is_some() {
-			return Ok(self.window.as_mut().unwrap());
-		}
+impl SetupApp {
+	pub fn window(event_loop: &ActiveEventLoop) -> color_eyre::Result<Window> {
 		let attributes = WindowAttributes::default()
 			.with_title("yeditor - winit")
 			.with_theme(Some(winit::window::Theme::Dark));
-		match event_loop.create_window(attributes) {
-			Ok(window) => {
-				self.window = Some(window);
-				Ok(self.window.as_mut().unwrap())
-			}
-			Err(err) => {
-				let err = eyre!("Couldn't create window ({}): {:?}", err, err);
-				self.fatal_error = Some(eyre!("Couldn't create window ({}): {:?}", err, err));
-				Err(err)
-			}
-		}
+		event_loop.create_window(attributes).wrap_err(
+			"Couldn't create window <https://docs.rs/winit/latest/winit/event_loop/struct.ActiveEventLoop.html#method.create_window>"
+		)
 	}
 }
 

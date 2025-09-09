@@ -9,7 +9,8 @@ pub mod windowing;
 
 use wgpu::{
 	rwh::{HasDisplayHandle, HasRawDisplayHandle, HasWindowHandle},
-	Adapter, Backends, Instance, RequestAdapterOptions, Surface, SurfaceTarget, WindowHandle,
+	Adapter, Backends, DeviceType, Features, Instance, RequestAdapterOptions, Surface, SurfaceTarget,
+	WindowHandle,
 };
 use winit::{
 	event_loop::{ControlFlow, EventLoop},
@@ -17,11 +18,18 @@ use winit::{
 };
 
 #[derive(Default)]
-pub struct App {
-	window: Option<Window>,
-	fatal_error: Option<color_eyre::Report>,
-	instance: Option<wgpu::Instance>,
-	surface: Option<wgpu::Surface<'static>>,
+pub enum App {
+	#[default]
+	Initial,
+	FatalError(color_eyre::Report),
+	Setup(SetupApp),
+}
+
+pub struct SetupApp {
+	window: Window,
+	instance: wgpu::Instance,
+	surface: wgpu::Surface<'static>,
+	device: wgpu::Device,
 }
 
 impl App {
@@ -35,12 +43,38 @@ impl App {
 		Ok(instance.as_mut().unwrap())
 	}
 
-	pub fn surface(&mut self) -> color_eyre::Result<&mut wgpu::Surface<'static>> {
-		if self.surface.is_some() {
-			return Ok(self.surface.as_mut().unwrap());
+	pub fn adapter(
+		instance: &wgpu::Instance,
+		surface: &wgpu::Surface,
+	) -> color_eyre::Result<wgpu::Adapter> {
+		let request_options = RequestAdapterOptions {
+			power_preference: wgpu::PowerPreference::None,
+			force_fallback_adapter: false,
+			compatible_surface: Some(&surface),
+		};
+		let adapter = async move { instance.request_adapter(&request_options).await };
+
+		// Please solve this problem cleanly
+		trace!("Syncronously waiting for GPU adapter request to complete");
+		let adapter = tokio::task::block_in_place(move || {
+			tokio::runtime::Handle::current()
+				.block_on(adapter)
+				.wrap_err("Couldn't request an adapter")
+		})?;
+		{
+			let adapter = adapter.get_info();
+			info!(
+				adapter.name,
+				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
+			);
 		}
-		let instance = App::instance(&mut self.instance)?;
-		let window = self.window.as_mut().ok_or(eyre!("No window yet"))?;
+		Ok(adapter)
+	}
+
+	pub fn surface(
+		instance: &wgpu::Instance,
+		window: &winit::window::Window,
+	) -> color_eyre::Result<wgpu::Surface<'static>> {
 		{
 			let all_adapters = instance.enumerate_adapters(Backends::PRIMARY);
 			for adapter in &all_adapters {
@@ -72,42 +106,38 @@ impl App {
 				.wrap_err("No window handle?")?
 				.as_raw(),
 		};
-		// FIXME
 		// WHY unsafe?
 		// Borrowing rules are annoying to get around with dyn-traits in wgpu, bevy does this here:
 		// https://github.com/bevyengine/bevy/blob/1a346870288cb0f8b742e4a85fba0370842fc848/crates/bevy_render/src/view/window/mod.rs#L314-L325
 		let surface: Surface<'static> = unsafe { instance.create_surface_unsafe(surface_target) }
 			.wrap_err("Couldn't create WGPU surface")?;
 
-		let request_options = RequestAdapterOptions {
-			power_preference: wgpu::PowerPreference::None,
-			force_fallback_adapter: false,
-			compatible_surface: Some(&surface),
-		};
-		let adapter = async move { instance.request_adapter(&request_options).await };
+		let adapter = App::adapter(&instance, &surface)?;
 
-		// Please solve this problem cleanly
-		trace!("Syncronously waiting for GPU adapter request to complete");
-		let adapter = tokio::task::block_in_place(move || {
-			tokio::runtime::Handle::current()
-				.block_on(adapter)
-				.wrap_err("Couldn't request an adapter")
-		})?;
-		{
-			let adapter = adapter.get_info();
-			info!(
-				adapter.name,
-				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
-			);
-		}
+		let device_descriptor = {
+			let mut features = adapter.features();
+			if adapter.get_info().device_type == wgpu::DeviceType::DiscreteGpu {
+				// See https://github.com/bevyengine/bevy/blob/1a346870288cb0f8b742e4a85fba0370842fc848/crates/bevy_render/src/renderer/mod.rs#L291
+				features.remove(wgpu::Features::MAPPABLE_PRIMARY_BUFFERS);
+			}
+			let limits = adapter.limits();
+			wgpu::DeviceDescriptor {
+				label: Some("CUSTOM LABEL yeditor"),
+				required_features: features,
+				required_limits: limits,
+				memory_hints: wgpu::MemoryHints::default(),
+				trace: wgpu::Trace::Off,
+			}
+		};
 
 		let window_width = window.inner_size().width;
 		let window_height = window.inner_size().height;
-		let config = surface.get_default_config(&adapter, window_width, window_height);
-		// surface.configure(device, config);
+		let config = surface
+			.get_default_config(&adapter, window_width, window_height)
+			.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
+		surface.configure(&device, &config);
 
-		self.surface = Some(surface);
-		Ok(self.surface.as_mut().unwrap())
+		Ok(surface)
 	}
 }
 
