@@ -4,7 +4,7 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowAttributes, WindowId};
 
-impl SetupApp {
+impl App {
 	pub fn window(event_loop: &ActiveEventLoop) -> color_eyre::Result<Window> {
 		let attributes = WindowAttributes::default()
 			.with_title("yeditor - winit")
@@ -16,14 +16,26 @@ impl SetupApp {
 }
 
 impl ApplicationHandler for crate::App {
+	#[tracing::instrument(skip_all, name = "winit::ApplicationHandler::resumed")]
 	fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-		if let Err(err) = self.window(event_loop) {
-			error!(%err, ?err, "Window couldn't create?");
-			self.fatal_error = Some(err)
-		}
-		if let Err(err) = self.surface() {
-			error!(%err, ?err, "Couldn't initialize surface");
-			self.fatal_error = Some(err)
+		match self {
+			Self::Setup(_) => {
+				info!("Had resumed called on an already setup app");
+			}
+			Self::FatalError(err) => {
+				error!(%err, ?err, "Error in current state in resumed");
+			}
+			Self::Initial => {
+				// setup
+				let err_boundary = (move || -> color_eyre::Result<SetupApp> {
+					let window = App::window(&event_loop)?;
+					let instance = App::instance()?;
+					let surface = App::surface(&instance, &window)?;
+					let adapter = App::adapter(&instance, &surface)?;
+					let (device, queue) = App::device(&adapter)?;
+					Ok(todo!())
+				})();
+			}
 		}
 	}
 

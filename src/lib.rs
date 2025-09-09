@@ -29,63 +29,20 @@ pub struct SetupApp {
 	window: Window,
 	instance: wgpu::Instance,
 	surface: wgpu::Surface<'static>,
-	device: wgpu::Device,
+	device_queue: (wgpu::Device, wgpu::Queue),
 }
 
 impl App {
-	pub fn instance(instance: &mut Option<wgpu::Instance>) -> color_eyre::Result<&mut Instance> {
-		if instance.is_some() {
-			return Ok(instance.as_mut().unwrap());
-		}
+	pub fn instance() -> color_eyre::Result<wgpu::Instance> {
 		let descriptor = wgpu::InstanceDescriptor::default();
-		let new_instance = wgpu::Instance::new(&descriptor);
-		*instance = Some(new_instance);
-		Ok(instance.as_mut().unwrap())
-	}
-
-	pub fn adapter(
-		instance: &wgpu::Instance,
-		surface: &wgpu::Surface,
-	) -> color_eyre::Result<wgpu::Adapter> {
-		let request_options = RequestAdapterOptions {
-			power_preference: wgpu::PowerPreference::None,
-			force_fallback_adapter: false,
-			compatible_surface: Some(&surface),
-		};
-		let adapter = async move { instance.request_adapter(&request_options).await };
-
-		// Please solve this problem cleanly
-		trace!("Syncronously waiting for GPU adapter request to complete");
-		let adapter = tokio::task::block_in_place(move || {
-			tokio::runtime::Handle::current()
-				.block_on(adapter)
-				.wrap_err("Couldn't request an adapter")
-		})?;
-		{
-			let adapter = adapter.get_info();
-			info!(
-				adapter.name,
-				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
-			);
-		}
-		Ok(adapter)
+		let instance = wgpu::Instance::new(&descriptor);
+		Ok(instance)
 	}
 
 	pub fn surface(
 		instance: &wgpu::Instance,
 		window: &winit::window::Window,
 	) -> color_eyre::Result<wgpu::Surface<'static>> {
-		{
-			let all_adapters = instance.enumerate_adapters(Backends::PRIMARY);
-			for adapter in &all_adapters {
-				let adapter = adapter.get_info();
-				debug!(
-					adapter.name,
-					adapter.driver, adapter.driver_info, "Scanned an adapter (e.g. native GPU & library)"
-				);
-			}
-		}
-
 		// Borrowing rules are too restrictive here?
 		// fn check<T: WindowHandle + 'static>(t: T) -> T {
 		// 	t
@@ -112,8 +69,50 @@ impl App {
 		let surface: Surface<'static> = unsafe { instance.create_surface_unsafe(surface_target) }
 			.wrap_err("Couldn't create WGPU surface")?;
 
-		let adapter = App::adapter(&instance, &surface)?;
+		Ok(surface)
+	}
 
+	pub fn adapter(
+		instance: &wgpu::Instance,
+		surface: &wgpu::Surface,
+	) -> color_eyre::Result<wgpu::Adapter> {
+		// logging
+		{
+			let all_adapters = instance.enumerate_adapters(Backends::PRIMARY);
+			for adapter in &all_adapters {
+				let adapter = adapter.get_info();
+				debug!(
+					adapter.name,
+					adapter.driver, adapter.driver_info, "Scanned an adapter (e.g. native GPU & library)"
+				);
+			}
+		}
+
+		let request_options = RequestAdapterOptions {
+			power_preference: wgpu::PowerPreference::None,
+			force_fallback_adapter: false,
+			compatible_surface: Some(&surface),
+		};
+		let adapter = async move { instance.request_adapter(&request_options).await };
+
+		// Please solve this problem cleanly
+		trace!("Syncronously waiting for GPU adapter request to complete");
+		let adapter = tokio::task::block_in_place(move || {
+			tokio::runtime::Handle::current()
+				.block_on(adapter)
+				.wrap_err("Couldn't request an adapter")
+		})?;
+		{
+			let adapter = adapter.get_info();
+			info!(
+				adapter.name,
+				adapter.driver, adapter.driver_info, "Using this adapter (e.g. native GPU & library)"
+			);
+		}
+		Ok(adapter)
+	}
+
+	pub fn device(adapter: &wgpu::Adapter) -> color_eyre::Result<(wgpu::Device, wgpu::Queue)> {
 		let device_descriptor = {
 			let mut features = adapter.features();
 			if adapter.get_info().device_type == wgpu::DeviceType::DiscreteGpu {
@@ -129,16 +128,24 @@ impl App {
 				trace: wgpu::Trace::Off,
 			}
 		};
+		let device = async move { adapter.request_device(&device_descriptor).await };
 
-		let window_width = window.inner_size().width;
-		let window_height = window.inner_size().height;
-		let config = surface
-			.get_default_config(&adapter, window_width, window_height)
-			.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
-		surface.configure(&device, &config);
-
-		Ok(surface)
+		trace!("Syncronously waiting for GPU device and queue");
+		tokio::task::block_in_place(move || {
+			tokio::runtime::Handle::current()
+				.block_on(device)
+				.wrap_err("Couldn't request device <https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html#method.request_device>")
+		})
 	}
+
+	// pub fn configure_surface() {
+	// 	let window_width = window.inner_size().width;
+	// 	let window_height = window.inner_size().height;
+	// 	let config = surface
+	// 		.get_default_config(&adapter, window_width, window_height)
+	// 		.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
+	// 	surface.configure(&device, &config);
+	// }
 }
 
 use crate::prelude::*;
