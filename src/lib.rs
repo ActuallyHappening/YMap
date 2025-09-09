@@ -29,7 +29,9 @@ pub struct SetupApp {
 	window: Window,
 	instance: wgpu::Instance,
 	surface: wgpu::Surface<'static>,
-	device_queue: (wgpu::Device, wgpu::Queue),
+	adapter: wgpu::Adapter,
+	device: wgpu::Device,
+	queue: wgpu::Queue,
 }
 
 impl App {
@@ -137,15 +139,18 @@ impl App {
 				.wrap_err("Couldn't request device <https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html#method.request_device>")
 		})
 	}
+}
 
-	// pub fn configure_surface() {
-	// 	let window_width = window.inner_size().width;
-	// 	let window_height = window.inner_size().height;
-	// 	let config = surface
-	// 		.get_default_config(&adapter, window_width, window_height)
-	// 		.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
-	// 	surface.configure(&device, &config);
-	// }
+impl SetupApp {
+	pub fn configure_surface(&self) -> color_eyre::Result<()> {
+		let window_width = self.window.inner_size().width;
+		let window_height = self.window.inner_size().height;
+		let config = self.surface
+			.get_default_config(&self.adapter, window_width, window_height)
+			.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
+		self.surface.configure(&self.device, &config);
+		Ok(())
+	}
 }
 
 use crate::prelude::*;

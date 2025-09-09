@@ -43,8 +43,22 @@ impl ApplicationHandler for crate::App {
 					let surface = App::surface(&instance, &window)?;
 					let adapter = App::adapter(&instance, &surface)?;
 					let (device, queue) = App::device(&adapter)?;
-					Ok(todo!())
+					Ok(SetupApp {
+						window,
+						instance,
+						surface,
+						adapter,
+						device,
+						queue,
+					})
 				})();
+				match err_boundary {
+					Ok(app) => *self = App::Setup(app),
+					Err(err) => {
+						error!(%err, ?err, "Error while trying to initialy setup in resume");
+						*self = App::FatalError(err);
+					}
+				}
 			}
 		}
 	}
