@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{prelude::*, App, SetupApp};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
@@ -16,7 +18,7 @@ impl App {
 }
 
 impl App {
-	pub fn setup(&mut self) -> color_eyre::Result<&SetupApp> {
+	pub fn setup(&mut self) -> color_eyre::Result<&mut SetupApp> {
 		match self {
 			Self::Initial => bail!("App state is initial not setup"),
 			Self::FatalError(err) => bail!("App state is fatally errored not setup: {}", err),
@@ -38,19 +40,25 @@ impl ApplicationHandler for crate::App {
 			Self::Initial => {
 				// setup
 				let err_boundary = (move || -> color_eyre::Result<SetupApp> {
-					let window = App::window(&event_loop)?;
+					let window = Arc::new(App::window(&event_loop)?);
+					let size = window.inner_size();
 					let instance = App::instance()?;
-					let surface = App::surface(&instance, &window)?;
+					let surface = App::surface(&instance, window.clone())?;
 					let adapter = App::adapter(&instance, &surface)?;
+					let surface_format = App::surface_format(&surface, &adapter)?;
 					let (device, queue) = App::device(&adapter)?;
-					Ok(SetupApp {
+					let app = SetupApp {
 						window,
+						size,
 						instance,
 						surface,
 						adapter,
 						device,
 						queue,
-					})
+						surface_format,
+					};
+					app.configure_surface();
+					Ok(app)
 				})();
 				match err_boundary {
 					Ok(app) => *self = App::Setup(app),
@@ -78,6 +86,7 @@ impl ApplicationHandler for crate::App {
 				// the program to gracefully handle redraws requested by the OS.
 
 				// Draw.
+				app.render();
 
 				// Queue a RedrawRequested event.
 				//

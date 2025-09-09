@@ -7,6 +7,8 @@ pub mod prelude {
 
 pub mod windowing;
 
+use std::sync::Arc;
+
 use wgpu::{
 	rwh::{HasDisplayHandle, HasRawDisplayHandle, HasWindowHandle},
 	Adapter, Backends, DeviceType, Features, Instance, RequestAdapterOptions, Surface, SurfaceTarget,
@@ -26,12 +28,16 @@ pub enum App {
 }
 
 pub struct SetupApp {
-	window: Window,
+	window: Arc<winit::window::Window>,
+	size: winit::dpi::PhysicalSize<u32>,
+
 	instance: wgpu::Instance,
 	surface: wgpu::Surface<'static>,
 	adapter: wgpu::Adapter,
 	device: wgpu::Device,
 	queue: wgpu::Queue,
+
+	surface_format: wgpu::TextureFormat,
 }
 
 impl App {
@@ -43,33 +49,11 @@ impl App {
 
 	pub fn surface(
 		instance: &wgpu::Instance,
-		window: &winit::window::Window,
+		window: Arc<winit::window::Window>,
 	) -> color_eyre::Result<wgpu::Surface<'static>> {
-		// Borrowing rules are too restrictive here?
-		// fn check<T: WindowHandle + 'static>(t: T) -> T {
-		// 	t
-		// }
-		// let b = Box::new(window as &mut dyn wgpu::WindowHandle) as Box<dyn WindowHandle>;
-		// let b = check(b);
-		// let surface_target: SurfaceTarget<'static> = wgpu::SurfaceTarget::Window(b);
-		// let surface: Surface<'static> = instance
-		// 	.create_surface(surface_target)
-		// 	.wrap_err("Couldn't create wgpu surface")?;
-		let surface_target = wgpu::SurfaceTargetUnsafe::RawHandle {
-			raw_display_handle: window
-				.display_handle()
-				.wrap_err("No display handle?")?
-				.as_raw(),
-			raw_window_handle: window
-				.window_handle()
-				.wrap_err("No window handle?")?
-				.as_raw(),
-		};
-		// WHY unsafe?
-		// Borrowing rules are annoying to get around with dyn-traits in wgpu, bevy does this here:
-		// https://github.com/bevyengine/bevy/blob/1a346870288cb0f8b742e4a85fba0370842fc848/crates/bevy_render/src/view/window/mod.rs#L314-L325
-		let surface: Surface<'static> = unsafe { instance.create_surface_unsafe(surface_target) }
-			.wrap_err("Couldn't create WGPU surface")?;
+		let surface: Surface<'static> = instance
+			.create_surface(window)
+			.wrap_err("Couldn't create WGPU surface <https://docs.rs/wgpu/latest/wgpu/struct.Instance.html#method.create_surface>")?;
 
 		Ok(surface)
 	}
@@ -139,17 +123,93 @@ impl App {
 				.wrap_err("Couldn't request device <https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html#method.request_device>")
 		})
 	}
+
+	pub fn surface_format(
+		surface: &wgpu::Surface,
+		adapter: &wgpu::Adapter,
+	) -> color_eyre::Result<wgpu::TextureFormat> {
+		surface
+			.get_capabilities(adapter)
+			.formats
+			.get(0)
+			.cloned()
+			.ok_or(eyre!("No available formats"))
+	}
 }
 
 impl SetupApp {
-	pub fn configure_surface(&self) -> color_eyre::Result<()> {
-		let window_width = self.window.inner_size().width;
-		let window_height = self.window.inner_size().height;
-		let config = self.surface
-			.get_default_config(&self.adapter, window_width, window_height)
-			.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
-		self.surface.configure(&self.device, &config);
-		Ok(())
+	pub fn configure_surface(&self) {
+		// let window_width = self.window.inner_size().width;
+		// let window_height = self.window.inner_size().height;
+		// let config = self.surface
+		// 	.get_default_config(&self.adapter, window_width, window_height)
+		// 	.ok_or(eyre!("Adapter surface mismatch for get_default_config https://docs.rs/wgpu/26.0.1/wgpu/struct.Surface.html#method.get_default_config"))?;
+		// self.surface.configure(&self.device, &config);
+		// Ok(())
+
+		let surface_config = wgpu::SurfaceConfiguration {
+			usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+			format: self.surface_format,
+			// Request compatibility with the sRGB-format texture view we‘re going to create later.
+			view_formats: vec![self.surface_format.add_srgb_suffix()],
+			alpha_mode: wgpu::CompositeAlphaMode::Auto,
+			width: self.size.width,
+			height: self.size.height,
+			desired_maximum_frame_latency: 2,
+			present_mode: wgpu::PresentMode::AutoVsync,
+		};
+		self.surface.configure(&self.device, &surface_config);
+	}
+
+	pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+		self.size = new_size;
+
+		self.configure_surface()
+	}
+
+	fn render(&mut self) {
+		// Create texture view
+		let surface_texture = self
+			.surface
+			.get_current_texture()
+			.expect("failed to acquire next swapchain texture");
+		let texture_view = surface_texture
+			.texture
+			.create_view(&wgpu::TextureViewDescriptor {
+				// Without add_srgb_suffix() the image we will be working with
+				// might not be "gamma correct".
+				format: Some(self.surface_format.add_srgb_suffix()),
+				..Default::default()
+			});
+
+		// Renders a GREEN screen
+		let mut encoder = self.device.create_command_encoder(&Default::default());
+		// Create the renderpass which will clear the screen.
+		let renderpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+			label: None,
+			color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+				view: &texture_view,
+				depth_slice: None,
+				resolve_target: None,
+				ops: wgpu::Operations {
+					load: wgpu::LoadOp::Clear(wgpu::Color::GREEN),
+					store: wgpu::StoreOp::Store,
+				},
+			})],
+			depth_stencil_attachment: None,
+			timestamp_writes: None,
+			occlusion_query_set: None,
+		});
+
+		// If you wanted to call any drawing commands, they would go here.
+
+		// End the renderpass.
+		drop(renderpass);
+
+		// Submit the command in the queue to execute
+		self.queue.submit([encoder.finish()]);
+		self.window.pre_present_notify();
+		surface_texture.present();
 	}
 }
 
