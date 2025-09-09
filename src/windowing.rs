@@ -15,6 +15,16 @@ impl App {
 	}
 }
 
+impl App {
+	pub fn setup(&mut self) -> color_eyre::Result<&SetupApp> {
+		match self {
+			Self::Initial => bail!("App state is initial not setup"),
+			Self::FatalError(err) => bail!("App state is fatally errored not setup: {}", err),
+			Self::Setup(state) => Ok(state),
+		}
+	}
+}
+
 impl ApplicationHandler for crate::App {
 	#[tracing::instrument(skip_all, name = "winit::ApplicationHandler::resumed")]
 	fn resumed(&mut self, event_loop: &ActiveEventLoop) {
@@ -40,6 +50,7 @@ impl ApplicationHandler for crate::App {
 	}
 
 	fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+		let app = self.setup().unwrap();
 		match event {
 			WindowEvent::CloseRequested => {
 				info!("The close button was pressed; stopping");
@@ -59,7 +70,7 @@ impl ApplicationHandler for crate::App {
 				// You only need to call this if you've determined that you need to redraw in
 				// applications which do not always need to. Applications that redraw continuously
 				// can render here instead.
-				self.window.as_ref().unwrap().request_redraw();
+				app.window.request_redraw();
 			}
 			_ => (),
 		}

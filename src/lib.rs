@@ -1,7 +1,7 @@
 pub mod app_tracing;
 
 pub mod prelude {
-	pub use color_eyre::eyre::{eyre, WrapErr as _};
+	pub use color_eyre::eyre::{bail, eyre, WrapErr as _};
 	pub use tracing::{debug, error, info, trace, warn};
 }
 
