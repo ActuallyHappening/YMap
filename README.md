@@ -9,6 +9,42 @@ to the pdfs, without needing OneNote, which is a separate app not related to my
 file system. Everything is file-focussed and Finder-focussed; Finder niceties
 are important to me.
 
+## Project Policies
+Use PROGRESS.md to record progress.
+No need to manually date anything, git commit history is enough.
+Try to write as little code as possible to get the job done,
+eventually I would be interested in reading it as a human,
+use minimal code comments and minimal documentation unless the documentation
+adds something not immediately obvious if you already understand the whole
+project.
+
+## Agent coordination
+AI agents working at the same time use `.ai-agent-coordination/coord`. Its
+state lives in `.git/ai-agent-coordination/`, shared by all worktrees and never
+committed. Pick a short unique name and pass it first on every call:
+
+```
+C=.ai-agent-coordination/coord
+$C NAME join "what I'm working on"   # first; run again to update the task
+$C NAME who                          # agents, their tasks, held locks
+$C NAME lock PATH [WAIT_SECONDS]     # fails (exit 1) if someone else holds it
+$C NAME unlock PATH
+$C NAME tell OTHER "text"            # message one agent
+$C NAME say "text"                   # message every other agent
+$C NAME inbox                        # print and clear your messages
+$C NAME leave                        # last; releases all your locks
+```
+
+- Run `who` and `inbox` when you start and between steps.
+- Before editing README.md or PROGRESS.md: `lock` it with a wait, edit, then
+  `unlock` straight away.
+- For a longer piece of work, `lock` its folder (e.g. `iOS/`) for as long as
+  you work there, and stay out of folders others have locked. Locks are plain
+  names: `iOS/` does not block `iOS/FolderView.swift`, so lock at the level
+  others will check.
+- An agent idle for over 30 minutes is probably gone. Message it first; if
+  there's no reply, `coord THEIRNAME leave` clears it and its locks.
+
 ## Requirements
 
 ### Note taking
@@ -54,10 +90,22 @@ as a single file (the same way `.pages` or `.rtfd` files work).
 ```
 Past Exam 2023 Q4.ymap/
 ├── Info.json           <- manifest: format version, IDs, dates, hashes
-├── Source/             <- written once on the Mac, never changed after
+├── Source/             <- written once at conversion, never changed after
 │   ├── question.pdf    <- the question (vector, sharp at any zoom)
 │   └── question.png    <- optional raster copy
 ├── Drawing.pkdrawing   <- PKDrawing.dataRepresentation(), written as-is
 └── Preview/            <- generated from the files above; safe to delete
     └── thumbnail.png   <- for Files / Finder / Quick Look
+```
+
+Converting `X.pdf` (on iPad: tap it in the folder list) creates `X.ymap` next
+to it and copies the pdf into `Source/`. The original pdf is left in place.
+
+## Building
+
+The Xcode project is generated from `project.yml` and not checked in. Needs
+full Xcode and XcodeGen (`brew install xcodegen`).
+
+```
+xcodegen generate && open YMap.xcodeproj
 ```

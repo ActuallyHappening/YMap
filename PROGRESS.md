@@ -1,0 +1,26 @@
+# Progress
+Record your progress here for a new AI Agent session to pick up where you left off.
+Organise by headers for each session in an append-only fashion.
+Don't worry about tokens here, we can purge and summarise later.
+Add the date and time when you first started to the header.
+Append your progress only to your header, you may not be the only agent writing,
+make sure to use the agent coordination scheme in the README.md.
+## 2026-11-05 13:00 — iPad app scaffold
+- Decided: iPad app first; Mac app later. Conversion copies the pdf (original
+  stays). XcodeGen `project.yml` instead of a checked-in `.xcodeproj`.
+- Written, never compiled: `project.yml`, `iOS/YMapApp.swift` (folder picker,
+  bookmark in UserDefaults), `iOS/FolderView.swift` (browser, tap pdf to
+  convert), `Shared/YMapPackage.swift` (creates the package via
+  NSFileCoordinator + FileWrapper).
+- Blocker: this Mac has only Command Line Tools, no Xcode. Install Xcode, then
+  `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
+- Next: build and run on iPad, fix compile errors, test with iCloud Drive
+  (especially undownloaded `.icloud` placeholders). Then the PencilKit canvas
+  for opening a `.ymap` (R1, R2, R7).
+
+## 2026-11-05 13:15 — Agent coordination
+- Added `.ai-agent-coordination/coord` (bash) and the README section on it.
+  Locks are `mkdir` (atomic); messages are written to a temp file and renamed
+  into the recipient's inbox. Tested: 20 concurrent `lock` calls, one winner.
+- No automatic breaking of stale locks: doing that without a race needs more
+  machinery. A human or agent runs `coord DEADNAME leave` instead.

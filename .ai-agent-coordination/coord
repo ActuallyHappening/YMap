@@ -1,0 +1,58 @@
+#!/bin/bash
+# Usage: coord NAME COMMAND [ARGS]   (see README "Agent coordination")
+set -euo pipefail
+
+# State lives in the shared git dir so every worktree sees the same agents and
+# locks, and none of it is ever committed.
+S="$(cd "$(dirname "$0")" && cd "$(git rev-parse --git-common-dir)" && pwd)/ai-agent-coordination"
+ME="${1:?usage: coord NAME COMMAND [ARGS]}"
+CMD="${2:-who}"
+shift 2 || shift $#
+A="$S/agents/$ME"
+mkdir -p "$S/locks"
+[ "$CMD" = join ] && mkdir -p "$A/inbox"
+[ -d "$A" ] || { echo "$ME has not joined: coord $ME join \"TASK\"" >&2; exit 1; }
+touch "$A/seen"
+
+key() { printf '%s' "${1%/}" | sed 's#/#%#g'; }
+age() { echo "$(( ($(date +%s) - $(date -r "$1" +%s)) / 60 ))m"; }
+owner() { cat "$1/owner" 2>/dev/null || echo "(acquiring)"; }
+
+send() { # to, text — written elsewhere then renamed in, so readers never see half a message
+  local tmp="$S/agents/$1/.tmp-$ME-$$-$RANDOM"
+  printf '%s  %s -> %s\n%s\n' "$(date '+%H:%M')" "$ME" "$1" "$2" > "$tmp"
+  mv "$tmp" "$S/agents/$1/inbox/$(date +%s)-$ME-$$-$RANDOM"
+}
+
+case "$CMD" in
+join)  printf '%s\n' "${1:?task description}" > "$A/task" ;;
+leave)
+  for l in "$S"/locks/*; do [ -d "$l" ] && [ "$(owner "$l")" = "$ME" ] && rm -rf "$l"; done
+  rm -rf "$A" ;;
+who)
+  echo "Agents (minutes since last command):"
+  for a in "$S"/agents/*/; do
+    a="${a%/}"; printf '  %-12s %5s  %s\n' "${a##*/}" "$(age "$a/seen")" "$(cat "$a/task" 2>/dev/null)"
+  done
+  echo "Locks:"
+  for l in "$S"/locks/*; do
+    [ -d "$l" ] && printf '  %-30s %-12s %5s\n' "$(basename "$l" | sed 's#%#/#g')" "$(owner "$l")" "$(age "$l")"
+  done ;;
+lock) # PATH [WAIT_SECONDS]; mkdir is atomic, so exactly one agent wins
+  l="$S/locks/$(key "${1:?path}")"; end=$((SECONDS + ${2:-0}))
+  until mkdir "$l" 2>/dev/null; do
+    [ "$(owner "$l")" = "$ME" ] && exit 0
+    if [ $SECONDS -ge "$end" ]; then echo "$1 is locked by $(owner "$l") ($(age "$l") ago)" >&2; exit 1; fi
+    sleep 1
+  done
+  echo "$ME" > "$l/owner" ;;
+unlock)
+  l="$S/locks/$(key "${1:?path}")"
+  [ "$(owner "$l")" = "$ME" ] || { echo "$1 is not locked by $ME" >&2; exit 1; }
+  rm -rf "$l" ;;
+tell)  [ -d "$S/agents/${1:?to}" ] || { echo "no agent $1" >&2; exit 1; }; send "$1" "${2:?text}" ;;
+say)   for a in "$S"/agents/*/; do a="${a%/}"; [ "${a##*/}" = "$ME" ] || send "${a##*/}" "${1:?text}"; done ;;
+inbox)
+  for m in "$A"/inbox/*; do [ -f "$m" ] && cat "$m" && rm "$m"; done; true ;;
+*) echo "commands: join leave who lock unlock tell say inbox" >&2; exit 1 ;;
+esac
