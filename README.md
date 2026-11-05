@@ -90,7 +90,7 @@ as a single file (the same way `.pages` or `.rtfd` files work).
 ```
 Past Exam 2023 Q4.ymap/
 ├── Info.json           <- manifest: format version, IDs, dates, hashes
-├── Source/             <- written once at conversion, never changed after
+├── Source/             <- written at conversion; changes only on Reload PDF
 │   ├── question.pdf    <- the question (vector, sharp at any zoom)
 │   └── question.png    <- optional raster copy
 ├── Drawing.pkdrawing   <- PKDrawing.dataRepresentation(), written as-is
@@ -100,6 +100,11 @@ Past Exam 2023 Q4.ymap/
 
 Converting `X.pdf` (on iPad: tap it in the folder list) creates `X.ymap` next
 to it and copies the pdf into `Source/`. The original pdf is left in place.
+Tapping the pdf again opens the existing `X.ymap`.
+
+**Reload PDF** (long-press or swipe a `.ymap` in the folder list) copies the pdf
+next to the package back into `Source/`, keeping the drawing. It only appears
+when a pdf with exactly the stored name sits in the same folder.
 
 ## Building
 

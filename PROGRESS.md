@@ -24,3 +24,11 @@ make sure to use the agent coordination scheme in the README.md.
   into the recipient's inbox. Tested: 20 concurrent `lock` calls, one winner.
 - No automatic breaking of stale locks: doing that without a race needs more
   machinery. A human or agent runs `coord DEADNAME leave` instead.
+
+## 2026-11-05 14:10 — Reload PDF
+- Canvas fix: the pdf now sits behind a transparent PKCanvasView and follows
+  its scroll/zoom; inside PKCanvasView it was hidden.
+- Added Reload PDF (context menu and swipe on a `.ymap` row), shown only when
+  the sibling pdf has exactly the name stored in Info.json. Replaces the pdf in
+  `Source/`, updates the hash and deletes `Preview/` (regenerated on next save).
+- Ink isn't moved if the new pdf's pages differ in size or count.

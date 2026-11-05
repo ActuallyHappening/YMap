@@ -4,7 +4,8 @@ struct FolderView: View {
     let url: URL
     @Environment(Navigator.self) private var navigator
     @State private var items: [URL] = []
-    @State private var error: String?
+    @State private var reloadable: Set<URL> = []
+    @State private var failure: (title: String, message: String)?
 
     var body: some View {
         List(items, id: \.self) { item in
@@ -14,6 +15,8 @@ struct FolderView: View {
                 NavigationLink(value: item) {
                     Label { Text(item.deletingPathExtension().lastPathComponent) } icon: { Thumbnail(package: item) }
                 }
+                .contextMenu { reloadButton(item) }
+                .swipeActions { reloadButton(item) }
             case "pdf":
                 Button { open(item) } label: { Label(name, systemImage: "doc.richtext") }
             default:
@@ -25,10 +28,24 @@ struct FolderView: View {
         .navigationTitle(url.lastPathComponent)
         .task { load() }
         .refreshable { load() }
-        .alert("Couldn't Convert", isPresented: .constant(error != nil)) {
-            Button("OK") { error = nil }
+        .alert(failure?.title ?? "", isPresented: .constant(failure != nil)) {
+            Button("OK") { failure = nil }
         } message: {
-            Text(error ?? "")
+            Text(failure?.message ?? "")
+        }
+    }
+
+    @ViewBuilder private func reloadButton(_ package: URL) -> some View {
+        if reloadable.contains(package) {
+            Button("Reload PDF", systemImage: "arrow.clockwise") {
+                do {
+                    try YMapPackage.reloadSource(of: package)
+                    load()
+                } catch {
+                    failure = ("Couldn't Reload PDF", error.localizedDescription)
+                }
+            }
+            .tint(.blue)
         }
     }
 
@@ -37,6 +54,7 @@ struct FolderView: View {
             at: url, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
         items = found.compactMap(Self.visible)
             .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+        reloadable = Set(items.filter { $0.pathExtension == "ymap" && YMapPackage.sibling(of: $0) != nil })
     }
 
     private func open(_ pdf: URL) {
@@ -46,7 +64,7 @@ struct FolderView: View {
             load()
             navigator.path.append(package)
         } catch {
-            self.error = error.localizedDescription
+            failure = ("Couldn't Convert", error.localizedDescription)
         }
     }
 
