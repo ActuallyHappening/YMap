@@ -1,9 +1,46 @@
 # YMap
 YMap - Yates Mind Map.
-A mind mapping software for iPad pencil note taking, synced with iCloud, with the ability to view drawings on MacOS.
-This app does nothing else.
-This app allows editting and scribbling on iPad.
-The app allows viewing and managing drawings on MacOS.
+A MacOS app and iPad OS app which allows the editting, creation and viewing of
+.ymap packages.
+A YMap package holds a pdf file which is a question or section of notes which
+I want to take notes on.
+On my iPad, I can then scribble with my Apple Pen in this package, and changes
+are synced between MacOS and iPad OS through iCloud. This way,
+all my notes which are already well organised in my iCloud Drive I can convert
+into ymap packages and take notes without needing OneNote which is a seperate
+app not related to my file system.
+I want everything to be file-focussed, Finder focussed. Finder niceties are
+important to me.
+
+This file should have an 80 character limit.
+
+A .ymap package follows the following structure:
+Past Exam 2023 Q4.ymap/            <- shows up as one file in Files / Finder
+├── Info.json                      <- small manifest: format version, IDs, dates, hashes
+├── Source/                        <- written once on the Mac, never changed afterwards
+│   ├── question.pdf               <- the rendered question (vector, sharp at any zoom)
+│   └── question.png               <- optional raster copy; not made by Import .tex (section 7)
+├── Drawing.pkdrawing              <- PKDrawing.dataRepresentation(), written as-is (Apple's format)
+└── Preview/                       <- generated from the files above and safe to delete
+    └── thumbnail.png              <- for Files / Finder / Quick Look
+
+| R1 | Notes are taken on iPad with Apple Pencil; Pencil double-tap switches to the eraser. | Vision |
+| R2 | One file per question or lecture holds everything relevant to it, losslessly. | Vision |
+| R5 | That space syncs between Mac and iPad and updates live. | 2026-11-04 |
+| R6 | The iPad UI is built around the iCloud Drive folders where all my notes already are. No separate library. | 2026-11-04 |
+| R7 | Opening the file on iPad gives a canvas with the pdf on it, and I can draw around the image. | 2026-11-04 |
+| R8 | The original image is stored permanently, in its own file, apart from the drawing data. | 2026-11-04 |
+| R9 | The drawing data is stored in Apple's own format (PencilKit), with no custom conversion. | 2026-11-04 |
+| R10 | Everything is lossless and future-proof as Apple's systems change. | 2026-11-04 |
+| R11 | The Mac can view and manage drawings. It does not need to edit them. | Original header |
+| R13 | Requests and decisions are written down in this README as the project goes. | 2026-11-04 |
+| R14 | Opening a `.ymap` on macOS by double-clicking it in Finder, or by following a link to it, opens it straight in YMap. This is a top priority. | Feedback 2026-11-04 |
+| R15 | Opening it from the Files app on iPad opens it in YMap too, if possible. | Feedback 2026-11-04 |
+| R16 | iPad needs never limit the Mac side. The Mac app is designed on its own terms. | Feedback 2026-11-04 |
+
+> A `.ymap` file is a **package**: a folder that Finder and the Files app show as a single file
+(the same way `.pages` or `.rtfd` files work). Each part is kept as its own file inside it, so
+the original image never shares a file with the drawing data (R8).
 
 ## Vision
 I want to take notes on my iPad using my Apple Pencil so I get the double tap to erase functionality.
@@ -12,6 +49,8 @@ question or lecture.
 So, say I want to solve a past exam question, firstly I prepare the relevant LaTeX paragraph (using AI)
 including fonts and sizing and everything else. This plain text is then rendered
 into an image on my Mac, which I then export
+
+## Steps
 
 > _(The sentence above is unfinished in the original. It is kept exactly as written; the
 > requirements below continue the thought.)_
@@ -43,6 +82,17 @@ when it is summarised further down.
 ### 2026-11-04 — decisions on Mac links and app structure
 > Reject the ymap:// proposal. I like the two native app design.
 
+### 2026-11-05 — LaTeX conversion brainstorm request
+> Can we start brainstorming how the Mac app will manage conversions from LaTeX to the .ymap
+> package format?
+
+### 2026-11-05 — Import .tex decisions
+> I want a bundled tectonic installation, which preferrably doesn't need too much internet access, but I also don't want to touch the internals of tectonic or have too deep an understanding of it's internals. My requirements are that somebody completely non-technical with anything else installed on their laptop will be able to use this app and it's bundled tectonic renderer seamlessly. Add as a future idea, not to implement yet.
+> I want the input to be LaTeX only, exactly as stored in the package with no changes or modifications. If the LaTeX file given exactly as is doesn't compile, reject and don't try to fix. I want this program to be really good at one thing which is taking a LaTeX input and allowing iPad scribble on it. We should probably write up a AI Agent Skill sometime later for a template which can be used for optimal LaTeX for cropping and stuff. The .pdf file produced should be as small as possible you are right, but this program should never change the LaTeX in this import process. Call this process "Import .tex", Import .tex should be dumb and not do anything more than simply produce a package.
+> 3) I do not want a "New from LaTeX" editor to mould the LaTeX source code yet, all I want so far in this planning process is the ability to take a file as input and produce another file (the .ymap bundle) as output.
+> 4) Keep the compile log, name it tectonic.log to make it clearer though.
+> 5) How can we manage bundling tectonic with the app? This seems like a technical challenge that may hold back the project.
+
 ### Requirements extracted from the above
 | # | Requirement | Source |
 |---|-------------|--------|
@@ -62,6 +112,13 @@ when it is summarised further down.
 | R14 | Opening a `.ymap` on macOS by double-clicking it in Finder, or by following a link to it, opens it straight in YMap. This is a top priority. | Feedback 2026-11-04 |
 | R15 | Opening it from the Files app on iPad opens it in YMap too. | Feedback 2026-11-04 |
 | R16 | iPad needs never limit the Mac side. The Mac app is designed on its own terms. | Feedback 2026-11-04 |
+| R17 | The only way LaTeX becomes a `.ymap` is **Import .tex**: one `.tex` file in, one `.ymap` package out. Nothing more. | 2026-11-05 |
+| R18 | The input is LaTeX only, stored in the package exactly as given. Import .tex never changes the LaTeX. | 2026-11-05 |
+| R19 | If the `.tex` doesn't compile exactly as given, it is rejected. No attempt is made to fix it. | 2026-11-05 |
+| R20 | No LaTeX editor ("New from LaTeX") for now. | 2026-11-05 |
+| R21 | The compile log is kept in the package as `tectonic.log`. | 2026-11-05 |
+| R22 | The PDF should be as small as possible, but only by how the LaTeX is written, never by changing the LaTeX. | 2026-11-05 |
+| R23 | Future (not now): Tectonic is bundled in the app, so a non-technical person with nothing else installed can use it seamlessly, with little internet needed and no work on Tectonic's internals. | 2026-11-05 |
 
 ### My opinions so far
 - **2026-11-04:** I like that the design centres on Finder and the file system. Files and folders I
@@ -70,6 +127,8 @@ when it is summarised further down.
 - **2026-11-04:** I like having two separate native apps, one for Mac and one for iPad.
 - **2026-11-04:** I don't want a `ymap://` URL scheme. Normal Finder and `file://` opening is
   enough.
+- **2026-11-05:** I want this program to be really good at one thing: taking a LaTeX input and
+  letting me scribble on it on the iPad. Import .tex should be dumb.
 
 ---
 
@@ -85,9 +144,10 @@ the original image never shares a file with the drawing data (R8).
 Past Exam 2023 Q4.ymap/            <- shows up as one file in Files / Finder
 ├── Info.json                      <- small manifest: format version, IDs, dates, hashes, image position
 ├── Source/                        <- written once on the Mac, never changed afterwards
-│   ├── question.tex               <- the LaTeX exactly as written
+│   ├── question.tex               <- the LaTeX, byte-for-byte as imported (section 7)
 │   ├── question.pdf               <- the rendered question (vector, sharp at any zoom)
-│   └── question.png               <- optional raster copy at a fixed DPI, also never changed
+│   ├── tectonic.log               <- Tectonic's compile log, unchanged apart from its name
+│   └── question.png               <- optional raster copy; not made by Import .tex (section 7)
 ├── Drawing.pkdrawing              <- PKDrawing.dataRepresentation(), written as-is (Apple's format)
 └── Preview/                       <- generated from the files above and safe to delete
     └── thumbnail.png              <- for Files / Finder / Quick Look
@@ -147,6 +207,7 @@ Notes on each part:
 
 **Preparing (a script can do the work, but see section 6: a small Mac app must exist from day
 one, or Finder shows `.ymap` files as plain folders):**
+_(Superseded by section 7, "Import .tex". Kept for the record.)_
 1. Write or generate the LaTeX, using the `standalone` document class so the output is cropped
    tightly to the content, with fonts and sizing set in the preamble.
 2. Render to PDF with `tectonic` or `pdflatex`/`lualatex`. Optionally also make a PNG with a
@@ -238,7 +299,73 @@ Without that app, Finder and Files show a plain folder, and double-clicking just
 a `file://` link both open the app, (c) the iPad Files app shows it as one file after the iPad
 app is installed.
 
-### 7. Alternatives considered and rejected
+### 7. Mac app: "Import .tex" (started 2026-11-05, reshaped the same day)
+
+**Import .tex** is the one process that turns LaTeX into a `.ymap`. It is deliberately dumb: one
+`.tex` file goes in, one `.ymap` package comes out, and nothing else happens (R17–R22).
+
+#### 7.1 What it does and does not do
+
+- **In:** one `.tex` file, chosen with **File ▸ Import .tex…** (or dropped on the Dock icon). It
+  must be a complete LaTeX document. No fragments, no templates, no wrapping.
+- **Out:** one new `.ymap` package. Its name defaults to the `.tex` file's name, saved where I
+  choose in a save dialog.
+- **The LaTeX is never changed.** `Source/question.tex` is a byte-for-byte copy of the input.
+  Its SHA-256 hash in `Info.json` matches the input file's hash. The original file name is recorded
+  in `Info.json`.
+- **If it doesn't compile exactly as given, it is rejected.** The app shows the error from
+  `tectonic.log` and creates nothing. It never tries to fix, retry with other settings, or guess.
+- **No editor, no live preview, no templates** (rejected for now). Writing good LaTeX is a
+  separate job, done before Import (see the AI Agent Skill in Future ideas).
+- **Cropping and PDF size are the LaTeX's job.** A `.tex` written with the `standalone` class
+  gives a tightly cropped, small PDF. Import .tex does not crop, compress or post-process the PDF.
+- **The `.tex` must stand alone.** It is compiled in an empty folder holding only a copy of
+  itself, so a document that `\input`s other files or includes images next to it fails. This
+  is on purpose: a `.ymap` then never depends on files outside itself.
+- **No PNG is made.** The optional `question.png` from section 1 is left out of Import .tex.
+
+#### 7.2 The steps (all-or-nothing)
+
+1. **Copy** the input into a fresh, empty scratch folder outside iCloud, as `question.tex`.
+   Hash it and check that the hash equals the hash of the original file.
+2. **Compile** with Tectonic, keeping the log:
+   `tectonic --untrusted --keep-logs question.tex`. `--untrusted` turns off shell-escape and
+   other unsafe features. There is a time limit. A non-zero exit status means **reject**.
+3. **Check, without changing anything:** `question.pdf` exists and PDFKit can open it. If it
+   can't, **reject**. (Whether to also reject PDFs with more than one page depends on open
+   question 1.)
+4. **Rename the log** from `question.log` to `tectonic.log`. The content is not changed.
+5. **Write `Info.json`:** format version, a new UUID, the import date, the original `.tex`
+   file name, SHA-256 hashes of every `Source/` file, the image size in points (from the PDF page)
+   and its position on the canvas (proposed: centred on the canvas origin), and a `render`
+   record: engine `tectonic`, its exact version (`tectonic --version`), and the command that was run.
+6. **Assemble** the package (`Info.json` + `Source/question.tex`, `Source/question.pdf`,
+   `Source/tectonic.log`) in a temporary folder **on the same disk as the destination**
+   (`FileManager`'s `itemReplacementDirectory`).
+7. **Move it into place** in one step with `NSFileCoordinator`, so iCloud is told properly. If a
+   file with that name already exists, **stop**. Never overwrite.
+
+No `Drawing.pkdrawing` is written. The iPad creates it on first save.
+
+#### 7.3 Where Tectonic comes from, for now
+
+Bundling Tectonic inside the app is a **future idea** (see Future ideas). Until then:
+- Import .tex runs the Tectonic **already installed on my Mac** (Homebrew,
+  `/opt/homebrew/bin/tectonic`, version 0.17.0 at the time of writing). The app looks for it at
+  fixed paths, because apps opened from Finder don't see the Terminal's `PATH`.
+- If Tectonic isn't found, Import .tex says so plainly and creates nothing.
+- Running a program outside the app's own bundle means the Mac app **is not sandboxed for now**.
+  That's fine for a personal app. Bundling later makes sandboxing possible again.
+- Tectonic downloads LaTeX packages the first time a document uses them, then caches them in
+  `~/Library/Caches/Tectonic`. So the first import that uses a new package needs internet.
+
+#### 7.4 Mistakes in the question after the file is made
+
+`Source/` never changes (R8). If a `.tex` had a mistake, I fix the `.tex` myself and run Import
+.tex again, which makes a new `.ymap`. Whether to also allow deleting a `.ymap` that has no
+drawing yet is still open (open question 9).
+
+### 8. Alternatives considered and rejected
 
 | Option | Why not |
 |--------|---------|
@@ -263,6 +390,12 @@ app is installed.
    files could be plain relative paths in `Info.json`.
 6. **Name of the file type / bundle ID**, for example `com.yates.ymap`.
 7. **Lowest OS versions** to support. This decides which `PKContentVersion` ink types can be used.
+8. **Multi-page PDFs:** should Import .tex reject a `.tex` that produces more than one page, or
+   accept it (ties into question 1)?
+9. **Deleting an unused `.ymap`:** should the Mac app offer to delete a `.ymap` that has no drawing
+   yet (for example after fixing a typo and importing again), or is that left to Finder?
+10. **Bundled Tectonic and offline use (future):** when bundling happens, should a document using a
+    package missing from the shipped cache be rejected, or allowed to download it?
 
 ## Future ideas (not planned)
 
@@ -270,6 +403,42 @@ app is installed.
   other packages by having me **pick a folder once** (for example my iCloud notes folder). It
   remembers that permission as a security-scoped bookmark stored on the device only, never inside
   any file. Chosen 2026-11-05.
+- **Bundled Tectonic, so anyone can use the app (added 2026-11-05, not to implement yet):** the
+  app ships with its own copy of Tectonic, so someone completely non-technical, with nothing else
+  installed, can use Import .tex without any setup. It should need as little internet as possible.
+  I don't want to change Tectonic's internals or need to understand them deeply. Notes on how it
+  could work, using only Tectonic's public releases and command-line options:
+  - **The program itself (the easy part).** Download Tectonic's official macOS release binaries
+    (Apple Silicon and Intel) from its GitHub releases, at a pinned version. Combine them into one
+    universal binary with `lipo`. Copy it into the app at `YMap.app/Contents/Helpers/tectonic`,
+    and sign it with the app's own signature and notarisation. A script in the Xcode build does
+    all of this, so it's repeatable and nobody touches Tectonic's code.
+    - **Don't bundle the Homebrew copy.** Checked 2026-11-05 with `otool -L`: Homebrew's
+      Tectonic loads ICU, HarfBuzz, FreeType, Graphite2 and libpng from `/opt/homebrew`, which
+      other Macs won't have. To verify: the official release binaries should only link to
+      libraries macOS itself provides (check with `otool -L`).
+  - **The LaTeX packages (the harder part).** Tectonic fetches packages from the internet on
+    first use. Ways to cut that down, from least to most offline:
+    1. Accept one download per new package, cached afterwards. Simplest, but needs internet.
+    2. **Ship a pre-filled cache:** at build time, compile a set of typical documents (made with
+       the AI Skill's template) so Tectonic downloads everything they use. Copy that cache into the
+       app, place it on first launch, and run with `--only-cached` (`-C`) so Tectonic never goes
+       online. Proposed: documents using only those packages then work fully offline. Others are
+       rejected with a clear message, or allowed to download (to decide).
+    3. **Ship a full local bundle** and point Tectonic at it with `--bundle <path>`. Completely
+       offline for everything, but likely to make the app very large. To verify: the size.
+  - **Sandboxing comes back:** a helper inside the app's own bundle can run in a sandboxed app
+    (signed with `com.apple.security.inherit`), plus the network-client entitlement if downloads
+    are allowed.
+  - **Risk:** whether Tectonic's cache folder can be pointed somewhere else without relying on
+    internals is not yet verified. Inside a sandbox it lands in the app's own container
+    automatically, which may be enough.
+- **AI Agent Skill for writing LaTeX for YMap (added 2026-11-05, later):** a skill an AI agent
+  can follow to write `.tex` files that suit Import .tex: a template using the `standalone` class
+  for tight cropping and a small PDF, a sensible text width with room to draw around it, fonts
+  that come with TeX, a single self-contained file with no `\input` or external images, and only
+  packages Tectonic handles well. This keeps Import .tex dumb: all the "make the LaTeX good" work
+  happens before import.
 
 ## Decision log
 
@@ -286,3 +455,11 @@ Decisions are added here as they are made, newest at the bottom.
 | 2026-11-04 | Proposed (optional): a `ymap://` URL scheme on the Mac, keyed on the UUID in `Info.json`. | R14: links that survive moves and renames |
 | 2026-11-04 | **Rejected by me:** the `ymap://` URL scheme. Opening is through Finder, Launch Services and `file://` only. | My decision |
 | 2026-11-04 | **Approved by me:** two separate native apps (macOS and iPadOS), sharing only the type identifier and package layout. | My decision; R16 |
+| 2026-11-05 | Proposed, then **changed by me:** a bundled Tectonic with optional MacTeX. Now: Tectonic only. Bundling it is a future idea; for now the app uses the Tectonic installed on my Mac. MacTeX dropped. | R23; keeps the project moving |
+| 2026-11-05 | Proposed, then **rejected by me:** wrapping LaTeX fragments in templates, and a "New from LaTeX…" editor with live preview. | R18, R20 |
+| 2026-11-05 | **Decided by me:** the process is called **Import .tex**. It is dumb: one `.tex` in, one `.ymap` out, LaTeX stored byte-for-byte, rejected if it doesn't compile as given. | R17, R18, R19 |
+| 2026-11-05 | **Decided by me:** the compile log is kept as `Source/tectonic.log`. | R21 |
+| 2026-11-05 | Proposed: Import .tex is all-or-nothing: built in a temp folder on the same disk, moved in one coordinated step, never overwriting. | R5: the iPad never sees a half-made file |
+| 2026-11-05 | Proposed: the `.tex` is compiled alone in an empty folder, with `--untrusted`. | The package never depends on outside files; no shell-escape |
+| 2026-11-05 | Proposed: the Mac app is not sandboxed until Tectonic is bundled. | It runs a program outside its own bundle |
+| 2026-11-05 | Future ideas added: bundled Tectonic (R23) and an AI Agent Skill with a LaTeX template for YMap. | My request |
