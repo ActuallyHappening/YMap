@@ -264,6 +264,13 @@ app is installed.
 6. **Name of the file type / bundle ID**, for example `com.yates.ymap`.
 7. **Lowest OS versions** to support. This decides which `PKContentVersion` ink types can be used.
 
+## Future ideas (not planned)
+
+- **Several `.ymap` packages together:** if this is ever pursued, the iPad app gets access to the
+  other packages by having me **pick a folder once** (for example my iCloud notes folder). It
+  remembers that permission as a security-scoped bookmark stored on the device only, never inside
+  any file. Chosen 2026-11-05.
+
 ## Decision log
 
 Decisions are added here as they are made, newest at the bottom.
