@@ -15,30 +15,30 @@ are important to me.
 
 - **R1** Notes are taken on iPad with Apple Pencil; Pencil double-tap switches
   to the eraser.
-- **R7** Opening the file on iPad gives a canvas with the pdf on it, and I can
+- **R2** Opening the file on iPad gives a canvas with the pdf on it, and I can
   draw around it.
-- **R6** The iPad UI is built around the iCloud Drive folders where all my
+- **R3** The iPad UI is built around the iCloud Drive folders where all my
   notes already are. No separate library.
-- **R5** Changes sync between Mac and iPad through iCloud and update live.
+- **R4** Changes sync between Mac and iPad through iCloud and update live.
 
 ### Storage
 
-- **R2** One file per question or lecture holds everything relevant to it,
+- **R5** One file per question or lecture holds everything relevant to it,
   losslessly, in a custom format.
-- **R8** The original pdf is stored permanently, in its own file, apart from
+- **R6** The original pdf is stored permanently, in its own file, apart from
   the drawing data.
-- **R9** The drawing data is stored in Apple's own format (PencilKit), with no
+- **R7** The drawing data is stored in Apple's own format (PencilKit), with no
   custom conversion.
-- **R10** Everything is future-proof as Apple's systems change.
+- **R8** Everything is future-proof as Apple's systems change.
 
 ### Opening and the Mac
 
-- **R14** Opening a `.ymap` on macOS by double-clicking it in Finder, or by
+- **R9** Opening a `.ymap` on macOS by double-clicking it in Finder, or by
   following a link to it, opens it straight in YMap. This is a top priority.
-- **R15** Opening it from the Files app on iPad opens it in YMap too, if
+- **R10** Opening it from the Files app on iPad opens it in YMap too, if
   possible.
 - **R11** The Mac can view and manage drawings. It does not need to edit them.
-- **R16** iPad needs never limit the Mac side. The Mac app is designed on its
+- **R12** iPad needs never limit the Mac side. The Mac app is designed on its
   own terms.
 
 ### This README
