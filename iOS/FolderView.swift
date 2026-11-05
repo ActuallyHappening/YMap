@@ -4,6 +4,7 @@ struct FolderView: View {
     let url: URL
     @Environment(Navigator.self) private var navigator
     @State private var items: [URL] = []
+    @State private var convertible: Set<URL> = [] // folders of pdfs without a .ymap yet
     @State private var reloadable: Set<URL> = []
     @State private var failure: (title: String, message: String)?
 
@@ -18,10 +19,17 @@ struct FolderView: View {
                 .contextMenu { reloadButton(item) }
                 .swipeActions { reloadButton(item) }
             case "pdf":
-                Button { open(item) } label: { Label(name, systemImage: "doc.richtext") }
+                Button { convert(item, from: [item]) } label: { Label(name, systemImage: "doc.richtext") }
             default:
                 if item.hasDirectoryPath {
                     NavigationLink(value: item) { Label(name, systemImage: "folder") }
+                        .contextMenu {
+                            if convertible.contains(item) {
+                                Button("Convert Folder to YMap", systemImage: "scribble") {
+                                    convert(item, from: YMapPackage.pdfs(in: item))
+                                }
+                            }
+                        }
                 }
             }
         }
@@ -37,12 +45,12 @@ struct FolderView: View {
 
     @ViewBuilder private func reloadButton(_ package: URL) -> some View {
         if reloadable.contains(package) {
-            Button("Reload PDF", systemImage: "arrow.clockwise") {
+            Button("Reload PDFs", systemImage: "arrow.clockwise") {
                 do {
-                    try YMapPackage.reloadSource(of: package)
+                    try YMapPackage.reload(package)
                     load()
                 } catch {
-                    failure = ("Couldn't Reload PDF", error.localizedDescription)
+                    failure = ("Couldn't Reload PDFs", error.localizedDescription)
                 }
             }
             .tint(.blue)
@@ -50,31 +58,28 @@ struct FolderView: View {
     }
 
     private func load() {
-        let found = (try? FileManager.default.contentsOfDirectory(
-            at: url, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
-        items = found.compactMap(Self.visible)
-            .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
-        reloadable = Set(items.filter { $0.pathExtension == "ymap" && YMapPackage.sibling(of: $0) != nil })
+        items = YMapPackage.listing(url)
+        let names = Set(items.map(\.lastPathComponent))
+        convertible = Set(items.filter { item in
+            item.hasDirectoryPath && item.pathExtension != "ymap"
+                && !names.contains(YMapPackage.package(for: item).lastPathComponent)
+                && !YMapPackage.pdfs(in: item).isEmpty
+        })
+        reloadable = Set(items.filter { $0.pathExtension == "ymap" && !YMapPackage.reloadSources(of: $0).isEmpty })
     }
 
-    private func open(_ pdf: URL) {
-        let package = pdf.deletingPathExtension().appendingPathExtension("ymap")
+    // Opens the .ymap for a pdf or folder, creating it first if needed.
+    private func convert(_ source: URL, from pdfs: [URL]) {
+        let package = YMapPackage.package(for: source)
         do {
-            if !items.contains(where: { $0.lastPathComponent == package.lastPathComponent }) { try YMapPackage.create(from: pdf) }
+            if !items.contains(where: { $0.lastPathComponent == package.lastPathComponent }) {
+                try YMapPackage.create(package, from: pdfs)
+            }
             load()
             navigator.path.append(package)
         } catch {
             failure = ("Couldn't Convert", error.localizedDescription)
         }
-    }
-
-    // iCloud items not yet downloaded appear as ".Name.pdf.icloud".
-    private static func visible(_ item: URL) -> URL? {
-        let name = item.lastPathComponent
-        guard name.hasPrefix(".") else { return item }
-        guard name.hasSuffix(".icloud") else { return nil }
-        let real = String(name.dropFirst().dropLast(".icloud".count))
-        return item.deletingLastPathComponent().appendingPathComponent(real, isDirectory: !real.contains("."))
     }
 }
 

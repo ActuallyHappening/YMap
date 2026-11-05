@@ -3,70 +3,113 @@ import SwiftUI
 
 struct CanvasScreen: View {
     let url: URL
-    @State private var canvas: CanvasController?
+    @State private var document: YMapDocument?
+    @State private var names: [String] = []
+    @State private var selected: String?
+    @State private var reloads = 0
+    @State private var sidebar = false
     @State private var failed = false
+    @State private var scoped = false
+    @State private var handle = CanvasHandle()
 
     var body: some View {
-        Group {
-            if let canvas {
-                Canvas(controller: canvas).ignoresSafeArea(edges: .bottom)
+        HStack(spacing: 0) {
+            if sidebar {
+                List(names, id: \.self, selection: $selected) { name in
+                    Label((name as NSString).deletingPathExtension, systemImage: "doc.richtext")
+                }
+                .listStyle(.sidebar)
+                .frame(width: 260)
+                .transition(.move(edge: .leading))
+                Divider()
+            }
+            if let document, let selected {
+                Canvas(document: document, name: selected, reloads: reloads, handle: handle)
+                    .id(selected)
+                    .ignoresSafeArea(edges: .bottom)
+            } else if document != nil {
+                ContentUnavailableView("No PDFs", systemImage: "doc.richtext")
             } else if failed {
                 ContentUnavailableView("Couldn't Open", systemImage: "exclamationmark.triangle")
             } else {
-                ProgressView()
+                ProgressView().frame(maxWidth: .infinity)
             }
         }
         .navigationTitle(url.deletingPathExtension().lastPathComponent)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if let canvas {
-                Button("Undo", systemImage: "arrow.uturn.backward") { canvas.canvas.undoManager?.undo() }
-                Button("Redo", systemImage: "arrow.uturn.forward") { canvas.canvas.undoManager?.redo() }
+            ToolbarItem(placement: .topBarLeading) {
+                Button("PDFs", systemImage: "sidebar.left") { withAnimation { sidebar.toggle() } }
+            }
+            ToolbarItemGroup {
+                Button("Undo", systemImage: "arrow.uturn.backward") { handle.controller?.canvas.undoManager?.undo() }
+                Button("Redo", systemImage: "arrow.uturn.forward") { handle.controller?.canvas.undoManager?.redo() }
             }
         }
+        .onChange(of: selected) { if let selected { document?.open(selected) } }
         .task {
-            let scoped = url.startAccessingSecurityScopedResource()
+            scoped = url.startAccessingSecurityScopedResource()
             try? FileManager.default.startDownloadingUbiquitousItem(at: url)
             let document = YMapDocument(fileURL: url)
-            if await document.open() {
-                canvas = CanvasController(document: document, scoped: scoped)
-            } else {
-                failed = true
+            guard await document.open() else { failed = true; return }
+            document.onReload = {
+                names = document.names
+                if !names.contains(selected ?? "") { selected = document.opened }
+                reloads += 1
             }
+            names = document.names
+            selected = document.opened
+            self.document = document
         }
-        .onDisappear { canvas?.close() }
+        .onDisappear {
+            document?.close { [url, scoped] _ in if scoped { url.stopAccessingSecurityScopedResource() } }
+        }
     }
 }
 
-private struct Canvas: UIViewControllerRepresentable {
-    let controller: CanvasController
-    func makeUIViewController(context: Context) -> CanvasController { controller }
-    func updateUIViewController(_ controller: CanvasController, context: Context) {}
+final class CanvasHandle {
+    weak var controller: CanvasController?
 }
 
+private struct Canvas: UIViewControllerRepresentable {
+    let document: YMapDocument
+    let name: String
+    let reloads: Int
+    let handle: CanvasHandle
+
+    func makeUIViewController(context: Context) -> CanvasController {
+        let controller = CanvasController(document: document, name: name)
+        controller.reloads = reloads
+        handle.controller = controller
+        return controller
+    }
+
+    func updateUIViewController(_ controller: CanvasController, context: Context) {
+        guard controller.reloads != reloads else { return }
+        controller.reloads = reloads
+        controller.reload()
+    }
+}
+
+// Shows one pdf of the document with its drawing.
 final class CanvasController: UIViewController, PKCanvasViewDelegate {
     let canvas = PKCanvasView()
+    var reloads = 0
     private let document: YMapDocument
-    private let scoped: Bool
+    private let name: String
     private let toolPicker = PKToolPicker()
     private var pages: PDFPagesView?
     private var origin = CGPoint.zero // where the pdf's top-left sits on the canvas
     private var applying = false
     private var positioned = false
 
-    init(document: YMapDocument, scoped: Bool) {
+    init(document: YMapDocument, name: String) {
         self.document = document
-        self.scoped = scoped
+        self.name = name
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) { fatalError() }
-
-    func close() {
-        document.close { [document, scoped] _ in
-            if scoped { document.fileURL.stopAccessingSecurityScopedResource() }
-        }
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,25 +122,26 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
         canvas.minimumZoomScale = 0.2
         canvas.maximumZoomScale = 10
         canvas.delegate = self
-        if let pdf = document.pdf {
+        if let pdf = document.pdf(name) {
             let pages = PDFPagesView(pdf: pdf)
             view.addSubview(pages)
             self.pages = pages
         }
         view.addSubview(canvas)
         let margin: CGFloat = 1000
-        let bounds = document.drawing.bounds
+        let bounds = document.drawing(name).bounds
         origin = bounds.isNull ? CGPoint(x: margin, y: margin)
             : CGPoint(x: max(margin, margin - bounds.minX), y: max(margin, margin - bounds.minY))
-        show(document.drawing)
-        document.onReload = { [weak self] in self.map { $0.show($0.document.drawing) } }
+        show(document.drawing(name))
 
+        toolPicker.stateAutosaveName = "YMap"
         toolPicker.addObserver(canvas)
         toolPicker.setVisible(true, forFirstResponder: canvas)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        canvas.undoManager?.removeAllActions() // undo steps from the previously shown pdf
         canvas.becomeFirstResponder()
     }
 
@@ -112,6 +156,8 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
         canvas.contentOffset = CGPoint(
             x: (origin.x - gap) * zoom, y: (origin.y - gap) * zoom - canvas.adjustedContentInset.top)
     }
+
+    func reload() { show(document.drawing(name)) }
 
     private func show(_ drawing: PKDrawing) {
         applying = true
@@ -141,8 +187,7 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
 
     func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
         guard !applying else { return }
-        document.drawing = canvas.drawing.transformed(using: .init(translationX: -origin.x, y: -origin.y))
-        document.updateChangeCount(.done)
+        document.setDrawing(canvas.drawing.transformed(using: .init(translationX: -origin.x, y: -origin.y)), for: name)
         updateLayout()
     }
 

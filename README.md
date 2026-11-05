@@ -89,22 +89,34 @@ as a single file (the same way `.pages` or `.rtfd` files work).
 
 ```
 Past Exam 2023 Q4.ymap/
-├── Info.json           <- manifest: format version, IDs, dates, hashes
-├── Source/             <- written at conversion; changes only on Reload PDF
-│   ├── question.pdf    <- the question (vector, sharp at any zoom)
-│   └── question.png    <- optional raster copy
-├── Drawing.pkdrawing   <- PKDrawing.dataRepresentation(), written as-is
-└── Preview/            <- generated from the files above; safe to delete
-    └── thumbnail.png   <- for Files / Finder / Quick Look
+├── Info.json              <- format version, ID, date, pdf hashes, last opened
+├── Source/                <- the pdfs; changed only by Reload PDFs
+│   ├── Q4.pdf
+│   └── Q4 Solutions.pdf
+├── Drawings/              <- one per pdf, PKDrawing.dataRepresentation()
+│   ├── Q4.pkdrawing
+│   └── Q4 Solutions.pkdrawing
+└── Preview/               <- generated from the files above; safe to delete
+    └── thumbnail.png      <- for Files / Finder / Quick Look
 ```
 
-Converting `X.pdf` (on iPad: tap it in the folder list) creates `X.ymap` next
-to it and copies the pdf into `Source/`. The original pdf is left in place.
-Tapping the pdf again opens the existing `X.ymap`.
+Drawings are in points from the top-left of their pdf's first page. Format 1
+had one pdf and a single `Drawing.pkdrawing`; YMap moves it into `Drawings/`
+on the next save.
 
-**Reload PDF** (long-press or swipe a `.ymap` in the folder list) copies the pdf
-next to the package back into `Source/`, keeping the drawing. It only appears
-when a pdf with exactly the stored name sits in the same folder.
+On iPad, tapping `X.pdf` in the folder list creates `X.ymap` next to it, and
+long-pressing folder `X` offers **Convert Folder to YMap**, which copies every
+pdf directly inside it. Originals are left in place; doing either again opens
+the existing `X.ymap`.
+
+**Reload PDFs** (long-press or swipe a `.ymap`) copies in every pdf from the
+folder named like the package, and any pdf beside it with exactly the name of
+one stored inside. It adds or replaces pdfs, never removes one, and keeps the
+drawings. It only appears when there is something to reload from.
+
+In a `.ymap`, the sidebar button lists its pdfs. It opens the last opened pdf,
+or else the first by name, with names containing the word sol, solution or
+solutions last.
 
 ## Building
 

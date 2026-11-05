@@ -32,3 +32,15 @@ make sure to use the agent coordination scheme in the README.md.
   the sibling pdf has exactly the name stored in Info.json. Replaces the pdf in
   `Source/`, updates the hash and deletes `Preview/` (regenerated on next save).
 - Ink isn't moved if the new pdf's pages differ in size or count.
+
+## 2026-11-05 14:20 — Many pdfs per .ymap
+- Format 2: `Source/` holds many pdfs, `Drawings/<pdf stem>.pkdrawing` one per
+  pdf, `Info.json` has `sha256` per pdf and `lastOpened`. Format 1 packages
+  load; their `Drawing.pkdrawing` moves to `Drawings/` on save.
+- Canvas screen: hidden sidebar (toolbar button) lists pdfs; a new
+  CanvasController per pdf (`.id(name)`), undo cleared on switch, tool picker
+  state shared via `stateAutosaveName`.
+- Folder list: long-press folder → Convert Folder to YMap (top-level pdfs
+  only). Reload PDFs = folder X/ for X.ymap plus same-named sibling pdfs.
+- Untested on device beyond launch: conversion of a folder, switching pdfs,
+  opening a format 1 package.
