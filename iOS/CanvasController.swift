@@ -73,17 +73,18 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
         overrideUserInterfaceStyle = .light
         canvas.frame = view.bounds
         canvas.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        canvas.backgroundColor = .secondarySystemBackground
+        view.backgroundColor = .secondarySystemBackground
+        canvas.backgroundColor = .clear
+        canvas.isOpaque = false
         canvas.minimumZoomScale = 0.2
         canvas.maximumZoomScale = 10
         canvas.delegate = self
-        view.addSubview(canvas)
-
         if let pdf = document.pdf {
             let pages = PDFPagesView(pdf: pdf)
-            canvas.insertSubview(pages, at: 0)
+            view.addSubview(pages)
             self.pages = pages
         }
+        view.addSubview(canvas)
         let margin: CGFloat = 1000
         let bounds = document.drawing.bounds
         origin = bounds.isNull ? CGPoint(x: margin, y: margin)
@@ -130,10 +131,12 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
         placePages()
     }
 
+    // The pages sit behind the transparent canvas and follow its scrolling and zooming.
     private func placePages() {
         let zoom = canvas.zoomScale
+        let offset = canvas.contentOffset
         pages?.transform = CGAffineTransform(scaleX: zoom, y: zoom)
-        pages?.frame.origin = CGPoint(x: origin.x * zoom, y: origin.y * zoom)
+        pages?.frame.origin = CGPoint(x: origin.x * zoom - offset.x, y: origin.y * zoom - offset.y)
     }
 
     func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
@@ -144,6 +147,7 @@ final class CanvasController: UIViewController, PKCanvasViewDelegate {
     }
 
     func scrollViewDidZoom(_ scrollView: UIScrollView) { placePages() }
+    func scrollViewDidScroll(_ scrollView: UIScrollView) { placePages() }
 }
 
 // Pages stacked vertically, drawn as vectors so they stay sharp at any zoom.
